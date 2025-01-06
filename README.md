@@ -21,16 +21,30 @@
 - [ ] compare "SDL" with "Self-Guidance" drawers (not that important)
 
 
+----
+----
+
 
 ### Installation
+venv installation
 ```
 python3 -m venv ./.venv/
 source ./.venv/bin/activate
 pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu121
+pip install notebook ipywidgets
+pip install --upgrade transformers>=4.37.0
+```
+setup Qwen-VL
+```
+git clone git@github.com:QwenLM/Qwen-VL.git src/
+pip install -r src/Qwen-VL/requirements.txt
+```
+setup jupyter notebook from a secondary tmux session
+```
+python -m notebook --ip 0.0.0.0 --no-browser --port=8080 --allow-root
 ```
 
-----
-----
+
 
 ### Introduction
 We aim to leverage the prompting of large foundation models, such as stable diffusion, to enhance 2D image editing through a human-machine collaboration methodology. Our research focuses on the test-time adaptation of large generative models and human-in-the-loop methods in computer vision.
