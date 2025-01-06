@@ -8,8 +8,9 @@ I gave you some parallel task you can work independerntly on
 #### Marco's Tasks:
 - [ ] Set up the complete pipeline top-down with all modules:
   - VLM parser for reasoning
+    - download QWEN -- takes ages.
   - SDL drawer for image generation
-  - OpenCV shape editor for transformations
+  - OpenCV shape editor for transformations (already partly done by Onur) 
 
 #### Onur's Tasks:
 - [ ] Generate synthetic dataset for testing non-affine transformations. 
