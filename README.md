@@ -43,7 +43,6 @@ setup QWEN-2.5.Math:
 pip install --upgrade transformers>=4.37.0      
 # https://github.com/QwenLM/Qwen2.5-Math
 ```
-```
 
 setup Qwen-VL
 ```
