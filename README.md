@@ -72,13 +72,13 @@ This project builds upon the popular VLM-based pipeline, wherein a Vision-Langua
 
 Our goal is to enhance this pipeline by refining the "reasoning phase" prior to the drawing phase. The ehancement wouild enable to have almost matematicallty precise shape edits. The output from the reasoning module will generate detailed information about (a) shape transformations and (b) appearance transformations of the main objects, leading to a holistic system. This output will then be processed using the SDL method [^2] inspired by self-guidance formulation[^1], with an extension of the NVIDIA-addit [^3] module specifically designed for improving the location of the "add object" operation.
 
-![alt text](docs/approach.png)
+![alt text](./docs/approach.png)
 
 ***General Idea:** We aim to separate the reasoning process (Phase I) from the drawing phase (Phase II). Our contribution focuses on enhancing the Vision-Language Model (VLM) parsing of user prompts by extracting mathematical parameters that will be used to create masks for transformations, including both affine and non-affine types.*
 
 
 
-![alt text](docs/detailed_pipeline.png)
+![alt text](./docs/detailed_pipeline.png)
 ***Detailed Pipeline:** The source image is processed by a mathematically robust VLM (e.g., Qwen), which outputs a list of properties (mathematical parameters) related to appearance and shape edits. We then create a binary edit mask using the extracted parameters, which guides the drawing model (e.g., the latest version of Stable Diffusion) during the inference phase based on self-guidance equations[^3].*
 
 
