@@ -2,7 +2,6 @@
 
 ### To Do List
 
-# make the system work
 #### Marco's Tasks:
 - [ ] Set up the complete pipeline top-down with all modules:
   - VLM parser for reasoning
@@ -17,7 +16,7 @@
 - [ ] Integrate NVIDIA's Add-it module into codebase for improved object insertion
 
 
-### latest
+#### last
 - [ ] download magicbrush and evaluate
 - [ ] compare "SDL" with "Self-Guidance" drawers (not that important)
 
