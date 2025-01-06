@@ -2,9 +2,8 @@
 
 ### To Do List
 
-
 Please let me work on the pipeline so I can improve my code skills and learn.
-I gave you some parallalel task you can work independerntly with 
+I gave you some parallel task you can work independerntly on 
 
 #### Marco's Tasks:
 - [ ] Set up the complete pipeline top-down with all modules:
