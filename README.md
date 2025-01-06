@@ -2,6 +2,10 @@
 
 ### To Do List
 
+
+Please let me work on the pipeline so I can improve my code skills and learn.
+I gave you some parallalel task you can work independerntly with 
+
 #### Marco's Tasks:
 - [ ] Set up the complete pipeline top-down with all modules:
   - VLM parser for reasoning
@@ -9,16 +13,15 @@
   - OpenCV shape editor for transformations
 
 #### Onur's Tasks:
-- [ ] Generate synthetic dataset for non-affine transformations:
-  - Define edit prompts for each non-affine category
-  - Create training data
-  - Fine-tune the model
-- [ ] Integrate NVIDIA's Add-it module into codebase for improved object insertion
+- [ ] Generate synthetic dataset for testing non-affine transformations. 
+- [ ] re-think / define edit prompts for each non-affine category
 
+if the test dataset fails, than we can try fine-tuning QWEN.
 
-#### last
-- [ ] download magicbrush and evaluate
-- [ ] compare "SDL" with "Self-Guidance" drawers (not that important)
+#### Together (at last)
+- [ ] Integrate NVIDIA's Add-it module into pipeline for improved object insertion
+- [ ] download magicbrush and run/evaluate our pipeline on those testsevaluate
+- [ ] ablation studies compare "SDL" with "Self-Guidance" drawers (not that important)
 
 
 ----
