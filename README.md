@@ -37,11 +37,20 @@ pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https
 pip install notebook ipywidgets
 pip install --upgrade transformers>=4.37.0
 ```
+
+setup QWEN-2.5.Math:  
+```
+pip install --upgrade transformers>=4.37.0      
+# https://github.com/QwenLM/Qwen2.5-Math
+```
+```
+
 setup Qwen-VL
 ```
 git clone git@github.com:QwenLM/Qwen-VL.git src/
 pip install -r src/Qwen-VL/requirements.txt
 ```
+
 setup jupyter notebook from a secondary tmux session
 ```
 python -m notebook --ip 0.0.0.0 --no-browser --port=8080 --allow-root
