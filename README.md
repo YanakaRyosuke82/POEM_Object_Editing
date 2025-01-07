@@ -29,26 +29,22 @@ if the test dataset fails, than we can try fine-tuning QWEN.
 
 
 ### Installation
+SAM2 requires: python>=3.10, as well as torch>=2.5.1 and torchvision>=0.20.1
+QWEN requiire: transformers>=4.37.0
+
+
 venv installation
 ```
+h100sh
+module load python3/3.10.12
 python3 -m venv ./.venv/
 source ./.venv/bin/activate
-pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu121
-pip install notebook ipywidgets
-pip install --upgrade transformers>=4.37.0
+./scripts/install_packages.sh
+
+
 ```
 
-setup QWEN-2.5.Math:  
-```
-pip install --upgrade transformers>=4.37.0      
-# https://github.com/QwenLM/Qwen2.5-Math
-```
 
-setup Qwen-VL
-```
-git clone git@github.com:QwenLM/Qwen-VL.git src/
-pip install -r src/Qwen-VL/requirements.txt
-```
 
 setup jupyter notebook from a secondary tmux session
 ```
@@ -80,6 +76,13 @@ Our goal is to enhance this pipeline by refining the "reasoning phase" prior to 
 
 ![alt text](./docs/detailed_pipeline.png)
 ***Detailed Pipeline:** The source image is processed by a mathematically robust VLM (e.g., Qwen), which outputs a list of properties (mathematical parameters) related to appearance and shape edits. We then create a binary edit mask using the extracted parameters, which guides the drawing model (e.g., the latest version of Stable Diffusion) during the inference phase based on self-guidance equations[^3].*
+
+
+##### Observations
+QWEN2.5-Math only uses text input, can be used as an additional tool to improve the chain if the base VLM cannot finish the rasoning.
+
+image --> VLM parsing --> bbox locations, and class.  ---> QWEN -->> outputs transformation matrix ---> openCV transforms 
+class+bbox crop --> SAM --> binary mask
 
 
 
