@@ -2,3 +2,4 @@
 .venv2
 src/Qwen-VL
 __pycache__
+sam2.1_b.pt
