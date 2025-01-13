@@ -7,10 +7,16 @@ I gave you some parallel task you can work independerntly on
 
 #### Marco's Tasks:
 - [ ] Set up the complete pipeline top-down with all modules:
-  - VLM parser for reasoning
-    - download QWEN -- takes ages.
-  - SDL drawer for image generation
-  - OpenCV shape editor for transformations (already partly done by Onur) 
+  - [x] VLM parser for reasoning
+  - [x] OpenCV shape editor for transformations 
+  - [ ] SDL drawer for image generation
+  
+- [ ] evaluation
+  - [ ] Define Metric
+  - [ ] synthetic, or real dataset
+
+
+
 
 #### Onur's Tasks:
 - [ ] Generate synthetic dataset for testing non-affine transformations. 
@@ -102,3 +108,55 @@ Our goal is to enhance this pipeline by refining the "reasoning phase" prior to 
 [^2]: Wu, Tsung-Han, et al. "Self-correcting llm-controlled diffusion models." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2024.
 
 [^3]: Tewel, Yoad, et al. "Add-it: Training-Free Object Insertion in Images With Pretrained Diffusion Models." arXiv preprint arXiv:2411.07232 (2024).
+
+
+### ERRORS:
+
+
+0.
+```
+  from diffusers.models.dual_transformer_2d import DualTransformer2DModel
+  # at SLD/models/unet_2d_blocks.py
+ ``` 
+change it to 
+``` from diffusers.models.transformers.dual_transformer_2d import DualTransformer2DModel ```
+
+
+1. 
+```
+ImportError: cannot import name 'maybe_allow_in_graph' from 'diffusers.utils' (/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/.venv2/lib/python3.10/site-packages/diffusers/utils/__init__.py)
+```
+change it to ``` from diffusers.utils.torch_utils import maybe_allow_in_graph ``` or just comment out.
+
+
+
+2. 
+```
+ File "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/ext_module/SLD/models/attention_processor.py", line 21, in <module>
+    from diffusers.utils import deprecate, logging, maybe_allow_in_graph
+ImportError: cannot import name 'maybe_allow_in_graph' from 'diffusers.utils'
+```
+just comment out
+
+
+
+3.
+```
+ File "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/ext_module/SLD/models/models.py", line 5, in <module>
+    from easydict import EasyDict
+ModuleNotFoundError: No module named 'easydict'
+```
+fix with    ```pip install easydict```
+
+
+4.
+```
+  File "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/ext_module/SLD/utils/parse.py", line 7, in <module>
+    import inflect
+ModuleNotFoundError: No module named 'inflect'
+```
+
+
+5.  File "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/ext_module/SLD/sld/llm_chat.py", line 3, in <module>
+    from openai import OpenAI
+ModuleNotFoundError: No module named 'openai'

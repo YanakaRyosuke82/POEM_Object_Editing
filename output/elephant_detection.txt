@@ -15,3 +15,6 @@ Spatial Relationships:
 The elephant is the central focus of the image, with the path leading towards it. The trees and bushes are scattered around the background, and the sky is clear and blue.
 
 =====================
+
+TRASNFORM PARM:
+[ 1 2 3] 
