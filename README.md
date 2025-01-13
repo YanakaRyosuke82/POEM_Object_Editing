@@ -111,6 +111,11 @@ Our goal is to enhance this pipeline by refining the "reasoning phase" prior to 
 
 
 ### ERRORS:
+```
+modified:   models/attention.py
+modified:   models/attention_processor.py
+modified:   models/unet_2d_blocks.py
+```
 
 
 0.
