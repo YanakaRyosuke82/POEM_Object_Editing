@@ -8,3 +8,6 @@ pip install --upgrade transformers>=4.37.0
 
 # Install additional packages
 pip install notebook ipywidgets opencv-python qwen-vl-utils matplotlib ultralytics platformdirs
+
+# quality of life
+pip install tqdm lovely-tensors
