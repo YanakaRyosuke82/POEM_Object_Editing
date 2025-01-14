@@ -272,6 +272,8 @@ def run(
     Note: attention guidance is disabled for per-box generation by default (`max_index_step` set to 0) because we did not find it improving the results. Attention guidance and reference attention are still enabled for final guidance (overall generation). They greatly improve attribute binding compared to GLIGEN.
     """
 
+    breakpoint()
+
     frozen_step_ratio = min(max(frozen_step_ratio, 0.0), 1.0)
     frozen_steps = int(num_inference_steps * frozen_step_ratio)
     
