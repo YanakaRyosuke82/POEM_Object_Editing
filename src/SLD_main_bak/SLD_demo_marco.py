@@ -32,7 +32,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 # Operation #2: Deletion (Preprocessing region mask for removal)
-def get_remove_region(entry, remove_objects, move_objects, preserve_objs, models, config):
+def get_remove_region(entry,  remove_objects, move_objects, preserve_objs, models, config):
     """Generate a region mask for removal given bounding box info."""
 
     image_source = np.array(Image.open(entry["output"][-1]))
@@ -102,7 +102,7 @@ def get_attrmod_latent(entry, change_attr_objects, models, config):
     list: A list containing new latents and names of the modified objects.
     """
     if len(change_attr_objects) == 0:
-        return []
+        return [] 
     from diffusers import StableDiffusionDiffEditPipeline
     from diffusers import DDIMScheduler, DDIMInverseScheduler
 
@@ -121,9 +121,13 @@ def get_attrmod_latent(entry, change_attr_objects, models, config):
     pipe.enable_model_cpu_offload()
     new_change_objects = []
     for obj in change_attr_objects:
-        # Run diffedit
+        # Get the original object region using SAM
         old_object_region = run_sam_postprocess(run_sam(obj[1], image_source, models), H, W, config)
-        old_object_region = old_object_region.astype(np.bool_)[np.newaxis, ...]
+        
+        # Load the binary mask and ensure it's boolean
+        mask_image = np.array(entry["mask_image"])
+        mask_image = (mask_image > 0).astype(np.bool_)
+        mask_image = mask_image[np.newaxis, ...]
 
         new_object = obj[0].split(" #")[0]
         base_object = new_object.split(" ")[-1]
@@ -138,7 +142,7 @@ def get_attrmod_latent(entry, change_attr_objects, models, config):
         ).latents
         image = pipe(
             prompt=new_prompt,
-            mask_image=old_object_region,
+            mask_image=mask_image,  # Use the loaded binary mask directly
             image_latents=image_latents,
             guidance_scale=float(config.get("SLD", "diffedit_guidance_scale")),
             inpaint_strength=float(config.get("SLD", "diffedit_inpaint_strength")),
@@ -149,7 +153,7 @@ def get_attrmod_latent(entry, change_attr_objects, models, config):
         all_latents, _ = get_all_latents(np.array(image), models, inv_seed)
         new_change_objects.append(
             [
-                old_object_region[0],
+                old_object_region,  # Keep original region for reference
                 all_latents,
             ]
         )

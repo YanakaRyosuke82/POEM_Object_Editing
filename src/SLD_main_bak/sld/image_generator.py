@@ -1,3 +1,78 @@
+
+"""
+SLD (Semantic Latent Diffusion) Image Generator
+=============================================
+
+This module provides functionality for generating and manipulating images using a combination of 
+Stable Diffusion, GLIGEN, and SAM models. The main components are:
+
+Key Components
+-------------
+1. Single Object Generation
+   - Generates individual objects using GLIGEN with bounding box constraints
+   - Uses SAM for mask refinement
+   - Stores cross-attention maps for later guidance
+
+2. Overall Scene Generation  
+   - Combines individual objects into a coherent scene
+   - Supports adding new objects, moving existing ones, and removing regions
+   - Uses semantic guidance to ensure objects appear as intended
+
+3. Latent Space Operations
+   - Blends foreground and background latents
+   - Aligns and composes multiple latent representations
+   - Handles frozen regions during generation
+
+Main Functions
+-------------
+- generate_single_object_with_box(): Generates a single object within a bounding box
+- get_masked_latents_all_list(): Generates latents and masks for multiple objects
+- run(): Main entry point that orchestrates the entire generation pipeline
+
+Usage Example
+------------
+spec = {
+    "prompt": "A room with a red chair",
+    "add_objects": [("red chair", [100, 100, 200, 300])],
+    "remove_region": np.zeros((64, 64)),
+    "bg_prompt": "An empty room"
+}
+
+result = run(spec, 
+    num_inference_steps=50,
+    loss_scale=5.0,
+    verbose=True
+)
+
+Key Parameters
+-------------
+- Prompts: Control text descriptions for objects and scenes
+- Seeds: Control randomness in generation
+- Guidance Scales: Balance between prompt adherence and image quality  
+- Loss Parameters: Control optimization during generation
+- Scheduling: Control denoising process and guidance application
+
+The generation process uses a multi-stage pipeline that:
+1. Generates individual objects with spatial constraints
+2. Refines object masks and positions
+3. Composes objects into a coherent scene
+4. Applies semantic guidance to ensure objects appear as intended
+
+See the run() function documentation for detailed parameter descriptions.
+
+========================================================================================
+# To modify the shape/location of an existing object:
+# 1. Look at the compose_latents_with_alignment() function call around line 600
+#    This is where latents are composed with proper alignment
+# 2. The function takes spec["change_objects"] and spec["move_objects"] as inputs
+#    These specify object modifications
+# 3. To reshape an object, provide your binary mask in spec["change_objects"]
+#    The mask should be in latent space (64x64)
+# 4. To move an object, specify the new coordinates in spec["move_objects"]
+# 5. The actual composition happens in utils/latents.py in the compose_latents_with_alignment function
+========================================================================================
+"""
+
 import torch
 import models
 import utils
@@ -137,7 +212,7 @@ def generate_single_object_with_box(
         single_object_pil_image_box_ann,
     )
 
-
+####### ____________________________________________________________________________________________________________ they forced the latents to be 64x64
 def get_masked_latents_all_list(
     so_prompt_phrase_word_box_list,
     input_latents_list,

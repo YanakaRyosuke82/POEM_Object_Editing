@@ -181,7 +181,7 @@ def coord_transform(coords, width):
     )
     return new_coords
 
-
+###### !   important function -- Marco
 def inverse_warp(A, roi_A, B, roi_B_target, seg_map):
     """
     Perform an inverse warping of a region of interest from matrix A to matrix B.

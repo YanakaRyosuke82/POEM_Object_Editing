@@ -1,5 +1,52 @@
 # VLM_controller_for_SD
 
+
+
+### Make a Drawer.
+
+
+1. run backward diffusutransform the original image into latent features (IN-L_t:T-0)-original-image
+2. for each operation (e.g. 1 add, 2 remove, 3 modify object) have a different procedure 
+
+  - for addition: ()
+      1. pregenrate an object (e.g. the cat) raw from SD (IN-L_t:0-T)-to-add-object.
+      2. GROUNDING-SAM (open set detector SAM) operates on the iamge-space 512x512 image, and gets the binary mask of the "to-add-object-all-latents". need to know which area of the latents has the object. (for FUTURE research we could also test the mask extracted via LIME process.)
+      3. move the latents from (IN-L_t:T-0)-to-add-object TO (IN-L_t:T-0)-original-image:
+        - copy paste them with some type of warping "inverse_warp" to fit the magicbrush location
+        - run the denosing with a paramter M (merge), which tells how many steps to interleave the added objects with uinconstrained genration steps
+      BONUS POINT:  SCALE THEM AUTOMATICALLY AND IMPROVE LOCATION BASED ON ADDITn-nvidia
+
+  - remove:
+      1. locate the object to be removed via bbox, and sam. INSIDE (has object) and OUTSIDE mask (has not object)
+      2. reset latents to gaussian noise of the INSIDE-MASK ONLY at (IN-L_t:T)-original-image
+      3. run denoising of new image: COPY-PASTE latents of the OUTSIDE mask at every single step
+
+  - modify object:
+      shape (and location)
+      1.use the object bbox and apply the transformation in the latent sapce or iamge space + cross attention optimizaition (like self-guidance)
+
+      appearance:
+        - run DiffEdit.
+      
+
+CODE DESIGN:
+1. main () get as input the binary mask, bbox parameters.
+  
+      
+
+
+
+
+
+   and then inverse_warp it based on BBox and Segmentation(apply to all the constrainted by bounding box;  then 2 integrate it into the original image latent space.
+
+
+
+
+
+
+
+
 ### To Do List
 
 Please let me work on the pipeline so I can improve my code skills and learn.
