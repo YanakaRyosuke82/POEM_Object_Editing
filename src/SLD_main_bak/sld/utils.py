@@ -2,8 +2,8 @@ import os
 import cv2
 import torch
 import numpy as np
-from models import sam
-from models import pipelines
+from models_marco import sam
+from models_marco import pipelines
 
 
 DEFAULT_SO_NEGATIVE_PROMPT = "artifacts, blurry, smooth texture, bad quality, distortions, unrealistic, distorted image, bad proportions, duplicate, two, many, group, occlusion, occluded, side, border, collate"

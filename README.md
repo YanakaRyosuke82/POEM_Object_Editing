@@ -35,9 +35,6 @@ CODE DESIGN:
       
 
 
-
-
-
    and then inverse_warp it based on BBox and Segmentation(apply to all the constrainted by bounding box;  then 2 integrate it into the original image latent space.
 
 
@@ -90,6 +87,7 @@ venv installation
 ```
 h100sh
 module load python3/3.10.12
+module load cuda
 python3 -m venv ./.venv/
 source ./.venv/bin/activate
 ./scripts/install_packages.sh

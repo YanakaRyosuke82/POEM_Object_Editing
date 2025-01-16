@@ -4,7 +4,7 @@ from . import utils
 from utils import torch_device
 import matplotlib.pyplot as plt
 from PIL import Image
-import models
+import models_marco
 import torch.nn.functional as F
 
 # from models import pipelines, encode_prompts
@@ -436,7 +436,7 @@ def compose_latents_with_alignment(
 
 
 def get_init_bg(model_dict):
-    from models import pipelines
+    from models_marco import pipelines
 
     print("haha here am I!", flush=True)
     init_image = Image.open("check.png")
@@ -452,14 +452,14 @@ def get_init_bg(model_dict):
         model_dict.dtype,
     )
 
-    input_embeddings = models.encode_prompts(
+    input_embeddings = models_marco.encode_prompts(
         prompts=["A forest"],
         tokenizer=tokenizer,
         text_encoder=text_encoder,
         negative_prompt="",
         one_uncond_input_only=False,
     )
-    all_latents = models.pipelines.invert(
+    all_latents = models_marco.pipelines.invert(
         model_dict,
         cln_latents,
         input_embeddings,

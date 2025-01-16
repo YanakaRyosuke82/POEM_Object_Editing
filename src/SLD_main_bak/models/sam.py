@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from models import torch_device
+from models_marco import torch_device
 from transformers import SamModel, SamProcessor
 import utils
 from utils import vis

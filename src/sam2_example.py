@@ -43,8 +43,7 @@ def show_box(box, ax):
     w, h = box[2] - box[0], box[3] - box[1]
     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor="green", facecolor=(0, 0, 0, 0), lw=2))
 
-
-def show_masks(image, masks, scores, point_coords=None, box_coords=None, input_labels=None, borders=True):
+def show_masks(image, masks, scores, point_coords=None, box_coords=None, input_labels=None, borders=True, save_path=None):
     for i, (mask, score) in enumerate(zip(masks, scores)):
         plt.figure(figsize=(10, 10))
         plt.imshow(image)
@@ -58,13 +57,16 @@ def show_masks(image, masks, scores, point_coords=None, box_coords=None, input_l
         if len(scores) > 1:
             plt.title(f"Mask {i+1}, Score: {score:.3f}", fontsize=18)
         plt.axis("off")
-        plt.show()
+        if save_path is not None:
+            plt.savefig(f"{save_path}/mask_{i+1}.png")
+        else:
+            plt.show()
 
 
 predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2-hiera-tiny")
 
 with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-    image = cv2.imread("data/demo.jpeg")
+    image = cv2.imread("/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/data/demo.jpeg")
     input_box = np.array([425, 600, 700, 875])
     predictor.set_image(image)
     masks, scores, _ = predictor.predict(
@@ -77,4 +79,4 @@ with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
     print(masks.shape)
     print(scores)
 
-show_masks(image, masks, scores, box_coords=input_box)
+show_masks(image, masks, scores, box_coords=input_box, save_path="/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/data/masks")

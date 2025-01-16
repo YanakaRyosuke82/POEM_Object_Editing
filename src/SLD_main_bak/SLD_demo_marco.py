@@ -13,8 +13,8 @@ import torch
 import diffusers
 
 # Libraries heavily borrowed from LMD
-import models
-from models import sam
+import models_marco
+from models_marco import sam
 from utils import parse, utils
 
 # SLD specific imports
@@ -319,18 +319,18 @@ if __name__ == "__main__":
     config.read(args.config)
 
     # Load models
-    models.sd_key = "gligen/diffusers-generation-text-box"
-    models.sd_version = "sdv1.4"
+    models_marco.sd_key = "gligen/diffusers-generation-text-box"
+    models_marco.sd_version = "sdv1.4"
     diffusion_scheduler = None
 
-    models.model_dict = models.load_sd(
-        key=models.sd_key,
+    models_marco.model_dict = models_marco.load_sd(
+        key=models_marco.sd_key,
         use_fp16=False,
         load_inverse_scheduler=True,
         scheduler_cls=diffusers.schedulers.__dict__[diffusion_scheduler] if diffusion_scheduler is not None else None,
     )
     sam_model_dict = sam.load_sam()
-    models.model_dict.update(sam_model_dict)
+    models_marco.model_dict.update(sam_model_dict)
     from sld import image_generator
 
     det = OWLVITV2Detector()
@@ -444,13 +444,13 @@ if __name__ == "__main__":
 
         print("-" * 5 + f" Image Manipulation " + "-" * 5)
 
-        deletion_region = get_remove_region(entry, deletion_objs, repositioning_objs, [], models, config)
-        repositioning_objs = get_repos_info(entry, repositioning_objs, models, config)
-        attr_modification_objs = get_attrmod_latent(entry, attr_modification_objs, models, config)
+        deletion_region = get_remove_region(entry, deletion_objs, repositioning_objs, [], models_marco, config)
+        repositioning_objs = get_repos_info(entry, repositioning_objs, models_marco, config)
+        attr_modification_objs = get_attrmod_latent(entry, attr_modification_objs, models_marco, config)
 
         ##### MAIN MAGIC #####
         ret_dict = correction(
-            entry, addition_objs, repositioning_objs, deletion_region, attr_modification_objs, models, config
+            entry, addition_objs, repositioning_objs, deletion_region, attr_modification_objs, models_marco, config
         )
         # Save an intermediate file without the SDXL refinement
         curr_output_fname = os.path.join(dirname, f"intermediate_{rel_fname}.png")

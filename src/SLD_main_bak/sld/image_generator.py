@@ -74,12 +74,12 @@ See the run() function documentation for detailed parameter descriptions.
 """
 
 import torch
-import models
+import models_marco
 import utils
 import numpy as np
 from easydict import EasyDict
 
-from models import pipelines, sam, model_dict
+from models_marco import pipelines, sam, model_dict
 from utils import parse, guidance, attn, latents, vis
 from utils.latents import get_scaled_latents
 from sld.utils import DEFAULT_SO_NEGATIVE_PROMPT, DEFAULT_OVERALL_NEGATIVE_PROMPT
@@ -463,7 +463,7 @@ def run(
         with torch.autocast("cuda", enabled=use_autocast):
             so_prompts = [item[0] for item in so_prompt_phrase_word_box_list]
             if so_prompts:
-                so_input_embeddings = models.encode_prompts(
+                so_input_embeddings = models_marco.encode_prompts(
                     prompts=so_prompts,
                     tokenizer=tokenizer,
                     text_encoder=text_encoder,
@@ -627,7 +627,7 @@ def run(
             )
             
             # Encode final prompt embeddings
-            overall_input_embeddings = models.encode_prompts(
+            overall_input_embeddings = models_marco.encode_prompts(
                 prompts=[overall_prompt],
                 tokenizer=tokenizer,
                 negative_prompt=overall_negative_prompt,
@@ -699,10 +699,10 @@ def run(
             overall_negative_prompt = DEFAULT_OVERALL_NEGATIVE_PROMPT
             
         # Encode prompt embeddings
-        overall_input_embeddings = models.encode_prompts(
+        overall_input_embeddings = models_marco.encode_prompts(
             prompts=[prompt],
-            tokenizer=models.model_dict.tokenizer,
-            text_encoder=models.model_dict.text_encoder,
+            tokenizer=models_marco.model_dict.tokenizer,
+            text_encoder=models_marco.model_dict.text_encoder,
             negative_prompt=overall_negative_prompt,
             one_uncond_input_only=False,
         )
