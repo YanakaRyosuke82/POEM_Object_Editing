@@ -191,7 +191,7 @@ def test_modify_object(image_path: str, transform_matrix: np.ndarray, mask_path:
         safety_checker=None,
         torch_dtype=dtype
     ).to(device)
-    temp_dir = "temp_latents"
+    temp_dir = "output/temp_latents"
     os.makedirs(temp_dir, exist_ok=True)
     logging.info(f"Saving verifying intermediate results to {os.path.abspath(temp_dir)}...")
 

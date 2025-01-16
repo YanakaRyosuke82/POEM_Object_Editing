@@ -139,10 +139,10 @@ def ddim_inversion(imgname: str, num_steps: int = 50, verify: bool = False) -> t
         fig, (ax1, ax2) = plt.subplots(1, 2)
         ax1.imshow(tvt.ToPILImage()(input_img[0]))
         ax2.imshow(image.images[0])
-        plt.savefig('verification_result.png')
+        plt.savefig('output/verification_result.png')
 
         # Save intermediate results
-        temp_dir = "temp_latents"
+        temp_dir = "output/temp_latents"
         os.makedirs(temp_dir, exist_ok=True)
         logging.info(f"Saving verifying intermediate results to {os.path.abspath(temp_dir)}...")
 
