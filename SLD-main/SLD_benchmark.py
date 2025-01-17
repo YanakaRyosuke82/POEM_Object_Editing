@@ -7,6 +7,7 @@ import numpy as np
 import argparse
 import configparser
 from PIL import Image
+import cv2
 import logging
 
 import torch
@@ -82,28 +83,53 @@ def get_remove_region(entry, remove_objects, move_objects, preserve_objs, models
 
 
 # Operation #3: Repositioning (Preprocessing latent)
-def get_repos_info(entry, move_objects, models, config):
+def get_repos_info(entry, move_objects, models, config, custom_masks=None):
     """
-    Updates a list of objects to be moved / reshaped, including resizing images and generating masks.
-    * Important: Perform image reshaping at the image-level rather than the latent-level.
-    * Warning: For simplicity, the object is not positioned to the center of the new region...
+    Updates a list of objects to be moved /Updates a list of objects to be moved/reshaped using either SAM-generated masks or custom binary masks.
+    
+    Parameters:
+        entry: Dictionary containing image information
+        move_objects: List of objects to move
+        models: Model dictionary
+        config: Configuration object
+        custom_masks: Optional dictionary mapping object names to (mask, transform_matrix) tuples
+                     where mask is a binary numpy array and transform_matrix is a 3x3 transformation matrix
     """
 
     # if no remove objects, set zero to the whole mask
     if not move_objects:
         return move_objects
+    
     image_source = np.array(Image.open(entry["output"][-1]))
     H, W, _ = image_source.shape
     inv_seed = int(config.get("SLD", "inv_seed"))
 
     new_move_objects = []
     for item in move_objects:
-        new_img, obj = resize_image(image_source, item[0][1], item[1][1])
-        old_object_region = run_sam_postprocess(run_sam(obj, new_img, models), H, W, config).astype(np.bool_)
-        all_latents, _ = get_all_latents(new_img, models, inv_seed)
-        new_move_objects.append(
-            [item[0][0], obj, item[1][1], old_object_region, all_latents]
-        )
+        obj_name = item[0][0]  # Get object name
+        
+        if custom_masks is not None and obj_name in custom_masks:
+            # Use provided custom mask and transform
+            mask, transform = custom_masks[obj_name]
+            old_object_region = mask.astype(np.bool_)
+            
+            # Apply transformation to the image region
+            transformed_img = cv2.warpPerspective(image_source, transform, (W, H))
+            
+            # Get latents for the transformed image
+            all_latents, _ = get_all_latents(transformed_img, models, inv_seed)
+            
+            new_move_objects.append(
+                [item[0][0], None, item[1][1], old_object_region, all_latents]
+            )
+        else:
+            # Original SAM-based logic
+            new_img, obj = resize_image(image_source, item[0][1], item[1][1])
+            old_object_region = run_sam_postprocess(run_sam(obj, new_img, models), H, W, config).astype(np.bool_)
+            all_latents, _ = get_all_latents(new_img, models, inv_seed)
+            new_move_objects.append(
+                [item[0][0], obj, item[1][1], old_object_region, all_latents]
+            )
 
     return new_move_objects
 

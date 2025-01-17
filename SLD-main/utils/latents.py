@@ -6,7 +6,11 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import models
 import torch.nn.functional as F
-
+from torchvision import transforms as tvt
+import os
+import logging
+import math
+import cv2
 # from models import pipelines, encode_prompts
 
 
@@ -182,6 +186,192 @@ def coord_transform(coords, width):
     return new_coords
 
 
+def apply_affine_transformation(image, bbox, transformation_matrix):
+    """
+    Applies any 3x3 affine transformation to the content inside a normalized bounding box.
+
+    Parameters:
+    - image: Input image (numpy array).
+    - bbox: Normalized bounding box in the format [Top-left x, Top-left y, Width, Height].
+    - transformation_matrix: 3x3 affine transformation matrix (numpy array).
+    
+    Returns:
+    - Transformed image with the affine transformation applied to the bbox area.
+    """
+    # Get image dimensions
+    img_h, img_w = image.shape[:2]
+
+    # Denormalize the bounding box coordinates
+    x = int(bbox[0] * img_w)
+    y = int(bbox[1] * img_h)
+    w = int(bbox[2] * img_w)
+    h = int(bbox[3] * img_h)
+
+    # Extract the region of interest (ROI)
+    roi = image[y:y+h, x:x+w]
+
+    # Calculate center of ROI
+    roi_center_x = w // 2
+    roi_center_y = h // 2
+
+    # Create translation matrices
+    translation_to_origin = np.array([
+        [1, 0, -roi_center_x],
+        [0, 1, -roi_center_y],
+        [0, 0, 1]
+    ])
+    translation_back = np.array([
+        [1, 0, roi_center_x],
+        [0, 1, roi_center_y],
+        [0, 0, 1]
+    ])
+
+    # Combine transformations: translate to origin -> transform -> translate back
+    final_transform = translation_back @ transformation_matrix @ translation_to_origin
+
+    # Perform the affine transformation on the ROI
+    transformed_roi = cv2.warpPerspective(roi, final_transform, (w, h), flags=cv2.INTER_LINEAR)
+
+    # Create output image
+    transformed_image = image.copy()
+    transformed_image[y:y+h, x:x+w] = transformed_roi
+
+    return transformed_image
+
+
+
+def inverse_warp_with_transformation_matrix_marco(A, roi_A, B, seg_map, transform_matrix):
+    """
+    Perform an inverse warping with affine transformation of a region from matrix A to B.
+    
+    Parameters:
+    - A: Source tensor [51, 1, 4, 64, 64]
+    - roi_A: Source region [x_min, x_max, y_min, y_max]
+    - B: Target tensor [51, 1, 4, 64, 64] 
+    - seg_map: Binary segmentation mask [64, 64]
+    - transform_matrix: 3x3 affine transformation matrix
+    """
+
+    print("inverse_warp_with_transformation_matrix_marco")
+    x_min, x_max, y_min, y_max = roi_A
+    
+    # Convert bbox format for apply_affine_transformation
+    bbox = [x_min/64.0, y_min/64.0, (x_max-x_min)/64.0, (y_max-y_min)/64.0]
+
+    for i in range(B.shape[0]):
+        # Process each channel separately
+        for c in range(B.shape[2]):
+            latent_2D = B[i, 0, c].cpu().numpy()  # Get single channel
+            latent_2D = apply_affine_transformation(latent_2D, bbox, transform_matrix)
+            B[i, 0, c] = torch.from_numpy(latent_2D)
+
+
+    # Process segmentation mask
+    mask_2D = torch.from_numpy(seg_map).float().cpu().numpy()  # Convert to numpy
+    mask_2D = apply_affine_transformation(mask_2D, bbox, transform_matrix)  # Apply same transform
+    new_mask = torch.from_numpy(mask_2D).to(A.device)  # Convert back to tensor
+    new_mask = new_mask.bool()
+
+
+    breakpoint()
+    
+    return B, new_mask
+
+        
+
+def inverse_warp_with_transformation_matrix(A, roi_A, B, seg_map, transform_matrix):
+    """
+    Perform an inverse warping with affine transformation of a region from matrix A to B.
+    
+    Parameters:
+    - A: Source tensor [51, 1, 4, 64, 64]
+    - roi_A: Source region [x_min, x_max, y_min, y_max]
+    - B: Target tensor [51, 1, 4, 64, 64] 
+    - seg_map: Binary segmentation mask [64, 64]
+    - transform_matrix: 3x3 affine transformation matrix
+    """
+
+
+
+    # Prepare tensors
+    A = A.squeeze(1)  # [51, 4, 64, 64]
+    B = B.squeeze(1)
+    
+    # Extract source ROI dimensions
+    x_min, x_max, y_min, y_max = roi_A
+    h, w = y_max - y_min, x_max - x_min
+    
+    # Create coordinate grid for the source ROI
+    y_range = torch.arange(h, dtype=torch.float32, device=A.device)
+    x_range = torch.arange(w, dtype=torch.float32, device=A.device)
+    y_coords, x_coords = torch.meshgrid(y_range, x_range)
+    
+    # Calculate center of image
+    image_center_x = 32
+    image_center_y = 32
+    
+    # Calculate ROI center
+    roi_center_x = (x_min + x_max) / 2
+    roi_center_y = (y_min + y_max) / 2
+    
+    # Translation to image center
+    translation_to_center = np.array([
+        [1, 0, image_center_x - roi_center_x],
+        [0, 1, image_center_y - roi_center_y],
+        [0, 0, 1]
+    ])
+    
+    # Translation back from center
+    translation_from_center = np.array([
+        [1, 0, -(image_center_x - roi_center_x)],
+        [0, 1, -(image_center_y - roi_center_y)],
+        [0, 0, 1]
+    ])
+    
+    # Combine transformations: translate to center -> rotate -> translate back
+    final_transform = translation_from_center @ transform_matrix @ translation_to_center
+    
+    # Create homogeneous coordinates for the ROI
+    x_coords = x_coords + x_min  # Offset to ROI position
+    y_coords = y_coords + y_min  # Offset to ROI position
+    ones = torch.ones_like(x_coords)
+    source_coords = torch.stack([x_coords, y_coords, ones], dim=-1).float()
+    
+    # Transform coordinates using combined transformation
+    transform = torch.from_numpy(final_transform).float().to(A.device)
+    transformed_coords = torch.matmul(source_coords, transform.T)
+    
+    # Get target coordinates
+    target_x = transformed_coords[..., 0].long().clamp(0, 63)
+    target_y = transformed_coords[..., 1].long().clamp(0, 63)
+    
+    # Create mask from segmentation map and apply ROI
+    seg_mask = torch.from_numpy(seg_map).float().to(A.device)
+    roi_seg_mask = seg_mask[y_min:y_max, x_min:x_max]
+    
+    # Copy transformed pixels only where seg_map indicates
+    for batch in range(A.shape[0]):
+        for channel in range(A.shape[1]):
+            for i in range(h):
+                for j in range(w):
+                    tx, ty = target_x[i, j], target_y[i, j]
+                    if roi_seg_mask[i, j] > 0:  # Only transform pixels in seg_map
+                        B[batch, channel, ty, tx] = A[batch, channel, y_min + i, x_min + j]
+    
+    # Restore dimensions
+    A = A.unsqueeze(1)
+    B = B.unsqueeze(1)
+    
+    # Create transformed mask by applying same transform to seg_map
+    new_mask = torch.zeros((64, 64), dtype=bool, device=A.device)
+    for i in range(h):
+        for j in range(w):
+            if roi_seg_mask[i, j] > 0:
+                tx, ty = target_x[i, j], target_y[i, j]
+                new_mask[ty, tx] = True
+                
+    return B, new_mask
+
 def inverse_warp(A, roi_A, B, roi_B_target, seg_map):
     """
     Perform an inverse warping of a region of interest from matrix A to matrix B.
@@ -295,6 +485,8 @@ def compose_latents_with_alignment(
     bg_seed=1,
     **kwargs,
 ):
+  
+    print("MARCOOOOOOOO")
     if align_with_overall_bboxes and len(latents_all_list):
         expanded_overall_bboxes = utils.expand_overall_bboxes(overall_bboxes)
         latents_all_list, mask_tensor_list, offset_list = align_with_bboxes(
@@ -313,7 +505,10 @@ def compose_latents_with_alignment(
     # latents_all_list.append(latents_bg_lists)
     # mask_tensor_list.append(bg_mask)
 
+
+
     for obj_name, old_obj, new_obj, seg_map, all_latents in move_objects:
+
         # print(all_latents.shape)
         # exit()
         # x_min_old, x_max_old, y_min_old, y_max_old
@@ -321,9 +516,59 @@ def compose_latents_with_alignment(
         # x_min_new, x_max_new, y_min_new, y_max_new
         new_coords = coord_transform(new_obj, 64)
         new_latents = all_latents.clone()
-        new_latents, new_mask = inverse_warp(
-            all_latents, old_coords, new_latents, new_coords, seg_map
+
+
+
+
+         # Define 45 degree clockwise rotation matrix
+        angle = -45  # negative for clockwise rotation
+        angle_rad = math.radians(angle)
+        cos_theta = math.cos(angle_rad)
+        sin_theta = math.sin(angle_rad)
+        
+        # Create 3x3 affine transformation matrix for 45 degree rotation
+        transform_matrix = np.array([
+            [cos_theta, -sin_theta, 0],
+            [sin_theta, cos_theta, 0], 
+            [0, 0, 1]
+        ])
+
+        # Call with correct parameter order
+        new_latents, new_mask = inverse_warp_with_transformation_matrix_marco(
+            A=all_latents,
+            roi_A=old_coords,
+            B=new_latents,
+            seg_map=seg_map,
+            transform_matrix=transform_matrix
         )
+
+
+        # Save the new mask as a PNG file
+        mask_image = Image.fromarray((new_mask.cpu().numpy() * 255).astype(np.uint8))
+        mask_image.save(f"new_mask_{obj_name.replace(' ', '_')}.png")
+
+        # Save latents as images as PNG files
+        temp_dir = "temp_latent_vis"
+        os.makedirs(temp_dir, exist_ok=True)
+        logging.info(f"Saving verifying intermediate results to {os.path.abspath(temp_dir)}...")
+        step_size = max(len(new_latents) // 10, 1)
+        for i in range(0, len(new_latents), step_size):
+            latent = new_latents[i]
+            latent_viz = latent / 0.18215
+        
+            # Visualize latent channels
+            latent_channels = latent_viz[0, :3]
+            latent_channels = (latent_channels - latent_channels.min()) / (
+                latent_channels.max() - latent_channels.min()
+            )
+            tvt.ToPILImage()(latent_channels).save(
+                os.path.join(temp_dir, f"latent_channels_{i:04d}.png")
+            )
+
+
+        breakpoint()
+
+
         # plot_feat(new_latents[-1], "feat_after.png")
         # plot_feat(all_latents[-1], "feat_before.png")
         # plot_feat(new_latents[-1], "feat_after.png")

@@ -1,0 +1,2 @@
+Mask Bounding Box (normalized):
+xmin=0.059, ymin=0.311, xmax=0.441, ymax=0.924

@@ -12,6 +12,17 @@
         "llm_layout_suggestions": [
             ["dog #1", [0.003, 0.209, 0.447, 0.62]], 
             ["cat #1", [0.457, 0.342, 0.441, 0.595]]
-        ]
+        ],
+        "custom_transforms": {
+            "dog #1": {
+                "source_mask": "demo/image_editing/src_image/masks/indoor_scene_source_mask.npy",
+                "target_mask": "demo/image_editing/src_image/masks/indoor_scene_target_mask.npy",
+                "transform_matrix": [
+                    [1.0, 0.0, -20.0],
+                    [0.0, 1.0, 60.0],
+                    [0.0, 0.0, 1.0]
+                ]
+            }
+        }
     }
 ]
