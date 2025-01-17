@@ -34,7 +34,7 @@ def test_modify_object(image_path: str, transform_matrix: np.ndarray, mask_path:
         Modified image array at 64x64 scale
     """
 
-    latents_history = ddim_inversion(image_path, num_steps=50, verify=True) # 50,1,4,64,64
+    latents_history = ddim_inversion(image_path, num_steps=500, verify=True) # 50,1,4,64,64
 
     # Load image and mask
     image = cv2.imread(image_path)
@@ -179,6 +179,13 @@ def test_modify_object(image_path: str, transform_matrix: np.ndarray, mask_path:
             # Update latents_history
             latents_history[t, 0, c] = torch.from_numpy(denormalized_channel).to(latents_history.device)
 
+    # Save updated latents_history tensor
+    output_dir = "output/modified_latents"
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, "modified_latents_history.pt")
+    torch.save(latents_history, output_path)
+    logging.info(f"Saved modified latents history to {os.path.abspath(output_path)}")
+
     # save image ================================
      # Initialize models
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -191,7 +198,7 @@ def test_modify_object(image_path: str, transform_matrix: np.ndarray, mask_path:
         safety_checker=None,
         torch_dtype=dtype
     ).to(device)
-    temp_dir = "output/temp_latents"
+    temp_dir = "output/DIM_17_JAN"
     os.makedirs(temp_dir, exist_ok=True)
     logging.info(f"Saving verifying intermediate results to {os.path.abspath(temp_dir)}...")
 

@@ -71,7 +71,7 @@ def img_to_latents(x: torch.Tensor, vae: AutoencoderKL) -> torch.Tensor:
 
 
 @torch.no_grad()
-def ddim_inversion(imgname: str, num_steps: int = 50, verify: bool = False) -> torch.Tensor:
+def ddim_inversion(imgname: str, num_steps: int = 500, verify: bool = False) -> torch.Tensor:
     """
     Perform DDIM inversion on an input image.
 
