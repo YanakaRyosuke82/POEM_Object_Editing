@@ -5,3 +5,6 @@ and SLD_demo.py
 
 
 we need to check the rotation better. and separate thje latetens fo the two objects in the modify list defiend in data.json
+
+
+expand the bbox to fit the rotation.
