@@ -11,6 +11,8 @@ import os
 import logging
 import math
 import cv2
+
+from utils.affine_transformation_marco import apply_affine_transform, define_affine_transformation
 # from models import pipelines, encode_prompts
 
 
@@ -174,21 +176,33 @@ def align_with_bboxes(
 
 
 def coord_transform(coords, width):
+    """
+    Transforms coordinates from normalized [Top-left x, Top-left y, Height, Width] format
+    to pixel coordinates in [x_min, x_max, y_min, y_max] format.
+    
+    Args:
+        coords: Normalized coordinates [x_min, y_min, height, width] in range [0,1]
+        width: Width of the target image in pixels
+        
+    Returns:
+        Tuple of integer pixel coordinates (x_min, x_max, y_min, y_max)
+    """
     x_min, y_min, h, w = coords
-    x_max = x_min + h
-    y_max = y_min + w
+    x_max = x_min + h  # Add height to get x_max
+    y_max = y_min + w  # Add width to get y_max
     new_coords = (
-        int(x_min * width),
-        int(x_max * width),
-        int(y_min * width),
-        int(y_max * width),
+        int(x_min * width),  # Scale x_min to pixels
+        int(x_max * width),  # Scale x_max to pixels  
+        int(y_min * width),  # Scale y_min to pixels
+        int(y_max * width),  # Scale y_max to pixels
     )
     return new_coords
 
 
-def apply_affine_transformation(image, bbox, transformation_matrix):
+def apply_affine_transformation_gpt(image, bbox, transformation_matrix):
     """
     Applies any 3x3 affine transformation to the content inside a normalized bounding box.
+    Handles cases where transformed content goes outside image boundaries by cropping.
 
     Parameters:
     - image: Input image (numpy array).
@@ -200,7 +214,7 @@ def apply_affine_transformation(image, bbox, transformation_matrix):
     """
     # Get image dimensions
     img_h, img_w = image.shape[:2]
-
+    
     # Denormalize the bounding box coordinates
     x = int(bbox[0] * img_w)
     y = int(bbox[1] * img_h)
@@ -208,57 +222,7 @@ def apply_affine_transformation(image, bbox, transformation_matrix):
     h = int(bbox[3] * img_h)
 
     # Extract the region of interest (ROI)
-    roi = image[y:y+h, x:x+w]
-
-    # Calculate center of ROI
-    roi_center_x = w // 2
-    roi_center_y = h // 2
-
-    # Create translation matrices
-    translation_to_origin = np.array([
-        [1, 0, -roi_center_x],
-        [0, 1, -roi_center_y],
-        [0, 0, 1]
-    ])
-    translation_back = np.array([
-        [1, 0, roi_center_x],
-        [0, 1, roi_center_y],
-        [0, 0, 1]
-    ])
-
-    # Combine transformations: translate to origin -> transform -> translate back
-    final_transform = translation_back @ transformation_matrix @ translation_to_origin
-
-    # Perform the affine transformation on the ROI
-    transformed_roi = cv2.warpPerspective(roi, final_transform, (w, h), flags=cv2.INTER_LINEAR)
-
-    # Create output image
-    transformed_image = image.copy()
-    transformed_image[y:y+h, x:x+w] = transformed_roi
-
-    return transformed_image
-
-
-def apply_affine_transformation_gpt(image, bbox, transformation_matrix):
-    """
-    Applies any 3x3 affine transformation to the content inside a normalized bounding box.
-    Expands the bounding box to include the transformed content.
-
-    Parameters:
-    - image: Input image (numpy array).
-    - bbox: Normalized bounding box in the format [Top-left x, Top-left y, Width, Height].
-    - transformation_matrix: 3x3 affine transformation matrix (numpy array).
-    
-    Returns:
-    - Transformed image with the affine transformation applied to the bbox area.
-    """
-    # Get image dimensions
-    img_h, img_w = image.shape[:2]
-    # Denormalize the bounding box coordinates
-    x = int(bbox[0] * img_w)
-    y = int(bbox[1] * img_h)
-    w = int(bbox[2] * img_w)
-    h = int(bbox[3] * img_h)
+    roi_original = image[y:y+h, x:x+w].copy()
 
     # Calculate center of original bbox
     center_x = x + w//2
@@ -292,80 +256,87 @@ def apply_affine_transformation_gpt(image, bbox, transformation_matrix):
     transformed_corners[:, 0] = transformed_corners[:, 0] / transformed_corners[:, 2]
     transformed_corners[:, 1] = transformed_corners[:, 1] / transformed_corners[:, 2]
 
-    # Create figure and axis
+    # Get bounds of transformed corners before cropping
+    x_min_uncropped = np.floor(transformed_corners[:, 0].min()).astype(int)
+    y_min_uncropped = np.floor(transformed_corners[:, 1].min()).astype(int)
+    x_max_uncropped = np.ceil(transformed_corners[:, 0].max()).astype(int)
+    y_max_uncropped = np.ceil(transformed_corners[:, 1].max()).astype(int)
+
+    # Calculate size needed for full transformed image
+    w_uncropped = x_max_uncropped - x_min_uncropped
+    h_uncropped = y_max_uncropped - y_min_uncropped
+
+    # Create transformation matrix that maps from ROI coordinates to output coordinates
+    roi_to_output = np.array([
+        [1, 0, -x_min_uncropped],
+        [0, 1, -y_min_uncropped],
+        [0, 0, 1]
+    ])
+    
+    # Combine all transformations
+    full_transform = roi_to_output @ final_transform
+    
+    # Apply the transformation to the ROI
+    transformed_full = cv2.warpAffine(
+        roi_original,
+        full_transform[:2], # Take only first 2 rows for cv2.warpAffine
+        (w_uncropped, h_uncropped),
+        flags=cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_CONSTANT
+    )
+
+    # Now crop to image boundaries
+    x_min = int(max(0, x_min_uncropped))
+    y_min = int(max(0, y_min_uncropped))
+    x_max = int(min(img_w, x_max_uncropped))
+    y_max = int(min(img_h, y_max_uncropped))
+
+    # Calculate offsets into uncropped image
+    x_offset = int(x_min - x_min_uncropped)
+    y_offset = int(y_min - y_min_uncropped)
+    crop_w = x_max - x_min
+    crop_h = y_max - y_min
+
+    # Extract cropped region from full transformation
+    transformed_cropped = transformed_full[y_offset:y_offset+crop_h, x_offset:x_offset+crop_w]
+
+    # Create output image and paste cropped result
+    transformed_image = image.copy()
+    transformed_image[y_min:y_max, x_min:x_max] = transformed_cropped
+
+    # For debugging, save visualization of bounding boxes
     plt.figure(figsize=(10, 10))
     plt.imshow(image)
+    
+    # Plot original bbox
+    original_corners = corners[:, :2]
+    original_corners = np.vstack([original_corners, original_corners[0]])
+    plt.plot(original_corners[:, 0], original_corners[:, 1], 'r-', linewidth=2, label='Original')
 
-    # Plot original bbox in red
-    original_corners = corners[:, :2]  # Remove homogeneous coordinate
-    original_corners = np.vstack([original_corners, original_corners[0]])  # Close the polygon
-    plt.plot(original_corners[:, 0], original_corners[:, 1], 'r-', linewidth=2, label='Original bbox')
-
-    # Plot transformed bbox in green
-    transformed_corners_plot = transformed_corners[:, :2]  # Remove homogeneous coordinate
-    transformed_corners_plot = np.vstack([transformed_corners_plot, transformed_corners_plot[0]])  # Close the polygon
-    plt.plot(transformed_corners_plot[:, 0], transformed_corners_plot[:, 1], 'g-', linewidth=2, label='Transformed bbox')
-
-    # Compute the new bounding box to fit the transformed corners
-    new_x_min = int(transformed_corners[:, 0].min())
-    new_y_min = int(transformed_corners[:, 1].min())
-    new_x_max = int(transformed_corners[:, 0].max())
-    new_y_max = int(transformed_corners[:, 1].max())
-
-    # Ensure bbox stays within image bounds
-    new_x_min = max(0, new_x_min)
-    new_y_min = max(0, new_y_min)
-    new_x_max = min(img_w, new_x_max)
-    new_y_max = min(img_h, new_y_max)
-
-    # Plot expanded bbox in blue
-    expanded_corners = np.array([
-        [new_x_min, new_y_min],
-        [new_x_max, new_y_min],
-        [new_x_max, new_y_max],
-        [new_x_min, new_y_max],
-        [new_x_min, new_y_min]  # Close the polygon
+    # Plot uncropped transformed bbox
+    uncropped_corners = np.array([
+        [x_min_uncropped, y_min_uncropped],
+        [x_max_uncropped, y_min_uncropped], 
+        [x_max_uncropped, y_max_uncropped],
+        [x_min_uncropped, y_max_uncropped],
+        [x_min_uncropped, y_min_uncropped]
     ])
-    plt.plot(expanded_corners[:, 0], expanded_corners[:, 1], 'b-', linewidth=2, label='Expanded bbox')
+    plt.plot(uncropped_corners[:, 0], uncropped_corners[:, 1], 'g-', linewidth=2, label='Transformed')
+
+    # Plot final cropped bbox
+    cropped_corners = np.array([
+        [x_min, y_min],
+        [x_max, y_min],
+        [x_max, y_max], 
+        [x_min, y_max],
+        [x_min, y_min]
+    ])
+    plt.plot(cropped_corners[:, 0], cropped_corners[:, 1], 'b-', linewidth=2, label='Cropped')
 
     plt.legend()
     plt.axis('off')
     plt.savefig('bbox_transformation.png')
     plt.close()
-
-
-    # Extract the region of interest (ROI) with the expanded bbox
-    roi = image[new_y_min:new_y_max, new_x_min:new_x_max]
-
-    # Adjust bbox width and height
-    expanded_w = new_x_max - new_x_min
-    expanded_h = new_y_max - new_y_min
-
-    # Calculate center of the expanded ROI
-    roi_center_x = expanded_w // 2
-    roi_center_y = expanded_h // 2
-
-    # Create translation matrices
-    translation_to_origin = np.array([
-        [1, 0, -roi_center_x],
-        [0, 1, -roi_center_y],
-        [0, 0, 1]
-    ])
-    translation_back = np.array([
-        [1, 0, roi_center_x],
-        [0, 1, roi_center_y],
-        [0, 0, 1]
-    ])
-
-    # Combine transformations: translate to origin -> transform -> translate back
-    final_transform = translation_back @ transformation_matrix @ translation_to_origin
-
-    # Perform the affine transformation on the ROI
-    transformed_roi = cv2.warpPerspective(roi, final_transform, (expanded_w, expanded_h), flags=cv2.INTER_LINEAR)
-
-    # Create output image
-    transformed_image = image.copy()
-    transformed_image[new_y_min:new_y_max, new_x_min:new_x_max] = transformed_roi
 
     return transformed_image
 
@@ -382,24 +353,28 @@ def inverse_warp_with_transformation_matrix_marco(A, roi_A, B, seg_map, transfor
     """
 
     print("inverse_warp_with_transformation_matrix_marco")
-    x_min, x_max, y_min, y_max = roi_A
-    
-    # Convert bbox format for apply_affine_transformation
-    bbox = [x_min/64.0, y_min/64.0, (x_max-x_min)/64.0, (y_max-y_min)/64.0]
+    # x_min, x_max, y_min, y_max = roi_A
+    # # Convert bbox format for apply_affine_transformation
+    # bbox = [x_min/64.0, y_min/64.0, (x_max-x_min)/64.0, (y_max-y_min)/64.0]
+
+   
 
     for i in range(B.shape[0]):
         # Process each channel separately
         for c in range(B.shape[2]):
-            latent_2D = B[i, 0, c].cpu().numpy()  # Get single channel
-            latent_2D = apply_affine_transformation_gpt(latent_2D, bbox, transform_matrix)
-            B[i, 0, c] = torch.from_numpy(latent_2D)
-
+            latent_2D = B[i, 0, c].cpu().numpy().astype(np.float32)  # Get single channel and ensure float32
+            latent_2D, new_bbox = apply_affine_transform(latent_2D, roi_A, transform_matrix)
+            B[i, 0, c] = torch.from_numpy(latent_2D.astype(np.float32))  # Convert back to float
 
     # Process segmentation mask
-    mask_2D = torch.from_numpy(seg_map).float().cpu().numpy()  # Convert to numpy
-    mask_2D = apply_affine_transformation_gpt(mask_2D, bbox, transform_matrix)  # Apply same transform
-    new_mask = torch.from_numpy(mask_2D).to(A.device)  # Convert back to tensor
-    new_mask = new_mask.bool()
+    mask_2D = seg_map.astype(np.float32)  # Ensure float32
+    mask_2D, _ = apply_affine_transform(mask_2D, roi_A, transform_matrix)  # Apply same transform
+    new_mask = torch.from_numpy(mask_2D).to(A.device).bool()  # Convert back to tensor and ensure boolean
+
+    # now apply the new_mask to the new_latents only inside the new_bbox
+    M2 = np.ones((64, 64), dtype=np.float32)
+    M2[new_bbox[2]:new_bbox[3], new_bbox[0]:new_bbox[1]] = new_mask[new_bbox[2]:new_bbox[3], new_bbox[0]:new_bbox[1]].float()
+    B *= M2
 
 
     
@@ -502,57 +477,75 @@ def inverse_warp_with_transformation_matrix(A, roi_A, B, seg_map, transform_matr
 
 def inverse_warp(A, roi_A, B, roi_B_target, seg_map):
     """
-    Perform an inverse warping of a region of interest from matrix A to matrix B.
+    Perform an inverse warping of a region of interest (ROI) from matrix A to matrix B.
+    This function takes a specified region from the source matrix A, applies a mask to it,
+    and then places the masked region into a specified location in the target matrix B.
 
     Parameters:
-    - A: Source Pytorch matrix.
-    - roi_A: Region of interest in A as [x_min, x_max, y_min, y_max].
-    - B: Target Pytorch matrix.
-    - roi_B_target: Specified rectangle parameters in B as [x_min_target, x_max_target, y_min_target, y_max_target].
+    - A: Source PyTorch tensor. This is the matrix from which the region of interest will be extracted.
+    - roi_A: A list defining the region of interest in A, formatted as [x_min, x_max, y_min, y_max].
+      These values specify the bounding box of the region to be extracted from A.
+    - B: Target PyTorch tensor. This is the matrix where the extracted region will be placed.
+    - roi_B_target: A list defining the target rectangle in B, formatted as [x_min_target, x_max_target, y_min_target, y_max_target].
+      These values specify where the extracted region from A will be placed in B.
+    - seg_map: A binary segmentation map as a NumPy array. This map is used to mask the region of interest in A,
+      ensuring that only the relevant parts of the region are transferred to B.
 
     Returns:
-    - B with the warped region from A.
+    - B: The target matrix B with the region from A placed at the specified location.
+    - new_mask: A boolean mask of the same size as B, indicating the new location of the region in B.
     """
-    # TODO: Not sure if this function is correct or not under edge cases...
+    # Extract the coordinates of the region of interest from A
     x_min, x_max, y_min, y_max = roi_A
+    # Extract the coordinates of the target region in B
     x_min_target, x_max_target, y_min_target, y_max_target = roi_B_target
+
+    # Adjust the maximum x and y coordinates to ensure they do not exceed the boundaries of B
     x_max -= max(0, (x_max_target - 63))
     y_max -= max(0, (y_max_target - 63))
 
-    # Extract the region of interest from A
+    # Remove the singleton dimension from A and B to simplify operations
     A = A.squeeze(1)
     B = B.squeeze(1)
 
+    # Convert the segmentation map to a PyTorch tensor and expand its dimensions to match A
     seg_map = (
         torch.from_numpy(seg_map)
-        .unsqueeze(0)
-        .unsqueeze(0)
-        .repeat(A.shape[0], A.shape[1], 1, 1)
+        .unsqueeze(0)  # Add a batch dimension
+        .unsqueeze(0)  # Add a channel dimension
+        .repeat(A.shape[0], A.shape[1], 1, 1)  # Repeat to match the dimensions of A
     ).float()
 
+    # Extract the region of interest from A and apply the segmentation mask
     roi_content = (
-        A[:, :, int(y_min) : int(y_max), int(x_min) : int(x_max)]
-        * seg_map[:, :, int(y_min) : int(y_max), int(x_min) : int(x_max)]
+        A[:, :, int(y_min):int(y_max), int(x_min):int(x_max)]
+        * seg_map[:, :, int(y_min):int(y_max), int(x_min):int(x_max)]
     )
 
-    seg_roi_content = seg_map[:, :, int(y_min) : int(y_max), int(x_min) : int(x_max)]
+    # Extract the masked region from the segmentation map
+    seg_roi_content = seg_map[:, :, int(y_min):int(y_max), int(x_min):int(x_max)]
 
-    # Place the resized region into B
+    # Determine the shape of the region of interest
     roi_shape = roi_content.shape[-2:]
+
+    # Place the masked region into the target matrix B at the specified location
     B[
         :,
         :,
-        int(y_min_target) : int(y_min_target) + roi_shape[0],
-        int(x_min_target) : int(x_min_target) + roi_shape[1],
+        int(y_min_target):int(y_min_target) + roi_shape[0],
+        int(x_min_target):int(x_min_target) + roi_shape[1],
     ] = roi_content
 
+    # Restore the singleton dimension to A and B
     A = A.unsqueeze(1)
     B = B.unsqueeze(1)
+
+    # Create a new boolean mask for B, indicating the location of the placed region
     new_mask = torch.zeros((64, 64), dtype=bool)
     seg_roi_shape = seg_roi_content.shape[-2:]
     new_mask[
-        int(y_min_target) : int(y_min_target) + seg_roi_shape[0],
-        int(x_min_target) : int(x_min_target) + seg_roi_shape[1],
+        int(y_min_target):int(y_min_target) + seg_roi_shape[0],
+        int(x_min_target):int(x_min_target) + seg_roi_shape[1],
     ] = seg_roi_content[0][0]
 
     return B, new_mask
@@ -595,33 +588,7 @@ def plot_feat(tensor_data, fname):
 
 
 
-def define_affine_transformation(rotation_angle, translation, scaling):
-    """
-    Creates a 3x3 affine transformation matrix based on user inputs.
 
-    Parameters:
-    - rotation_angle (float): Rotation angle in degrees.
-    - translation (tuple): Translation as (tx, ty).
-    - scaling (tuple): Scaling as (sx, sy).  # scaling in x, y direction
-
-    Returns:
-    - np.ndarray: A 3x3 affine transformation matrix.
-    """
-    # Convert angle from degrees to radians
-    theta = np.radians(rotation_angle)
-
-    # Decompose inputs
-    tx, ty = translation
-    sx, sy = scaling
-
-    # Define the affine matrix
-    affine_matrix = np.array([
-        [sx * np.cos(theta), -sy * np.sin(theta), tx],
-        [sx * np.sin(theta),  sy * np.cos(theta), ty],
-        [0,                  0,                  1]
-    ])
-
-    return affine_matrix
 
 @torch.no_grad()
 def compose_latents_with_alignment(
@@ -664,7 +631,7 @@ def compose_latents_with_alignment(
 
 
     
-
+    use_marco = True
 
 
     for obj_name, old_obj, new_obj, seg_map, all_latents in move_objects:
@@ -672,28 +639,36 @@ def compose_latents_with_alignment(
         # print(all_latents.shape)
         # exit()
         # x_min_old, x_max_old, y_min_old, y_max_old
-        old_coords = coord_transform(old_obj, 64)
+        old_coords = coord_transform(old_obj, 64)  
         # x_min_new, x_max_new, y_min_new, y_max_new
         new_coords = coord_transform(new_obj, 64)
         new_latents = all_latents.clone()
 
-
-    # define transformation
-        if obj_name == "cat #1":
-            transform_matrix = define_affine_transformation(rotation_angle = 45, translation = (0, 0), scaling = (1, 1))
-        else:
-            transform_matrix = define_affine_transformation(rotation_angle = 0, translation = (0, 0), scaling = (1, 1))
        
+        # define transformation
+        if obj_name == "dog #1":
+            transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 0.0), scaling = (1.0, 1.5))
+        else:
+            transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 0.0), scaling = (1.0, 1.0))
 
-        # Call with correct parameter order
-        new_latents, new_mask = inverse_warp_with_transformation_matrix_marco(
-            A=all_latents,
-            roi_A=old_coords,
-            B=new_latents,
-            seg_map=seg_map,
-            transform_matrix=transform_matrix
-        )
 
+        if use_marco:
+            # Call with correct parameter order
+            new_latents, new_mask = inverse_warp_with_transformation_matrix_marco(
+                A=all_latents,
+                roi_A=old_coords,
+                B=new_latents,
+                seg_map=seg_map,
+                transform_matrix=transform_matrix
+            )
+        else:
+            new_latents, new_mask = inverse_warp(
+                A=all_latents,
+                roi_A=old_coords,
+                B=new_latents,
+                roi_B_target=new_coords,
+                seg_map=seg_map
+            )
 
         # Save the new mask as a PNG file
         mask_image = Image.fromarray((new_mask.cpu().numpy() * 255).astype(np.uint8))
@@ -718,7 +693,8 @@ def compose_latents_with_alignment(
             )
 
         print(obj_name)
-        breakpoint()
+        if obj_name == "dog #1":
+            breakpoint()
 
 
         # plot_feat(new_latents[-1], "feat_after.png")

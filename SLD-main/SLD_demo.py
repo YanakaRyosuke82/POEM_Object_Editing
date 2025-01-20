@@ -285,7 +285,7 @@ def correction(
 
     logging.info("Inspecting move_objects in spec for correction function")
     if isinstance(spec["move_objects"], list):
-        logging.info(f"Move objects are iterable: {spec['move_objects']}")
+        logging.info(f"Move objects are iterable")
     else:
         logging.error("Move objects are not iterable")
     logging.info("Running image generator")
