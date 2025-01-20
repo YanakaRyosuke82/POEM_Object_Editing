@@ -363,13 +363,13 @@ def inverse_warp_with_transformation_matrix_marco(A, roi_A, B, seg_map, transfor
         # Process each channel separately
         for c in range(B.shape[2]):
             latent_2D = B[i, 0, c].cpu().numpy().astype(np.float32)  # Get single channel and ensure float32
-            latent_2D, new_bbox = apply_affine_transform(latent_2D, roi_A, transform_matrix)
+            latent_2D, new_bbox = apply_affine_transform(latent_2D, roi_A, transform_matrix, is_mask=False)
             B[i, 0, c] = torch.from_numpy(latent_2D.astype(np.float32))  # Convert back to float
 
     # Process segmentation mask
     mask_2D = seg_map.astype(np.float32)  # Ensure float32
-    mask_2D, _ = apply_affine_transform(mask_2D, roi_A, transform_matrix)  # Apply same transform
-    new_mask = torch.from_numpy(mask_2D).to(A.device).bool()  # Convert back to tensor and ensure boolean
+    mask_2D, _ = apply_affine_transform(mask_2D, roi_A, transform_matrix, is_mask=True)  # Apply same transform
+    new_mask = torch.from_numpy(mask_2D > 0.5).to(A.device).bool()  # Convert back to tensor and ensure boolean with higher threshold
 
     # now apply the new_mask to the new_latents only inside the new_bbox
     M2 = np.ones((64, 64), dtype=np.float32)
@@ -647,7 +647,7 @@ def compose_latents_with_alignment(
        
         # define transformation
         if obj_name == "dog #1":
-            transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 0.0), scaling = (1.0, 1.5))
+            transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 10.0), scaling = (0.7, 0.7))
         else:
             transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 0.0), scaling = (1.0, 1.0))
 

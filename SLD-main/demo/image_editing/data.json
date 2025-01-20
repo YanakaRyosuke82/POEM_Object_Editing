@@ -2,7 +2,7 @@
     {
         "input_fname": "indoor_scene",
         "output_dir": "indoor_scene_move",
-        "prompt": "Shift the dog upward and move the cat slightly towards the dog in a window-view image of an urban landscape.",
+        "prompt": "Slightly reduce the dog's size, keep the cat the same size, in a window-view image of an urban landscape. Keep their bottom unchanged. ",
         "generator": "dalle",
         "llm_parsed_prompt":{
             "objects": [["dog", [null]], ["cat", [null]]],

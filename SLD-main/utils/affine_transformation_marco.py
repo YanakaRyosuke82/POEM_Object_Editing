@@ -31,7 +31,7 @@ def define_affine_transformation(rotation_angle, translation, scaling):
 
 
 
-def apply_affine_transform(image, bbox, M_affine):
+def apply_affine_transform(image, bbox, M_affine, is_mask=False):
     """
     Applies a 3x3 affine transformation matrix to a specified region of interest (ROI) within an image.
 
@@ -123,7 +123,10 @@ def apply_affine_transform(image, bbox, M_affine):
     #########################################################
 
     # Remove the original ROI from the image
-    image[y_min:y_max, x_min:x_max] = np.random.normal(loc=0.0, scale=1.0, size=image[y_min:y_max, x_min:x_max].shape)
+    if not is_mask:
+        image[y_min:y_max, x_min:x_max] = np.random.normal(loc=0.0, scale=1.0, size=image[y_min:y_max, x_min:x_max].shape)
+    else: 
+        image[y_min:y_max, x_min:x_max] = np.zeros_like(image[y_min:y_max, x_min:x_max])
 
     # Combine the transformed image with the original image
     combined_image = image.copy()
@@ -154,7 +157,7 @@ def main():
     M_affine = define_affine_transformation(angle, translation, scale)
 
     # Apply the affine transformation
-    transformed_image, _ = apply_affine_transform(image, bbox, M_affine)
+    transformed_image, _ = apply_affine_transform(image, bbox, M_affine, is_mask=True)
 
     # Debug plot to visualize transformed image with the old bounding box
     fig, ax = plt.subplots(figsize=(6, 6))
