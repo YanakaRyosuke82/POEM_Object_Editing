@@ -239,6 +239,135 @@ def apply_affine_transformation(image, bbox, transformation_matrix):
     return transformed_image
 
 
+def apply_affine_transformation_gpt(image, bbox, transformation_matrix):
+    """
+    Applies any 3x3 affine transformation to the content inside a normalized bounding box.
+    Expands the bounding box to include the transformed content.
+
+    Parameters:
+    - image: Input image (numpy array).
+    - bbox: Normalized bounding box in the format [Top-left x, Top-left y, Width, Height].
+    - transformation_matrix: 3x3 affine transformation matrix (numpy array).
+    
+    Returns:
+    - Transformed image with the affine transformation applied to the bbox area.
+    """
+    # Get image dimensions
+    img_h, img_w = image.shape[:2]
+    # Denormalize the bounding box coordinates
+    x = int(bbox[0] * img_w)
+    y = int(bbox[1] * img_h)
+    w = int(bbox[2] * img_w)
+    h = int(bbox[3] * img_h)
+
+    # Calculate center of original bbox
+    center_x = x + w//2
+    center_y = y + h//2
+
+    # Create translation matrices to move center to origin and back
+    to_origin = np.array([
+        [1, 0, -center_x],
+        [0, 1, -center_y],
+        [0, 0, 1]
+    ])
+    from_origin = np.array([
+        [1, 0, center_x],
+        [0, 1, center_y],
+        [0, 0, 1]
+    ])
+
+    # Compute the four corners of the bbox
+    corners = np.array([
+        [x, y, 1],
+        [x + w, y, 1],
+        [x + w, y + h, 1],
+        [x, y + h, 1]
+    ])
+
+    # Transform corners: translate to origin -> transform -> translate back
+    final_transform = from_origin @ transformation_matrix @ to_origin
+    transformed_corners = np.dot(final_transform, corners.T).T
+
+    # Convert homogeneous coordinates back to cartesian
+    transformed_corners[:, 0] = transformed_corners[:, 0] / transformed_corners[:, 2]
+    transformed_corners[:, 1] = transformed_corners[:, 1] / transformed_corners[:, 2]
+
+    # Create figure and axis
+    plt.figure(figsize=(10, 10))
+    plt.imshow(image)
+
+    # Plot original bbox in red
+    original_corners = corners[:, :2]  # Remove homogeneous coordinate
+    original_corners = np.vstack([original_corners, original_corners[0]])  # Close the polygon
+    plt.plot(original_corners[:, 0], original_corners[:, 1], 'r-', linewidth=2, label='Original bbox')
+
+    # Plot transformed bbox in green
+    transformed_corners_plot = transformed_corners[:, :2]  # Remove homogeneous coordinate
+    transformed_corners_plot = np.vstack([transformed_corners_plot, transformed_corners_plot[0]])  # Close the polygon
+    plt.plot(transformed_corners_plot[:, 0], transformed_corners_plot[:, 1], 'g-', linewidth=2, label='Transformed bbox')
+
+    # Compute the new bounding box to fit the transformed corners
+    new_x_min = int(transformed_corners[:, 0].min())
+    new_y_min = int(transformed_corners[:, 1].min())
+    new_x_max = int(transformed_corners[:, 0].max())
+    new_y_max = int(transformed_corners[:, 1].max())
+
+    # Ensure bbox stays within image bounds
+    new_x_min = max(0, new_x_min)
+    new_y_min = max(0, new_y_min)
+    new_x_max = min(img_w, new_x_max)
+    new_y_max = min(img_h, new_y_max)
+
+    # Plot expanded bbox in blue
+    expanded_corners = np.array([
+        [new_x_min, new_y_min],
+        [new_x_max, new_y_min],
+        [new_x_max, new_y_max],
+        [new_x_min, new_y_max],
+        [new_x_min, new_y_min]  # Close the polygon
+    ])
+    plt.plot(expanded_corners[:, 0], expanded_corners[:, 1], 'b-', linewidth=2, label='Expanded bbox')
+
+    plt.legend()
+    plt.axis('off')
+    plt.savefig('bbox_transformation.png')
+    plt.close()
+
+
+    # Extract the region of interest (ROI) with the expanded bbox
+    roi = image[new_y_min:new_y_max, new_x_min:new_x_max]
+
+    # Adjust bbox width and height
+    expanded_w = new_x_max - new_x_min
+    expanded_h = new_y_max - new_y_min
+
+    # Calculate center of the expanded ROI
+    roi_center_x = expanded_w // 2
+    roi_center_y = expanded_h // 2
+
+    # Create translation matrices
+    translation_to_origin = np.array([
+        [1, 0, -roi_center_x],
+        [0, 1, -roi_center_y],
+        [0, 0, 1]
+    ])
+    translation_back = np.array([
+        [1, 0, roi_center_x],
+        [0, 1, roi_center_y],
+        [0, 0, 1]
+    ])
+
+    # Combine transformations: translate to origin -> transform -> translate back
+    final_transform = translation_back @ transformation_matrix @ translation_to_origin
+
+    # Perform the affine transformation on the ROI
+    transformed_roi = cv2.warpPerspective(roi, final_transform, (expanded_w, expanded_h), flags=cv2.INTER_LINEAR)
+
+    # Create output image
+    transformed_image = image.copy()
+    transformed_image[new_y_min:new_y_max, new_x_min:new_x_max] = transformed_roi
+
+    return transformed_image
 
 def inverse_warp_with_transformation_matrix_marco(A, roi_A, B, seg_map, transform_matrix):
     """
@@ -262,18 +391,17 @@ def inverse_warp_with_transformation_matrix_marco(A, roi_A, B, seg_map, transfor
         # Process each channel separately
         for c in range(B.shape[2]):
             latent_2D = B[i, 0, c].cpu().numpy()  # Get single channel
-            latent_2D = apply_affine_transformation(latent_2D, bbox, transform_matrix)
+            latent_2D = apply_affine_transformation_gpt(latent_2D, bbox, transform_matrix)
             B[i, 0, c] = torch.from_numpy(latent_2D)
 
 
     # Process segmentation mask
     mask_2D = torch.from_numpy(seg_map).float().cpu().numpy()  # Convert to numpy
-    mask_2D = apply_affine_transformation(mask_2D, bbox, transform_matrix)  # Apply same transform
+    mask_2D = apply_affine_transformation_gpt(mask_2D, bbox, transform_matrix)  # Apply same transform
     new_mask = torch.from_numpy(mask_2D).to(A.device)  # Convert back to tensor
     new_mask = new_mask.bool()
 
 
-    breakpoint()
     
     return B, new_mask
 
@@ -466,6 +594,35 @@ def plot_feat(tensor_data, fname):
     # plt.show()
 
 
+
+def define_affine_transformation(rotation_angle, translation, scaling):
+    """
+    Creates a 3x3 affine transformation matrix based on user inputs.
+
+    Parameters:
+    - rotation_angle (float): Rotation angle in degrees.
+    - translation (tuple): Translation as (tx, ty).
+    - scaling (tuple): Scaling as (sx, sy).  # scaling in x, y direction
+
+    Returns:
+    - np.ndarray: A 3x3 affine transformation matrix.
+    """
+    # Convert angle from degrees to radians
+    theta = np.radians(rotation_angle)
+
+    # Decompose inputs
+    tx, ty = translation
+    sx, sy = scaling
+
+    # Define the affine matrix
+    affine_matrix = np.array([
+        [sx * np.cos(theta), -sy * np.sin(theta), tx],
+        [sx * np.sin(theta),  sy * np.cos(theta), ty],
+        [0,                  0,                  1]
+    ])
+
+    return affine_matrix
+
 @torch.no_grad()
 def compose_latents_with_alignment(
     model_dict,
@@ -506,6 +663,9 @@ def compose_latents_with_alignment(
     # mask_tensor_list.append(bg_mask)
 
 
+    
+
+
 
     for obj_name, old_obj, new_obj, seg_map, all_latents in move_objects:
 
@@ -518,20 +678,12 @@ def compose_latents_with_alignment(
         new_latents = all_latents.clone()
 
 
-
-
-         # Define 45 degree clockwise rotation matrix
-        angle = -45  # negative for clockwise rotation
-        angle_rad = math.radians(angle)
-        cos_theta = math.cos(angle_rad)
-        sin_theta = math.sin(angle_rad)
-        
-        # Create 3x3 affine transformation matrix for 45 degree rotation
-        transform_matrix = np.array([
-            [cos_theta, -sin_theta, 0],
-            [sin_theta, cos_theta, 0], 
-            [0, 0, 1]
-        ])
+    # define transformation
+        if obj_name == "cat #1":
+            transform_matrix = define_affine_transformation(rotation_angle = 45, translation = (0, 0), scaling = (1, 1))
+        else:
+            transform_matrix = define_affine_transformation(rotation_angle = 0, translation = (0, 0), scaling = (1, 1))
+       
 
         # Call with correct parameter order
         new_latents, new_mask = inverse_warp_with_transformation_matrix_marco(
@@ -565,7 +717,7 @@ def compose_latents_with_alignment(
                 os.path.join(temp_dir, f"latent_channels_{i:04d}.png")
             )
 
-
+        print(obj_name)
         breakpoint()
 
 
