@@ -11,7 +11,7 @@ import os
 import logging
 import math
 import cv2
-
+import os
 from utils.affine_transformation_marco import apply_affine_transform, define_affine_transformation
 # from models import pipelines, encode_prompts
 
@@ -357,19 +357,28 @@ def inverse_warp_with_transformation_matrix_marco(A, roi_A, B, seg_map, transfor
     # # Convert bbox format for apply_affine_transformation
     # bbox = [x_min/64.0, y_min/64.0, (x_max-x_min)/64.0, (y_max-y_min)/64.0]
 
+    # Enlarge bbox by 5% within the 64x64 bounds
+    x_min, x_max, y_min, y_max = roi_A
+    w, h = x_max - x_min, y_max - y_min
+    x_min = max(0, int(x_min - w * 0.03))
+    x_max = min(63, int(x_max + w * 0.03))
+    y_min = max(0, int(y_min - h * 0.03))
+    y_max = min(63, int(y_max + h * 0.03))
+    roi_A = [x_min, x_max, y_min, y_max]
+
    
 
     for i in range(B.shape[0]):
         # Process each channel separately
         for c in range(B.shape[2]):
             latent_2D = B[i, 0, c].cpu().numpy().astype(np.float32)  # Get single channel and ensure float32
-            latent_2D, new_bbox = apply_affine_transform(latent_2D, roi_A, transform_matrix, is_mask=False)
+            latent_2D, new_bbox = apply_affine_transform(latent_2D, roi_A, transform_matrix, is_mask=False) # sets to gaussian noise the old pixels
             B[i, 0, c] = torch.from_numpy(latent_2D.astype(np.float32))  # Convert back to float
 
     # Process segmentation mask
     mask_2D = seg_map.astype(np.float32)  # Ensure float32
     mask_2D, _ = apply_affine_transform(mask_2D, roi_A, transform_matrix, is_mask=True)  # Apply same transform
-    new_mask = torch.from_numpy(mask_2D > 0.5).to(A.device).bool()  # Convert back to tensor and ensure boolean with higher threshold
+    new_mask = torch.from_numpy(mask_2D > 0.999).to(A.device).bool()  # Convert back to tensor and ensure boolean with higher threshold
 
     # now apply the new_mask to the new_latents only inside the new_bbox
     M2 = np.ones((64, 64), dtype=np.float32)
@@ -610,7 +619,12 @@ def compose_latents_with_alignment(
     **kwargs,
 ):
   
-    print("MARCOOOOOOOO")
+
+    # #### marco
+    # align_with_overall_bboxes = True
+    # #####
+
+    print("compose_latents_with_alignment")
     if align_with_overall_bboxes and len(latents_all_list):
         expanded_overall_bboxes = utils.expand_overall_bboxes(overall_bboxes)
         latents_all_list, mask_tensor_list, offset_list = align_with_bboxes(
@@ -628,11 +642,8 @@ def compose_latents_with_alignment(
     # pdb.set_trace()
     # latents_all_list.append(latents_bg_lists)
     # mask_tensor_list.append(bg_mask)
-
-
     
     use_marco = True
-
 
     for obj_name, old_obj, new_obj, seg_map, all_latents in move_objects:
 
@@ -640,19 +651,18 @@ def compose_latents_with_alignment(
         # exit()
         # x_min_old, x_max_old, y_min_old, y_max_old
         old_coords = coord_transform(old_obj, 64)  
+        print(old_coords)
         # x_min_new, x_max_new, y_min_new, y_max_new
         new_coords = coord_transform(new_obj, 64)
         new_latents = all_latents.clone()
 
        
-        # define transformation
-        if obj_name == "dog #1":
-            transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 10.0), scaling = (0.7, 0.7))
-        else:
-            transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 0.0), scaling = (1.0, 1.0))
-
-
         if use_marco:
+            # define transformation
+            if obj_name == "dog #1":
+                transform_matrix = define_affine_transformation(rotation_angle = 45.0, translation = (20.0, 0.0), scaling = (1.0, 1.0))
+            else:
+                transform_matrix = define_affine_transformation(rotation_angle = 0.0, translation = (0.0, 0.0), scaling = (1.0, 1.0))
             # Call with correct parameter order
             new_latents, new_mask = inverse_warp_with_transformation_matrix_marco(
                 A=all_latents,
@@ -689,12 +699,12 @@ def compose_latents_with_alignment(
                 latent_channels.max() - latent_channels.min()
             )
             tvt.ToPILImage()(latent_channels).save(
-                os.path.join(temp_dir, f"latent_channels_{i:04d}.png")
+                os.path.join(temp_dir, f"{obj_name}_latent_channels_{i:04d}.png")
             )
 
-        print(obj_name)
-        if obj_name == "dog #1":
-            breakpoint()
+        # print(obj_name)
+        # if obj_name == "dog #1":
+        #     breakpoint()
 
 
         # plot_feat(new_latents[-1], "feat_after.png")
@@ -732,7 +742,7 @@ def compose_latents_with_alignment(
     # for i in range(N):
     #     np.save(f"object_latent_{i:02d}.npy", latents_all_list[i].cpu().numpy())
     #     np.save(f"object_mask_{i:02d}.npy", mask_tensor_list[i].cpu().numpy())
-    # exit()
+    # ebreakxit()
     # import pdb
 
     # pdb.set_trace()
@@ -801,10 +811,13 @@ def compose_latents_with_alignment(
     # foreground_indices = mask_tensor_list[0].cuda()
     # print(composed_latents.shape)
     # print(foreground_indices.shape)
-    # exit()
+
+    # # Check if the directory exists, if not create it
+    # temp_dir = "vis_feat"
+    # os.makedirs(temp_dir, exist_ok=True)
     # for i in range(51):
     #     plot_feat(composed_latents[i], f"vis_feat/feat_final{i}.png")
-    # exit()
+    # # exit()
     return composed_latents, foreground_indices, offset_list
 
 
