@@ -1,0 +1,3 @@
+1. Image Coordinates: Define square images with top-left at [0, 0] and bottom-right at [1, 1].
+2. Box Format: [Top-left x, Top-left y, Width, Height] 
+3. Operations: Include addition, deletion, repositionin
