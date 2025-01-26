@@ -1,0 +1,54 @@
+To make the cat 12% smaller, we need to apply a scaling transformation. The scaling factor for both width and height will be \(1 - 0.12 = 0.88\). The transformation matrix for scaling is:
+
+\[
+\begin{pmatrix}
+s_x & 0 & 0 \\
+0 & s_y & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\]
+
+In this case, \(s_x = s_y = 0.88\). The transformation matrix will be:
+
+\[
+\begin{pmatrix}
+0.88 & 0 & 0 \\
+0 & 0.88 & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\]
+
+Let's confirm this by applying the transformation to the cat's dimensions. The original dimensions of the cat are width = 0.611 and height = 0.813. After scaling, the new dimensions will be:
+
+\[
+\text{New width} = 0.611 \times 0.88
+\]
+\[
+\text{New height} = 0.813 \times 0.88
+\]
+
+We can use Python to calculate these values.
+```python
+# Original dimensions of the cat
+original_width = 0.611
+original_height = 0.813
+
+# Scaling factor
+scaling_factor = 0.88
+
+# New dimensions after scaling
+new_width = original_width * scaling_factor
+new_height = original_height * scaling_factor
+
+print(((new_width, new_height)))
+```
+```output
+(0.5376800000000001, 0.71004)
+```
+After applying the scaling transformation, the new dimensions of the cat are approximately width = 0.538 and height = 0.710. This confirms that the cat is now 12% smaller.
+
+The transformation matrix for scaling the cat by 12% is:
+
+\[
+\boxed{\begin{pmatrix} 0.88 & 0 & 0 \\ 0 & 0.88 & 0 \\ 0 & 0 & 1 \end{pmatrix}}
+\]

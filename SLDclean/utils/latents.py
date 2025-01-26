@@ -4,7 +4,7 @@ from . import utils
 from utils import torch_device
 import matplotlib.pyplot as plt
 from PIL import Image
-import models
+import utils.models as models
 import torch.nn.functional as F
 
 # from models import pipelines, encode_prompts
@@ -436,7 +436,7 @@ def compose_latents_with_alignment(
 
 
 def get_init_bg(model_dict):
-    from models import pipelines
+    from utils.models import pipelines
 
     print("haha here am I!", flush=True)
     init_image = Image.open("check.png")

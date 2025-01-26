@@ -13,8 +13,8 @@ import torch
 import diffusers
 
 # Libraries heavily borrowed from LMD
-import models
-from models import sam
+import utils.models as models
+from utils.models import sam
 from utils import parse, utils
 
 # SLD specific imports

@@ -1,0 +1,17 @@
+=== ENHANCED DETECTION RESULTS ===
+
+Detected Objects:
+Object 1:
+  Class: Cat
+  Bounding Box (normalized): xmin=0.311, ymin=0.109, xmax=0.922, ymax=0.922
+  Bounding Box (SLD format): [0.311, 0.109, 0.611, 0.812]
+  Segmentation Points:
+    (0.450, 0.450)
+
+Scene Description:
+A small cat is standing on a textured surface, possibly a carpet or rug, with a blurred background.
+
+Spatial Relationships:
+The cat is positioned centrally in the image, with its body oriented towards the viewer.
+
+=====================

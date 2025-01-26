@@ -17,12 +17,13 @@ from typing import Callable, Optional, Union
 import torch
 import torch.nn.functional as F
 from torch import nn
+# import logging
 
-from diffusers.utils import deprecate, logging, maybe_allow_in_graph
+# from diffusers.utils import deprecate, logging, maybe_allow_in_graph
 
-logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
+# logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
-@maybe_allow_in_graph
+# @maybe_allow_in_graph
 class Attention(nn.Module):
     r"""
     A cross attention layer.

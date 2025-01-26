@@ -1,0 +1,15 @@
+=== DETECTION RESULTS ===
+
+Detected Objects:
+Object 1:
+  Class: Cat
+  Bounding Box (normalized): xmin=0.250, ymin=0.250, xmax=0.750, ymax=0.750
+  Segmentation Point: (0.450, 0.450)
+
+Scene Description:
+A small cat is standing on a textured surface, possibly a carpet or rug, with a blurred background.
+
+Spatial Relationships:
+The cat is positioned centrally in the image, with its body oriented towards the viewer.
+
+=====================

@@ -1,0 +1,15 @@
+=== DETECTION RESULTS ===
+
+Detected Objects:
+Object 1:
+  Class: Dog
+  Bounding Box (normalized): xmin=0.280, ymin=0.220, xmax=0.720, ymax=0.770
+  Segmentation Point: (0.490, 0.490)
+
+Scene Description:
+A small dog sitting on a white blanket with a green hedge in the background.
+
+Spatial Relationships:
+The dog is sitting on the blanket, which is placed in front of the hedge.
+
+=====================

@@ -1,0 +1,154 @@
+import torch
+import logging
+import argparse
+import os
+import cv2
+from utils.image_parser import parse_image, save_results_image_parse
+from utils.sam_refiner import run_sam_refine
+from utils.qwen_math import run_math_analysis
+from utils.open_cv_transformations import run_open_cv_transformations
+from typing import Optional
+from utils.models import Models
+import matplotlib.pyplot as plt
+
+def setup_logging() -> logging.Logger:
+    """Configure and return logger"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    return logging.getLogger(__name__)
+
+def process_image(image_path: str, edit_type: str) -> Optional[cv2.Mat]:
+    """
+    Process image according to edit type
+    
+    Args:
+        image_path: Path to input image
+        edit_type: Type of edit to apply ('resize' or 'grayscale')
+    
+    Returns:
+        Processed image or None if failed
+    """
+    try:
+        image = cv2.imread(image_path)
+        if image is None:
+            raise ValueError(f"Failed to load image: {image_path}")
+            
+        if edit_type == "resize":
+            return cv2.resize(image, (512, 512))
+        elif edit_type == "grayscale":
+            return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            return image
+            
+    except Exception as e:
+        logging.error(f"Error processing image {image_path}: {str(e)}")
+        return None
+
+def main():
+    """Main entry point of the program"""
+    logger = setup_logging()
+
+    # Check for CUDA availability and select device
+    if torch.cuda.is_available():
+        device = f"cuda:{torch.cuda.current_device()}"
+        torch.cuda.set_device(torch.cuda.current_device())
+    else:
+        device = "cpu"
+    logger.info(f"Using device: {device}")
+
+    # Initialize models
+    models = Models(device)
+    
+    # Parse arguments
+    parser = argparse.ArgumentParser(description='Process images with edit instructions')
+    parser.add_argument('--in_dir', type=str, required=True,
+                      help='Directory containing input images')
+    parser.add_argument('--out_dir', type=str, required=True, 
+                      help='Directory for output files')
+    parser.add_argument('--edit', type=str, choices=['resize', 'grayscale', 'none'],
+                      default='none', help='Edit instruction to apply to images')
+  
+    args = parser.parse_args()
+    
+    # Ensure output directory exists
+    os.makedirs(args.out_dir, exist_ok=True)
+
+    # Get models
+    qwen_model, qwen_processor = models.get_qwen()
+    sam_model = models.get_sam()
+    qwen_math_model, qwen_math_tokenizer = models.get_qwen_math()
+
+    # Process each image in input directory
+    for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
+        for filename in files:
+            if not filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                continue
+            
+            input_path = os.path.join(subdir, filename)
+            sample_dir = os.path.join(args.out_dir, f"sample_{sample_idx:03d}")
+            os.makedirs(sample_dir, exist_ok=True)
+
+            analysis_file = os.path.join(sample_dir, "analysis.txt")
+            analysis_enhanced_file = os.path.join(sample_dir, "analysis_enhanced.txt")
+            transformation_matrix_file = os.path.join(sample_dir, "transformation_matrix.npy")
+            
+            logger.info(f"Processing sample {sample_idx}: {input_path}")
+            
+            # Read edit instruction specific to this sample from the input path folder
+            edit_instruction_file = os.path.join(subdir, "edit_instruction.txt")
+            with open(edit_instruction_file, 'r') as file:
+                USER_EDIT = file.read().strip()
+
+            # Step 1: Process image
+            processed_image = process_image(input_path, args.edit)
+            if processed_image is None:
+                continue
+                
+            try:
+
+                ### REASONING ###
+                # Step 2: Parse image for analysis
+                results = parse_image(input_path, qwen_model, qwen_processor, device)
+                
+                save_results_image_parse(sample_dir, processed_image, input_path, results)
+                
+                # Step 3: Refine detections with SAM
+                logger.info(f"Refining detections for sample {sample_idx}")
+                run_sam_refine(
+                    file_analysis_path=analysis_file,
+                    img_path=input_path,
+                    sam_model=sam_model
+                )
+                
+                # Step 4: Mathematical analysis
+                logger.info(f"Performing mathematical analysis for sample {sample_idx}")
+                run_math_analysis(
+                    user_edit=USER_EDIT,  # Now using the read edit instruction specific to this sample
+                    file_path=analysis_enhanced_file,
+                    img_path=input_path,
+                    model=qwen_math_model,
+                    tokenizer=qwen_math_tokenizer,
+                    device=device
+                )
+
+                # Step 5: Apply transformations
+                run_open_cv_transformations(
+                    matrix_transform_file=transformation_matrix_file,
+                    output_dir=sample_dir,
+                    MASK_FILE_NAME="mask_0.png",
+                    ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
+                )
+                ### IMAGE GENERATION ###
+                # Step 6 genearte config.ini for the SLD
+                # config_ini = generate_sld_config(sample_dir, analysis_enhanced_file)
+
+                # step 7: run SLD to generate edited image
+                # run_sld(config_ini)
+            except Exception as e:
+                logger.error(f"Error processing {input_path}: {str(e)}")
+                continue
+
+if __name__ == "__main__":
+    main()
