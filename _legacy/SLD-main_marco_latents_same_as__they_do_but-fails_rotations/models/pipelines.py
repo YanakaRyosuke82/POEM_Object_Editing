@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
-from utils import guidance, schedule, boxdiff
-import utils
+from marco_utils import guidance, schedule, boxdiff
+import marco_utils
 from PIL import Image
 import gc
 import numpy as np
@@ -125,7 +125,7 @@ def latent_backward_guidance(
             iteration += 1
 
             if clear_cache:
-                utils.free_memory()
+                marco_utils.free_memory()
 
             if verbose:
                 print(
@@ -373,7 +373,7 @@ def generate_semantic_guidance(
         ret.append(saved_attns)
     if return_box_vis:
         pil_images = [
-            utils.draw_box(Image.fromarray(image), bboxes, phrases) for image in images
+            marco_utils.draw_box(Image.fromarray(image), bboxes, phrases) for image in images
         ]
         ret.append(pil_images)
     if save_all_latents:
@@ -686,7 +686,7 @@ def generate_gligen(
         ret.append(saved_attns)
     if return_box_vis:
         pil_images = [
-            utils.draw_box(Image.fromarray(image), bboxes_item, phrases_item)
+            marco_utils.draw_box(Image.fromarray(image), bboxes_item, phrases_item)
             for image, bboxes_item, phrases_item in zip(images, bboxes, phrases)
         ]
         ret.append(pil_images)
@@ -911,7 +911,7 @@ def generate_gligen_final(
         ret.append(saved_attns)
     if return_box_vis:
         pil_images = [
-            utils.draw_box(Image.fromarray(image), bboxes_item, phrases_item)
+            marco_utils.draw_box(Image.fromarray(image), bboxes_item, phrases_item)
             for image, bboxes_item, phrases_item in zip(images, bboxes, phrases)
         ]
         ret.append(pil_images)

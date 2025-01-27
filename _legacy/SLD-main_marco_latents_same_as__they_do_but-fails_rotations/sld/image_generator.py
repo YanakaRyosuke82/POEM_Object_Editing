@@ -1,11 +1,11 @@
 import torch
-import utils.models as models
-import utils
+import marco_utils.models as models
+import marco_utils
 import numpy as np
 from easydict import EasyDict
 
-from utils.models import pipelines, sam, model_dict
-from utils import parse, guidance, attn, latents, vis
+from marco_utils.models import pipelines, sam, model_dict
+from marco_utils import parse, guidance, attn, latents, vis
 from utils.latents import get_scaled_latents
 from sld.utils import DEFAULT_SO_NEGATIVE_PROMPT, DEFAULT_OVERALL_NEGATIVE_PROMPT
 
@@ -112,7 +112,7 @@ def generate_single_object_with_box(
     )
     # `saved_cross_attn_keys` kwargs may have duplicates
 
-    utils.free_memory()
+    marco_utils.free_memory()
 
     single_object_pil_image_box_ann = single_object_pil_images_box_ann[0]
 
@@ -326,7 +326,7 @@ def run(
                     prompt,
                     phrase,
                     word,
-                    utils.get_centered_box(
+                    marco_utils.get_centered_box(
                         bbox, horizontal_center_only=so_horizontal_center_only
                     ),
                 )
@@ -650,6 +650,6 @@ def run(
             )
             print("Generation from composed latents (with semantic guidance)")
 
-    utils.free_memory()
+    marco_utils.free_memory()
 
     return EasyDict(image=images[0], so_img_list=so_img_list, final_prompt=prompt)

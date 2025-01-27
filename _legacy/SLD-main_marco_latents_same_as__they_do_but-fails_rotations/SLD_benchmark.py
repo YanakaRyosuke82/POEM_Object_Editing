@@ -14,9 +14,9 @@ import torch
 import diffusers
 
 # Libraries heavily borrowed from LMD
-import utils.models as models
-from utils.models import sam
-from utils import parse, utils
+import marco_utils.models as models
+from marco_utils.models import sam
+from marco_utils import parse, utils
 
 # SLD specific imports
 from sld.detector import OWLVITV2Detector

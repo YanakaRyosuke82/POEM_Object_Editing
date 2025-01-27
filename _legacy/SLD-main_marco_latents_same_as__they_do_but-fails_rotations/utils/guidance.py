@@ -4,7 +4,7 @@ import math
 from collections.abc import Iterable
 import warnings
 
-import utils
+import marco_utils
 
 
 # A list mapping: prompt index to str (prompt in a list of token str)
@@ -159,7 +159,7 @@ def add_ca_loss_per_attn_map_to_loss(
 
         for obj_box in obj_boxes:
             # x_min, y_min, x_max, y_max = int(obj_box[0] * W), int(obj_box[1] * H), int(obj_box[2] * W), int(obj_box[3] * H)
-            x_min, y_min, x_max, y_max = utils.scale_proportion(obj_box, H=H, W=W)
+            x_min, y_min, x_max, y_max = marco_utils.scale_proportion(obj_box, H=H, W=W)
             mask[y_min:y_max, x_min:x_max] = 1
 
         for obj_position in object_positions[obj_idx]:
@@ -278,7 +278,7 @@ def add_ref_ca_loss_per_attn_map_to_lossv2(
                 # Same mask for all heads
                 obj_mask = torch.zeros(size=(H, W), device="cuda")
                 # x_min, y_min, x_max, y_max = int(obj_box[0] * W), int(obj_box[1] * H), int(obj_box[2] * W), int(obj_box[3] * H)
-                x_min, y_min, x_max, y_max = utils.scale_proportion(obj_box, H=H, W=W)
+                x_min, y_min, x_max, y_max = marco_utils.scale_proportion(obj_box, H=H, W=W)
                 obj_mask[y_min:y_max, x_min:x_max] = 1
 
                 # keep 1d mask

@@ -1,0 +1,31 @@
+[
+  {
+    "input_fname": "input.png",
+    "output_dir": "sample_001",
+    "prompt": "Make the dog 12% larger",
+    "generator": "dalle",
+    "llm_parsed_prompt": {
+      "objects": [
+        [
+          "dog",
+          [
+            null
+          ]
+        ]
+      ],
+      "bg_prompt": "The background consists of a green hedge and a white blanket.",
+      "neg_prompt": "null"
+    },
+    "llm_layout_suggestions": [
+      [
+        "dog #1",
+        [
+          0.348,
+          0.286,
+          0.538,
+          0.63
+        ]
+      ]
+    ]
+  }
+]

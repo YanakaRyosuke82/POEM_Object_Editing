@@ -1,10 +1,10 @@
 import torch
 import numpy as np
 from . import utils
-from utils import torch_device
+from marco_utils import torch_device
 import matplotlib.pyplot as plt
 from PIL import Image
-import utils.models as models
+import marco_utils.models as models
 import torch.nn.functional as F
 from torchvision import transforms as tvt
 import os
@@ -1083,7 +1083,7 @@ def compose_latents_with_alignment(
 
 
 def get_init_bg(model_dict):
-    from utils.models import pipelines
+    from marco_utils.models import pipelines
 
     print("haha here am I!", flush=True)
     init_image = Image.open("check.png")

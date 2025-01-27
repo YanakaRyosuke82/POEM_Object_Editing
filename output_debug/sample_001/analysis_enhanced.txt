@@ -12,6 +12,12 @@ Scene Description:
 A small dog sitting on a white blanket with a green hedge in the background.
 
 Spatial Relationships:
-The dog is sitting on the blanket, which is placed in front of the hedge.
+The dog is sitting in the center of the image, with the blanket beneath it and the hedge behind it.
+
+Background Description:
+The background consists of a green hedge and a white blanket.
+
+Generation Prompt:
+Make the dog 12% larger
 
 =====================

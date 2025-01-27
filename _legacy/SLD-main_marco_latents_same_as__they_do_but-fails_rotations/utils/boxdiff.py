@@ -10,7 +10,7 @@ import math
 import warnings
 import gc
 from collections.abc import Iterable
-import utils
+import marco_utils
 from . import guidance
 from .attn import GaussianSmoothing
 
@@ -60,7 +60,7 @@ def _compute_max_attention_per_index(attention_maps: torch.Tensor,
                 obj_boxes = [obj_boxes]
 
             for obj_box in obj_boxes:
-                x_min, y_min, x_max, y_max = utils.scale_proportion(
+                x_min, y_min, x_max, y_max = marco_utils.scale_proportion(
                     obj_box, H=H, W=W)
                 obj_mask[y_min: y_max, x_min: x_max] = 1
 

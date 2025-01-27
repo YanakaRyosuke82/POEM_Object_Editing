@@ -6,7 +6,7 @@ from easydict import EasyDict
 import numpy as np
 # For compatibility
 from utils.latents import get_unscaled_latents, get_scaled_latents, blend_latents
-from utils import torch_device
+from marco_utils import torch_device
 
 # This is to be set in the `generate.py`
 sd_key = ""

@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-import utils
+import marco_utils
 
 def get_token_attnv2(token_id, saved_attns, attn_key, attn_aggregation_step_start=10, input_ca_has_condition_only=False, return_np=False):
     """
@@ -53,7 +53,7 @@ def shift_saved_attns_item(saved_attns_item, offset, guidance_attn_keys, horizon
         attn_h = attn_w = int(math.sqrt(attn_size))
         # Example dimensions: [batch_size, num_heads, 8, 8, num_tokens]
         attn_map = attn_map.unflatten(2, (attn_h, attn_w))
-        attn_map = utils.shift_tensor(
+        attn_map = marco_utils.shift_tensor(
             attn_map, x_offset, y_offset, 
             offset_normalized=True, ignore_last_dim=True
         )

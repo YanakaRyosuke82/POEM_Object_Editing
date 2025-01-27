@@ -1,5 +1,5 @@
 Transformed Bounding Box (normalized):
-xmin=0.348, ymin=0.286, xmax=0.885, ymax=0.916
+xmin=0.348, ymin=0.286, xmax=0.881, ymax=0.916
 
 Transformed Bounding Box (SLD format):
-[0.348, 0.286, 0.538, 0.630]
+[0.348, 0.286, 0.533, 0.630]

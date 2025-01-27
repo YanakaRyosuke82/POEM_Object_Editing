@@ -1,15 +1,32 @@
-import torch
+import os
+import sys
 import logging
 import argparse
-import os
-import cv2
-from utils.image_parser import parse_image, save_results_image_parse
-from utils.sam_refiner import run_sam_refine
-from utils.qwen_math import run_math_analysis
-from utils.open_cv_transformations import run_open_cv_transformations
+import shutil
 from typing import Optional
-from utils.models import Models
+import subprocess
+
+
+
+import cv2
+import torch
+import numpy as np
+from PIL import Image
 import matplotlib.pyplot as plt
+import configparser
+
+# Custom utils imports
+from marco_utils.models import Models
+from marco_utils.open_cv_transformations import run_open_cv_transformations
+from marco_utils.sam_refiner import run_sam_refine
+from marco_utils.qwen_math import run_math_analysis
+from marco_utils.vlm_image_parser import parse_image, save_results_image_parse
+from marco_utils.sld_adapter import generate_sld_config
+from marco_utils.torch_device import device  # Import the device
+
+
+# # SLD imports
+# from SLDclean.SLD_demo import main as sld_main
 
 def setup_logging() -> logging.Logger:
     """Configure and return logger"""
@@ -46,6 +63,24 @@ def process_image(image_path: str, edit_type: str) -> Optional[cv2.Mat]:
         logging.error(f"Error processing image {image_path}: {str(e)}")
         return None
 
+def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Logger) -> None:
+    """
+    Run the SLD (Structure-aware Latent Diffusion) pipeline
+    """
+    # Path to the external script
+    ext_script = "src/SLD/SLD_demo.py"
+    config_ini = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/src/SLDclean/demo_config.ini"
+        # Run the script
+    subprocess.run([
+        "python", ext_script,
+        '--json-file', json_path,
+        '--input-dir', input_path,
+        '--output-dir', output_dir,
+        '--mode', 'image_editing',
+        '--config', config_ini
+    ])
+
+
 def main():
     """Main entry point of the program"""
     logger = setup_logging()
@@ -75,10 +110,10 @@ def main():
     # Ensure output directory exists
     os.makedirs(args.out_dir, exist_ok=True)
 
-    # Get models
-    qwen_model, qwen_processor = models.get_qwen()
-    sam_model = models.get_sam()
-    qwen_math_model, qwen_math_tokenizer = models.get_qwen_math()
+    # # Load models
+    # vlm_model, vlm_processor = models.get_qwen_vlm()
+    # sam_model = models.get_sam()
+    # qwen_math_model, qwen_math_tokenizer = models.get_qwen_math()
 
     # Process each image in input directory
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
@@ -93,6 +128,8 @@ def main():
             analysis_file = os.path.join(sample_dir, "analysis.txt")
             analysis_enhanced_file = os.path.join(sample_dir, "analysis_enhanced.txt")
             transformation_matrix_file = os.path.join(sample_dir, "transformation_matrix.npy")
+            json_path = os.path.join(sample_dir, "config_sld.json")
+           
             
             logger.info(f"Processing sample {sample_idx}: {input_path}")
             
@@ -107,45 +144,49 @@ def main():
                 continue
                 
             try:
+                # ### REASONING ###
+                # # Step 2: Parse image for analysis
+                # results = parse_image(input_path, vlm_model, vlm_processor, device, USER_EDIT)
+                
+                # save_results_image_parse(sample_dir, processed_image, input_path, results)
+                
+                # # Step 3: Refine detections with SAM
+                # logger.info(f"Refining detections for sample {sample_idx}")
+                # run_sam_refine(
+                #     file_analysis_path=analysis_file,
+                #     img_path=input_path,
+                #     sam_model=sam_model
+                # )
+                
+                # # Step 4: Mathematical analysis
+                # logger.info(f"Performing mathematical analysis for sample {sample_idx}")
+                # run_math_analysis(
+                #     user_edit=USER_EDIT,  # Now using the read edit instruction specific to this sample
+                #     file_path=analysis_enhanced_file,
+                #     img_path=input_path,
+                #     model=qwen_math_model,
+                #     tokenizer=qwen_math_tokenizer,
+                #     device=device
+                # )
 
-                ### REASONING ###
-                # Step 2: Parse image for analysis
-                results = parse_image(input_path, qwen_model, qwen_processor, device)
-                
-                save_results_image_parse(sample_dir, processed_image, input_path, results)
-                
-                # Step 3: Refine detections with SAM
-                logger.info(f"Refining detections for sample {sample_idx}")
-                run_sam_refine(
-                    file_analysis_path=analysis_file,
-                    img_path=input_path,
-                    sam_model=sam_model
-                )
-                
-                # Step 4: Mathematical analysis
-                logger.info(f"Performing mathematical analysis for sample {sample_idx}")
-                run_math_analysis(
-                    user_edit=USER_EDIT,  # Now using the read edit instruction specific to this sample
-                    file_path=analysis_enhanced_file,
-                    img_path=input_path,
-                    model=qwen_math_model,
-                    tokenizer=qwen_math_tokenizer,
-                    device=device
-                )
-
-                # Step 5: Apply transformations
-                run_open_cv_transformations(
-                    matrix_transform_file=transformation_matrix_file,
-                    output_dir=sample_dir,
-                    MASK_FILE_NAME="mask_0.png",
-                    ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
-                )
+                # # Step 5: Apply transformations
+                # run_open_cv_transformations(
+                #     matrix_transform_file=transformation_matrix_file,
+                #     output_dir=sample_dir,
+                #     MASK_FILE_NAME="mask_0.png",
+                #     ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
+                # )
                 ### IMAGE GENERATION ###
-                # Step 6 genearte config.ini for the SLD
-                # config_ini = generate_sld_config(sample_dir, analysis_enhanced_file)
+                # Step 6: Generate config_sld.json for the SLD
+                generate_sld_config(sample_dir, analysis_enhanced_file)
 
-                # step 7: run SLD to generate edited image
-                # run_sld(config_ini)
+                # Step 7: Run SLD to generate edited image
+                run_sld(
+                    json_path=os.path.abspath(json_path),
+                    input_path=os.path.abspath(input_path), 
+                    output_dir=os.path.abspath(sample_dir),
+                    logger=logger
+                )
             except Exception as e:
                 logger.error(f"Error processing {input_path}: {str(e)}")
                 continue
