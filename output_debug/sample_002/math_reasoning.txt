@@ -1,6 +1,5 @@
-To make the cat 12% smaller, we need to apply a scaling transformation to the cat's dimensions. The scaling factor for both width and height will be \(1 - 0.12 = 0.88\). The center of the cat will remain the same.
+To make the cat 12% smaller, we need to apply a scaling transformation. The scaling factor for both the width and height of the cat should be \(1 - 0.12 = 0.88\). The transformation matrix for scaling is:
 
-The transformation matrix for scaling is:
 \[
 \begin{pmatrix}
 s_x & 0 & 0 \\
@@ -8,53 +7,9 @@ s_x & 0 & 0 \\
 0 & 0 & 1
 \end{pmatrix}
 \]
-where \(s_x = 0.88\) and \(s_y = 0.88\).
 
-Let's calculate the new dimensions and the transformation matrix using Python.
-```python
-import numpy as np
+In this case, \(s_x = s_y = 0.88\). So the transformation matrix is:
 
-# Original dimensions of the cat
-original_width = 0.606
-original_height = 0.813
-original_center = np.array([0.615, 0.516, 1])
-
-# Scaling factor
-scaling_factor = 0.88
-
-# Scaling transformation matrix
-scaling_matrix = np.array([[scaling_factor, 0, 0],
-                          [0, scaling_factor, 0],
-                          [0, 0, 1]])
-
-# New dimensions of the cat
-new_width = original_width * scaling_factor
-new_height = original_height * scaling_factor
-
-# New center of the cat (remains the same)
-new_center = original_center
-
-# Print the new dimensions and the transformation matrix
-print(f"New width: {new_width}")
-print(f"New height: {new_height}")
-print(f"New center: {new_center}")
-print(f"Scaling transformation matrix: \n{scaling_matrix}")
-```
-```output
-New width: 0.53328
-New height: 0.71904
-New center: [0.615 0.516 1]
-Scaling transformation matrix: 
-[[0.88 0.  0. ]
- [0.  0.88 0. ]
- [0.  0.  1. ]]
-```
-The new dimensions of the cat after scaling are:
-- New width: \(0.53328\)
-- New height: \(0.71904\)
-- New center: \((0.615, 0.516, 1)\)
-
-The scaling transformation matrix is:
 \[
 \begin{pmatrix}
 0.88 & 0 & 0 \\
@@ -63,7 +18,48 @@ The scaling transformation matrix is:
 \end{pmatrix}
 \]
 
-So, the appropriate transformation matrix for the requested edit is:
+Let's confirm this by applying the transformation to the cat's dimensions. The original dimensions of the cat are width = 0.606 and height = 0.813. After scaling, the new dimensions should be:
+
+\[
+\text{New width} = 0.606 \times 0.88 = 0.53328
+\]
+\[
+\text{New height} = 0.813 \times 0.88 = 0.71904
+\]
+
+The center of the cat remains the same, so the center after scaling is still (0.615, 0.516).
+
+The transformation matrix is:
+
+\[
+\begin{pmatrix}
+0.88 & 0 & 0 \\
+0 & 0.88 & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\]
+
+Let's print this matrix using Python.
+```python
+import numpy as np
+
+# Define the scaling factor
+scaling_factor = 0.88
+
+# Create the scaling transformation matrix
+scaling_matrix = np.array([[scaling_factor, 0, 0],
+                          [0, scaling_factor, 0],
+                          [0, 0, 1]])
+
+print(scaling_matrix)
+```
+```output
+[[0.88 0.  0. ]
+ [0.  0.88 0. ]
+ [0.  0.  1. ]]
+```
+The transformation matrix for making the cat 12% smaller is:
+
 \[
 \boxed{\begin{pmatrix} 0.88 & 0 & 0 \\ 0 & 0.88 & 0 \\ 0 & 0 & 1 \end{pmatrix}}
 \]

@@ -1,4 +1,23 @@
 # 🚀 VLM Controller for Stable Diffusion (SD)
+
+# Todo
+
+- test Deepseek
+- make reasoning quicker (cut max tokens, and revise prompt)
+- apply the transformation matrix always to the center of the image (is better for Pascal Objects).
+- split the LLMs from the SD cuda device e..g cuda:0, cuda:1
+- batch inference (NO), check the memory requiremetns.
+- add some code to run the evaluations from onur
+
+
+
+
+note: USE OBJECT CENTER FOR THE  TRANSFORMATION application point.
+
+# example
+
+
+
 ![Dog Image](./docs/dog.png)  
 ![masks](./docs/transformation_vis_dog.png)
 ![masks](./docs/sam_analysis_1_dog.png)
@@ -131,10 +150,10 @@ python -m notebook --ip 0.0.0.0 --no-browser --port=8080 --allow-root
 ```
 - run pipeline
 ```python
-python src/main.py 
---in_dir input_debug \
---out_dir output_debug \
---edit "grayscale" \  # currently useless
+module load python3/3.10.12
+module load cuda
+source ./.venv2/bin/activate
+python src/main.py --in_dir input_debug --out_dir output_debug --edit "grayscale"
 ```
 
 
@@ -147,6 +166,18 @@ python src/main.py
 - Box Format: [Top-left x, Top-left y, Width, Height]
 - Operations: Includes addition, deletion, and repositioning.
 
+- images are 512x512 squaredl; to keep aspect ratio we put black boxes. NOTE: that instead of black pixles, we use "gray" pixels : mean value of the standard imagenet images.
+- 
+
+<!-- 
+#### Onur notation
+my convention:
+origin at bottom left corner. up and right displacements are positive
+clockwise rotation is positive
+opencv convention:
+origin at top left corner
+ccw is positive
+I selected this way because it feels more natural. humans use bottom left corner as an origin in general (in physics etc.) only computer vision guys use top left corner :smile: idk i can change it -->
 
 
 ## 📖  Motivation

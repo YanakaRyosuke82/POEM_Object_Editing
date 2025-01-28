@@ -1,0 +1,23 @@
+=== ENHANCED DETECTION RESULTS ===
+
+Detected Objects:
+Object 1:
+  Class: Pizza
+  Bounding Box (normalized): xmin=0.075, ymin=0.189, xmax=0.551, ymax=0.892
+  Bounding Box (SLD format): [0.075, 0.189, 0.475, 0.703]
+  Segmentation Points:
+    (0.430, 0.359)
+
+Scene Description:
+A delicious pizza with pepperoni toppings sits on a rustic wooden table, surrounded by scattered tomatoes and garlic cloves.
+
+Spatial Relationships:
+The pizza is centrally placed on the table, with tomatoes and garlic cloves scattered around it.
+
+Background Description:
+The background is a dark wooden table with visible grain and texture.
+
+Generation Prompt:
+Translate the pizza 20 px east
+
+=====================

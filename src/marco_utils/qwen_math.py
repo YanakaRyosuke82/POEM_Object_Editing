@@ -99,7 +99,7 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
         Center: ({obj['center'][0]:.3f}, {obj['center'][1]:.3f})"""
 
     messages = [
-        {"role": "system", "content": "Integrate natural language reasoning with programs to solve user query. Given the context information and object dimensions below, determine the appropriate transformation matrix for the requested edit.\n\n"
+        {"role": "system", "content": "Integrate natural language reasoning with programs to solve user query. Given the scene content and the user edit, determine the appropriate transformation matrix for the requested edit.\n\n"
                                     "Scene content: " + scene_context + "\n\n"
                                     "List of possible operations:\n"
                                     "1. Translation: Moving objects in x,y directions\n"
@@ -111,7 +111,8 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
                                     "4. Shear: Skewing objects\n"
                                     "   Example: [[1 shx 0][shy 1 0][0 0 1]]\n\n"
                                     "5. Combined transformations are also allowed:\n"
-                                    "   Example: Translation + Rotation = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]]\n\n"   
+                                    "   Example: multiply the transformation matrices corresponding to the operations. for example translation + rotation = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[1 0 tx][0 1 ty][0 0 1]]; additional examples: translation + scaling = [[1 0 tx][0 1 ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]], translation + rotation + scaling = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]]   \n\n"   
+                                    # "6. CONVENTIONS: rotations are counter-clockwise, and the origin is at the top-left corner of the image. \n\n"
         },
         {"role": "user", "content": user_edit}
     ]

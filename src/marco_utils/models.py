@@ -10,7 +10,7 @@ class Models:
         self.device = device
         self.models: Dict[str, Any] = {}
         self.processors: Dict[str, Any] = {}
-        
+    # ======================================================================= load models ================================================================================== #
     def load_qwen_vlm(self) -> None:
         """Load Qwen VL model and processor"""
         try:
@@ -53,10 +53,10 @@ class Models:
             logging.error(f"Failed to load Qwen Math model: {e}")
             raise
             
-    def load_llm_text(self) -> None:
+    def load_deepseek_r1_text(self) -> None:
         """Initialize the language model for text processing."""
         try:
-            model_name = "Qwen/Qwen2.5-Text-7B-Instruct"
+            model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
             
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,
@@ -65,12 +65,12 @@ class Models:
             )
             tokenizer = AutoTokenizer.from_pretrained(model_name)
             
-            self.models['qwen_text'] = (model, tokenizer)
-            logging.info("Loaded Qwen Text model successfully")
+            self.models['deepseek_r1_text'] = (model, tokenizer)
+            logging.info("Loaded DeepSeek R1 Text model successfully")
         except Exception as e:
-            logging.error(f"Failed to load Qwen Text model: {e}")
+            logging.error(f"Failed to load DeepSeek R1 Text model: {e}")
             raise
-            
+    # ======================================================================= get models ================================================================================== #
     def get_qwen_vlm(self):
         """Get Qwen model and processor"""
         if 'qwen' not in self.models:
@@ -89,8 +89,9 @@ class Models:
             self.load_qwen_math()
         return self.models['qwen_math']
     
-    def load_llm_text(self):
-        """Get Qwen Text model"""
-        if 'qwen_text' not in self.models:
-            self.load_qwen_text()
-        return self.models['qwen_text']
+    def get_deepseek_r1_text(self):
+        """Get DeepSeek R1 Text model"""
+        if 'deepseek_r1_text' not in self.models:
+            self.load_deepseek_r1_text()
+        return self.models['deepseek_r1_text']
+    
