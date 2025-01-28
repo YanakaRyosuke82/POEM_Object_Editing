@@ -2,6 +2,4 @@
 .venv2
 __pycache__
 sam2.1_b.pt
-SLD_main/
 temp_latents/
-
