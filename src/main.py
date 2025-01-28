@@ -20,7 +20,7 @@ import configparser
 from marco_utils.models import Models
 from marco_utils.open_cv_transformations import run_open_cv_transformations
 from marco_utils.sam_refiner import run_sam_refine
-from marco_utils.qwen_math import run_math_analysis
+from marco_utils.math_model import run_math_analysis
 from marco_utils.vlm_image_parser import parse_image, save_results_image_parse
 from marco_utils.sld_adapter import generate_sld_config
 from marco_utils.torch_device import device  # Import the device
@@ -90,6 +90,8 @@ def main():
     if torch.cuda.is_available():
         device = f"cuda:{torch.cuda.current_device()}"
         torch.cuda.set_device(torch.cuda.current_device())
+        device = "cuda:0"  # Select CUDA device 1
+        torch.cuda.set_device(0)  # Set to CUDA device 1
     else:
         device = "cpu"
     logger.info(f"Using device: {device}")
@@ -113,11 +115,12 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
 
     # Load models
-    vlm_model, vlm_processor = models.get_qwen_vlm()
-    sam_model = models.get_sam()
-    math_model, math_tokenizer = models.get_qwen_math()
-    # math_model, math_tokenizer = models.get_deepseek_r1_text()
+    # vlm_model, vlm_processor = models.get_qwen_vlm()
+    # sam_model = models.get_sam()
+    # math_model, math_tokenizer = models.get_qwen_math()
+    math_model, math_tokenizer = models.get_deepseek_r1_text()
 
+    # time computations and logging
     start_time = time.time()
     reasoning_time = 0
     drawing_time = 0
@@ -152,17 +155,21 @@ def main():
                 ### REASONING ###
                 reasoning_start = time.time()
                 if args.reasoning:
-                    # Step 2: Parse image for analysis
-                    results = parse_image(input_path, vlm_model, vlm_processor, device, USER_EDIT)
-                    save_results_image_parse(sample_dir, processed_image, input_path, results)
+                #     # Step 2: Parse image for analysis
+                #     results = parse_image(input_path, vlm_model, vlm_processor, device, USER_EDIT)
+                #     save_results_image_parse(sample_dir, processed_image, input_path, results)
+                #     # Remove the unused VLM model and processor
+                #     del vlm_model
+                #     del vlm_processor
                     
-                    # Step 3: Refine detections with SAM
-                    logger.info(f"Refining detections for sample {sample_idx}")
-                    run_sam_refine(
-                        file_analysis_path=analysis_file,
-                        img_path=input_path,
-                        sam_model=sam_model
-                    )
+                #     # Step 3: Refine detections with SAM
+                #     logger.info(f"Refining detections for sample {sample_idx}")
+                #     run_sam_refine(
+                #         file_analysis_path=analysis_file,
+                #         img_path=input_path,
+                #         sam_model=sam_model
+                #     )
+                #     del sam_model
                     # Step 4: Mathematical analysis
                     logger.info(f"Performing mathematical analysis for sample {sample_idx}")
                     run_math_analysis(
@@ -173,6 +180,7 @@ def main():
                         tokenizer=math_tokenizer,
                         device=device
                     )
+                  
 
                     # Step 5: Apply transformations
                     run_open_cv_transformations(
@@ -202,7 +210,7 @@ def main():
                 continue
 
 
-
+    # time computations and logging
     end_time = time.time()
     total_time = end_time - start_time
     

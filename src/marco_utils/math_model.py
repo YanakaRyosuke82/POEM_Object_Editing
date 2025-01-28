@@ -5,6 +5,8 @@ import re
 from typing import Dict, Any, List
 import numpy as np
 
+
+
 # Define transformation matrices with clear mathematical formulas
 class TransformationMatrices:
     @staticmethod
@@ -33,11 +35,11 @@ class TransformationMatrices:
 
 
 
-def parse_matrix_from_reasoning(reasoning):
+def parse_qwen_math_matrix(reasoning):
     """Extract and parse transformation matrix from model reasoning."""
     # Look for matrix pattern in the output format, including LaTeX style matrices
     # Find the output marker first
-    output_start = reasoning.find("```output")
+    output_start = reasoning.find("TRANSFORMATION_MATRIX")
     if output_start == -1:
         raise ValueError("Could not find output section in model reasoning")
     
@@ -49,13 +51,12 @@ def parse_matrix_from_reasoning(reasoning):
         r'\[\s*\[\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\]'
         r'\s*,\s*\[\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\]'
         r'\s*,\s*\[\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\]\s*\]',
-        
         # LaTeX style matrix pattern
         r'\\begin{pmatrix}\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*\\\\'
         r'\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*\\\\'
         r'\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*\\end{pmatrix}'
     ]
-    
+
     matrix_values = None
     for pattern in matrix_patterns:
         match = re.search(pattern, reasoning_after_output)
@@ -80,6 +81,51 @@ def parse_matrix_from_reasoning(reasoning):
     
     return matrix
 
+
+
+def parse_transformation_matrix(reasoning):
+    """Extract and parse transformation matrix from model reasoning."""
+    # Find the start and end tokens
+    start_token = "<<MATRIX_START>>"
+    end_token = "<<MATRIX_END>>"
+    
+    start_idx = reasoning.find(start_token)
+    end_idx = reasoning.find(end_token, start_idx)
+    
+    if start_idx == -1 or end_idx == -1:
+        raise ValueError("Could not find the transformation matrix in the reasoning output.")
+    
+    # Extract the text between the tokens
+    matrix_text = reasoning[start_idx + len(start_token):end_idx].strip()
+    
+    # Use regex to extract numbers, handling both integer and float formats
+    pattern = r'[-+]?(?:\d*\.\d+|\d+\.?)'
+    numbers = re.findall(pattern, matrix_text)
+    
+    if len(numbers) < 9:
+        raise ValueError(f"Could not find 9 numbers in the matrix text. Found: {len(numbers)}")
+        
+    try:
+        # Convert strings to floats and reshape into 3x3 matrix
+        # Ensure float format by adding .0 to integers
+        matrix_values = []
+        for n in numbers[:9]:
+            if '.' not in n:
+                n = n + '.0'
+            matrix_values.append(float(n))
+            
+        matrix = np.array(matrix_values, dtype=float).reshape(3, 3)
+    except Exception as e:
+        raise ValueError(f"Error parsing the matrix: {e}")
+    
+    # Validate the matrix shape
+    if matrix.shape != (3, 3):
+        raise ValueError("The parsed matrix is not a 3x3 matrix.")
+    
+    return matrix
+
+
+
 def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel):
     """Get transformation matrix from model reasoning."""
     # Create context from scene information
@@ -99,38 +145,61 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
         Center: ({obj['center'][0]:.3f}, {obj['center'][1]:.3f})"""
 
     messages = [
-        {"role": "system", "content": "Integrate natural language reasoning with programs to solve user query. Given the scene content and the user edit, determine the appropriate transformation matrix for the requested edit.\n\n"
-                                    "Scene content: " + scene_context + "\n\n"
-                                    "List of possible operations:\n"
-                                    "1. Translation: Moving objects in x,y directions\n"
-                                    "   Example: [[1 0 tx][0 1 ty][0 0 1]]\n\n"
-                                    "2. Rotation: Rotating objects by angle θ\n"
-                                    "   Example: [[cos(θ) -sin(θ) 0][sin(θ) cos(θ) 0][0 0 1]]\n\n"
-                                    "3. Scaling: Changing object size\n"
-                                    "   Example: [[sx 0 0][0 sy 0][0 0 1]]\n\n"
-                                    "4. Shear: Skewing objects\n"
-                                    "   Example: [[1 shx 0][shy 1 0][0 0 1]]\n\n"
-                                    "5. Combined transformations are also allowed:\n"
-                                    "   Example: multiply the transformation matrices corresponding to the operations. for example translation + rotation = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[1 0 tx][0 1 ty][0 0 1]]; additional examples: translation + scaling = [[1 0 tx][0 1 ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]], translation + rotation + scaling = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]]   \n\n"   
-                                    # "6. CONVENTIONS: rotations are counter-clockwise, and the origin is at the top-left corner of the image. \n\n"
+        {
+            "role": "system",
+            "content": (
+                "You are a math expert. Your task is to output a 3x3 transformation matrix.\n\n"
+                "IMPORTANT: Your response MUST follow this EXACT format:\n"
+                "1. First explain your reasoning in max 50 words.\n"
+                "2. Then output EXACTLY ONE matrix between these tokens:\n"
+                "<<MATRIX_START>>\n"
+                "[[x.xx  x.xx  x.xx]\n"
+                " [x.xx  x.xx  x.xx]\n"
+                " [x.xx  x.xx  x.xx]]\n"
+                "<<MATRIX_END>>\n\n"
+                "RULES:\n"
+                "- Matrix must be 3x3\n" 
+                "- All numbers must be floats (e.g. 1.0 not 1)\n"
+                "- Use exactly 2 spaces between numbers\n"
+                "- Image origin is top-left corner\n"
+                "- X axis goes right, Y axis goes down\n\n"
+                "Available transformations:\n"
+                "1. Translation: [[1 0 tx], [0 1 ty], [0 0 1]]\n"
+                "2. Rotation: [[cos(θ) -sin(θ) 0], [sin(θ) cos(θ) 0], [0 0 1]]\n"
+                "3. Scale: [[sx 0 0], [0 sy 0], [0 0 1]]\n"
+                "4. Shear: [[1 shx 0], [shy 1 0], [0 0 1]]\n"
+                "5. Flip: [[-1 0 0], [0 1 0], [0 0 1]]\n\n"
+                "Scene information:\n"
+                "{scene_context}"
+                "The transformation matrix must be a 3x3 numpy array with float values, you must use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
+                "Remember: you must use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
+                "Don't forget to use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
+            )
         },
         {"role": "user", "content": user_edit}
     ]
-    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    model_inputs = tokenizer([text], return_tensors="pt").to("cuda")
-    
-    generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=1024
-    )
-    generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
-    
-    reasoning = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    
-    logging.info("Model Reasoning:")
-    # logging.info(reasoning)
-    
-    return parse_matrix_from_reasoning(reasoning), reasoning
+
+    # Try parsing up to 5 times
+    for attempt in range(5):
+        text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        model_inputs = tokenizer([text], return_tensors="pt").to("cuda")
+        
+        generated_ids = model.generate(**model_inputs, max_new_tokens=512)
+        generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
+        
+        reasoning = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        logging.info(f"Model Reasoning (Attempt {attempt + 1}):")
+        logging.info(reasoning)
+        
+        try:
+            matrix, reasoning = parse_transformation_matrix(reasoning), reasoning
+            return matrix, reasoning
+        except:
+            if attempt == 4:  # Last attempt
+                logging.error("Failed to parse matrix after 5 attempts")
+                raise
+            logging.warning(f"Failed to parse matrix on attempt {attempt + 1}, retrying...")
+            continue
 
 
 def parse_detection_file(file_path):
