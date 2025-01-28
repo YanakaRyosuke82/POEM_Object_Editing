@@ -124,9 +124,29 @@ def parse_transformation_matrix(reasoning):
     
     return matrix
 
+def parse_object_id(reasoning):
+    """Extract and parse object ID (integer) from model reasoning."""
+    # Find the start and end tokens
+    start_token = "<<OBJECT_ID_START>>"
+    end_token = "<<OBJECT_ID_END>>"
+    
+    start_idx = reasoning.find(start_token)
+    end_idx = reasoning.find(end_token, start_idx)
+    
+    if start_idx == -1 or end_idx == -1:
+        raise ValueError("Could not find the object ID in the reasoning output.")
+    
+    # Extract text between tokens and parse as integer
+    id_text = reasoning[start_idx + len(start_token):end_idx].strip()
+    try:
+        # Remove "Object #" prefix if present and convert to int
+        id_text = id_text.replace("Object #", "").strip()
+        object_id = int(id_text)
+        return object_id
+    except ValueError:
+        raise ValueError(f"Could not parse object ID from text: {id_text}")
 
-
-def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel):
+def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device):
     """Get transformation matrix from model reasoning."""
     # Create context from scene information
     scene_context = f"""Scene Information:
@@ -139,16 +159,18 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
     
     for obj in objects:
         scene_context += f"""
-    {obj['class']}:
-        Width: {obj['width']:.3f}
-        Height: {obj['height']:.3f}
-        Center: ({obj['center'][0]:.3f}, {obj['center'][1]:.3f})"""
+        Object ID       : {obj['id']}
+        Object class    : {obj['class']}
+        Width          : {obj['width']:.3f}
+        Height         : {obj['height']:.3f}
+        Center         : ({obj['center'][0]:.3f}, {obj['center'][1]:.3f})
+        ----------------------"""
 
     messages = [
         {
             "role": "system",
             "content": (
-                "You are a math expert. Your task is to output a 3x3 transformation matrix.\n\n"
+                "You are a math expert. Your task is to output a 3x3 transformation matrix and the object ID.\n\n"
                 "IMPORTANT: Your response MUST follow this EXACT format:\n"
                 "1. First explain your reasoning in max 50 words.\n"
                 "2. Then output EXACTLY ONE matrix between these tokens:\n"
@@ -174,6 +196,8 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
                 "The transformation matrix must be a 3x3 numpy array with float values, you must use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
                 "Remember: you must use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
                 "Don't forget to use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
+                "The object ID is the one that is being subject to transformation. Write it as an integer between <<OBJECT_ID_START>> and <<OBJECT_ID_END>> tokens."
+                "For example: <<OBJECT_ID_START>>1<<OBJECT_ID_END>> for object #1."
             )
         },
         {"role": "user", "content": user_edit}
@@ -182,7 +206,7 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
     # Try parsing up to 5 times
     for attempt in range(5):
         text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        model_inputs = tokenizer([text], return_tensors="pt").to("cuda")
+        model_inputs = tokenizer([text], return_tensors="pt").to(device)
         
         generated_ids = model.generate(**model_inputs, max_new_tokens=512)
         generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
@@ -193,7 +217,8 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
         
         try:
             matrix, reasoning = parse_transformation_matrix(reasoning), reasoning
-            return matrix, reasoning
+            object_id = parse_object_id(reasoning)
+            return matrix, object_id, reasoning
         except:
             if attempt == 4:  # Last attempt
                 logging.error("Failed to parse matrix after 5 attempts")
@@ -258,10 +283,11 @@ def run_math_analysis(user_edit: str, file_path: str, img_path: str, model: Any,
         # Parse detection file with enhanced information
         file_dir = os.path.dirname(file_path)
         objects, scene_desc, spatial_rel = parse_detection_file(file_path)
+
         
-        
+    
         # Get transformation matrix with scene context
-        matrix_array, reasoning = get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel)
+        matrix_array, object_id, reasoning = get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device)
         
         logging.info("Parsed Matrix:")
         logging.info(matrix_array)
@@ -276,6 +302,12 @@ def run_math_analysis(user_edit: str, file_path: str, img_path: str, model: Any,
         with open(REASONING_FILE, 'w') as f:
             f.write(reasoning)
         logging.info(f"Reasoning saved to {REASONING_FILE}")
+        
+        # Store object ID to file
+        OBJECT_ID_FILE = f'{file_dir}/object_id.txt'
+        with open(OBJECT_ID_FILE, 'w') as f:
+            f.write(str(object_id))
+        logging.info(f"Object ID saved to {OBJECT_ID_FILE}")
         
         return matrix_array
         

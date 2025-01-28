@@ -40,7 +40,7 @@ def parse_line(line: str, objects: list) -> None:
                     'bbox': [xmin, ymin, xmax, ymax]
                 })
             except (ValueError, IndexError) as e:
-                breakpoint()
+
                 logging.warning(f"Error parsing DETECT values: {e}")
                 
         elif line.startswith('POINTS:'):
@@ -61,7 +61,7 @@ def parse_line(line: str, objects: list) -> None:
     except Exception as e:
         logging.warning(f"Error parsing line '{line}': {e}")
 
-def parse_image(image_path: str, model: Any, processor: Any, device: str = "cuda", user_edit: str = None) -> Dict[str, Any]:
+def parse_image(image_path: str, model: Any, processor: Any, device: str, user_edit: str = None) -> Dict[str, Any]:
     """
     Parse an image using Qwen2VL model to detect objects, points, and scene understanding.
     
@@ -104,6 +104,7 @@ Note: provide:
     with torch.cuda.device(device):
         inputs = processor(text=[text], images=image_inputs, videos=video_inputs, 
                         padding=True, return_tensors="pt").to(device)
+        
         generated_ids = model.generate(**inputs, max_new_tokens=256)
         output_text = processor.batch_decode(
             [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)],

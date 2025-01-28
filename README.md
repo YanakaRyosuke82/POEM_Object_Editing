@@ -3,14 +3,13 @@
 # Todo
 
 - [x] test Deepseek : seems to be better, but less consistent.
-- make reasoning quicker (cut max tokens, and revise prompt)
-- apply the transformation matrix always to the center of the image (is better for Pascal Objects).
-- split the LLMs from the SD cuda device e..g cuda:0, cuda:1
+- [x] make reasoning quicker (cut max tokens, and revise prompt)
+- [x] apply the transformation matrix always to the center of the image (is better for Pascal Objects).
+- [x] slit the LLMs from the SD cuda device e..g cuda:0, cuda:1
 - batch inference (NO), check the memory requiremetns.
 - add some code to run the evaluations from onur
-- add failure case as return identiy matrix if the LLM cannot parse the matrix correctly.
-- note: USE OBJECT CENTER FOR THE  TRANSFORMATION application point.
-
+- [x] add failure case as return identiy matrix if the LLM cannot parse the matrix correctly.
+- [ ] SHOULD ALSO STORE THE BBOX OF ALL DETECTION IN SLD FORMAT.
 ![meme](./docs/meme.png)
 
 

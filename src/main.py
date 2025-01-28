@@ -23,7 +23,7 @@ from marco_utils.sam_refiner import run_sam_refine
 from marco_utils.math_model import run_math_analysis
 from marco_utils.vlm_image_parser import parse_image, save_results_image_parse
 from marco_utils.sld_adapter import generate_sld_config
-from marco_utils.torch_device import device  # Import the device
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"  
 
 
 # # SLD imports
@@ -64,7 +64,7 @@ def process_image(image_path: str, edit_type: str) -> Optional[cv2.Mat]:
         logging.error(f"Error processing image {image_path}: {str(e)}")
         return None
 
-def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Logger) -> None:
+def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Logger, NORMAL_GPU: str) -> None:
     """
     Run the SLD (Structure-aware Latent Diffusion) pipeline
     """
@@ -72,6 +72,8 @@ def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Lo
     ext_script = "src/SLD/SLD_demo.py"
     config_ini = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/src/SLD/demo_config.ini"
         # Run the script
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = NORMAL_GPU.replace("cuda:", "")
     subprocess.run([
         "python", ext_script,
         '--json-file', json_path,
@@ -80,7 +82,7 @@ def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Lo
         '--mode', 'image_editing',
         '--config', config_ini
     ])
-
+   
 
 def main():
     """Main entry point of the program"""
@@ -88,16 +90,16 @@ def main():
 
     # Check for CUDA availability and select device
     if torch.cuda.is_available():
-        device = f"cuda:{torch.cuda.current_device()}"
-        torch.cuda.set_device(torch.cuda.current_device())
-        device = "cuda:0"  # Select CUDA device 1
-        torch.cuda.set_device(0)  # Set to CUDA device 1
+        DEEP_SEEK_GPU = "cuda:1"  # Select CUDA device 1
+        NORMAL_GPU = "cuda:0"  # Select CUDA device 2
+        
     else:
-        device = "cpu"
-    logger.info(f"Using device: {device}")
+        DEEP_SEEK_GPU = "cpu"
+        NORMAL_GPU = "cpu"
+    logger.info(f"Using device: {DEEP_SEEK_GPU}")
 
     # Initialize models
-    models = Models(device)
+    models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
     
     # Parse arguments
     parser = argparse.ArgumentParser(description='Process images with edit instructions')
@@ -115,8 +117,8 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
 
     # Load models
-    # vlm_model, vlm_processor = models.get_qwen_vlm()
-    # sam_model = models.get_sam()
+    vlm_model, vlm_processor = models.get_qwen_vlm()
+    sam_model = models.get_sam()
     # math_model, math_tokenizer = models.get_qwen_math()
     math_model, math_tokenizer = models.get_deepseek_r1_text()
 
@@ -147,67 +149,64 @@ def main():
                 USER_EDIT = file.read().strip()
             
             logger.info(f"Processing sample {sample_idx}: {input_path}")
-            try:
-                # Step 1: Process image
-                processed_image = process_image(input_path, args.edit)
-                if processed_image is None:
-                    continue
-                ### REASONING ###
-                reasoning_start = time.time()
-                if args.reasoning:
-                #     # Step 2: Parse image for analysis
-                #     results = parse_image(input_path, vlm_model, vlm_processor, device, USER_EDIT)
-                #     save_results_image_parse(sample_dir, processed_image, input_path, results)
-                #     # Remove the unused VLM model and processor
-                #     del vlm_model
-                #     del vlm_processor
-                    
-                #     # Step 3: Refine detections with SAM
-                #     logger.info(f"Refining detections for sample {sample_idx}")
-                #     run_sam_refine(
-                #         file_analysis_path=analysis_file,
-                #         img_path=input_path,
-                #         sam_model=sam_model
-                #     )
-                #     del sam_model
-                    # Step 4: Mathematical analysis
-                    logger.info(f"Performing mathematical analysis for sample {sample_idx}")
-                    run_math_analysis(
-                        user_edit=USER_EDIT,  # Now using the read edit instruction specific to this sample
-                        file_path=analysis_enhanced_file,
-                        img_path=input_path,
-                        model=math_model,
-                        tokenizer=math_tokenizer,
-                        device=device
-                    )
-                  
-
-                    # Step 5: Apply transformations
-                    run_open_cv_transformations(
-                        matrix_transform_file=transformation_matrix_file,
-                        output_dir=sample_dir,
-                        MASK_FILE_NAME="mask_0.png",
-                        ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
-                    )
-                reasoning_time += time.time() - reasoning_start
-                   
-                ### IMAGE GENERATION ###
-                drawing_start = time.time()
-                if args.draw:
-                    # Step 6: Generate config_sld.json for the SLD
-                    generate_sld_config(sample_dir, analysis_enhanced_file)
-                    # Step 7: Run SLD to generate edited image
-                    run_sld(
-                        json_path=os.path.abspath(json_path),
-                        input_path=os.path.abspath(input_path), 
-                        output_dir=os.path.abspath(sample_dir),
-                        logger=logger
-                    )
-                drawing_time += time.time() - drawing_start
-
-            except Exception as e:
-                logger.error(f"Error processing {input_path}: {str(e)}")
+            
+            # Step 1: Process image
+            processed_image = process_image(input_path, args.edit)
+            if processed_image is None:
                 continue
+            ### REASONING ###
+            reasoning_start = time.time()
+            if args.reasoning:
+                # Step 2: Parse image for analysis
+                results = parse_image(input_path, vlm_model, vlm_processor, NORMAL_GPU, USER_EDIT)
+                save_results_image_parse(sample_dir, processed_image, input_path, results)
+
+    
+                
+                # Step 3: Refine detections with SAM
+                logger.info(f"Refining detections for sample {sample_idx}")
+                run_sam_refine(
+                    file_analysis_path=analysis_file,
+                    img_path=input_path,
+                    sam_model=sam_model
+                )
+    
+                # Step 4: Mathematical analysis
+                logger.info(f"Performing mathematical analysis for sample {sample_idx}")
+                run_math_analysis(
+                    user_edit=USER_EDIT,  # Now using the read edit instruction specific to this sample
+                    file_path=analysis_enhanced_file,
+                    img_path=input_path,
+                    model=math_model,
+                    tokenizer=math_tokenizer,
+                    device=DEEP_SEEK_GPU
+                )
+                
+
+                # Step 5: Apply transformations
+                run_open_cv_transformations(
+                    matrix_transform_file=transformation_matrix_file,
+                    output_dir=sample_dir,
+                    MASK_FILE_NAME="mask_0.png",
+                    ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
+                )
+            reasoning_time += time.time() - reasoning_start
+                
+            ### IMAGE GENERATION ###
+            drawing_start = time.time()
+            if args.draw:
+                # Step 6: Generate config_sld.json for the SLD
+                generate_sld_config(sample_dir, analysis_enhanced_file)
+                # Step 7: Run SLD to generate edited image
+                run_sld(
+                    json_path=os.path.abspath(json_path),
+                    input_path=os.path.abspath(input_path), 
+                    output_dir=os.path.abspath(sample_dir),
+                    logger=logger,
+                    NORMAL_GPU=NORMAL_GPU
+                )
+            drawing_time += time.time() - drawing_start
+          
 
 
     # time computations and logging

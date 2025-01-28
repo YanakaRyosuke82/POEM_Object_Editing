@@ -2,22 +2,28 @@
 
 Detected Objects:
 Object 1:
-  Class: Pizza
-  Bounding Box (normalized): xmin=0.075, ymin=0.189, xmax=0.551, ymax=0.892
-  Bounding Box (SLD format): [0.075, 0.189, 0.475, 0.703]
+  Class: Dog
+  Bounding Box (normalized): xmin=0.059, ymin=0.311, xmax=0.441, ymax=0.924
+  Bounding Box (SLD format): [0.059, 0.311, 0.383, 0.613]
+  Bounding Box (SLD format) transformed: [0.080078125, 0.345703125, 0.33984375, 0.54296875]
   Segmentation Points:
-    (0.430, 0.359)
+    (0.250, 0.500)
+Object 2:
+  Class: Cat
+  Bounding Box (normalized): xmin=0.490, ymin=0.240, xmax=1.000, ymax=0.760
+  Segmentation Points:
+    (0.750, 0.500)
 
 Scene Description:
-A delicious pizza with pepperoni toppings sits on a rustic wooden table, surrounded by scattered tomatoes and garlic cloves.
+A puppy and a kitten sitting on a table with a cityscape in the background.
 
 Spatial Relationships:
-The pizza is centrally placed on the table, with tomatoes and garlic cloves scattered around it.
+The puppy is to the left of the kitten. The kitten is in front of the puppy.
 
 Background Description:
-The background is a dark wooden table with visible grain and texture.
+The cityscape features tall buildings and a colorful sky.
 
 Generation Prompt:
-Translate the pizza 20 px east
+Make the cat 12% smaller then the dog.
 
 =====================

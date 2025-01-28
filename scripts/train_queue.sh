@@ -17,10 +17,4 @@
 
 
 
-# # Loop to run jobs for dataset identifiers
-# for i in $(seq 1 10)
-# do
-#     bash train_marco_interactive.sh "marco" "exp$i"
-# done
-
- bash train_marco_interactive.sh "VAE"
+bash train_marco_interactive.sh "VAE"

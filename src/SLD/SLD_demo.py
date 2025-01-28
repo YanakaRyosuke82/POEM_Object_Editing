@@ -265,6 +265,7 @@ if __name__ == "__main__":
     for idx in range(len(data)):
 
         # Reset random seeds
+
         default_seed = int(config.get("SLD", "default_seed"))
         torch.manual_seed(default_seed)
         np.random.seed(default_seed)
@@ -379,11 +380,11 @@ if __name__ == "__main__":
         print("* Output File (Before SDXL): ", curr_output_fname)
         utils.free_memory()
 
-        # Can run this if applying SDXL as the refine process
-        sdxl_output_fname = os.path.join(dirname, f"final_{rel_fname}.png")
-        if args.mode == "self_correction":
-            sdxl_refine(prompt, curr_output_fname, sdxl_output_fname)
-        else:
-            # For image editing, the prompt should be updated
-            sdxl_refine(ret_dict.final_prompt, curr_output_fname, sdxl_output_fname)
-        print("* Output File (After SDXL): ", sdxl_output_fname)
+        # # Can run this if applying SDXL as the refine process
+        # sdxl_output_fname = os.path.join(dirname, f"final_{rel_fname}.png")
+        # if args.mode == "self_correction":
+        #     sdxl_refine(prompt, curr_output_fname, sdxl_output_fname)
+        # else:
+        #     # For image editing, the prompt should be updated
+        #     sdxl_refine(ret_dict.final_prompt, curr_output_fname, sdxl_output_fname)
+        # print("* Output File (After SDXL): ", sdxl_output_fname)

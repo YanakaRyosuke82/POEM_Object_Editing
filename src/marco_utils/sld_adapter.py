@@ -33,33 +33,31 @@ def generate_sld_config(
         with open(analysis_enhanced_file, 'r') as file:
             content = file.read().strip()
 
-        # Extract original bbox from enhanced analysis
-        bbox_line = [line for line in content.split('\n') if 'Bounding Box' in line][0]
-        orig_xmin = float(bbox_line.split('xmin=')[1].split(',')[0])
-        orig_ymin = float(bbox_line.split('ymin=')[1].split(',')[0])
-        orig_xmax = float(bbox_line.split('xmax=')[1].split(',')[0])
-        orig_ymax = float(bbox_line.split('ymax=')[1].split(',')[0])
-
-        # Load transformed bbox from transformed_bbox.txt
-        transformed_bbox = [0.348, 0.286, 0.538, 0.630]  # SLD format [x, y, width, height]
-
-        # Compare original and transformed bboxes
-        orig_bbox = [orig_xmin, orig_ymin, orig_xmax - orig_xmin, orig_ymax - orig_ymin]
-        bbox_changed = any(abs(o - n) > 0.001 for o, n in zip(orig_bbox, transformed_bbox))
-
         # Extract scene description
         scene_desc_lines = [line for line in content.split('\n') if 'Scene Description:' in line]
         scene_description = scene_desc_lines[0].replace('Scene Description:', '').strip()
 
-        # Extract object class from enhanced analysis
-        object_class = None
-        for line in content.split('\n'):
-            if 'Class:' in line:
-                object_class = line.split('Class:')[1].strip().lower()
-                break
+        # Extract objects and their bboxes
+        objects = []
+        current_object = {}
+        content_lines = content.split('\n')
+        for line in content_lines:
+            if 'Object ' in line:
+                if current_object:
+                    objects.append(current_object)
+                current_object = {}
+            elif 'Class:' in line and current_object is not None:
+                current_object['class'] = line.split('Class:')[1].strip().lower()
+            elif 'Bounding Box (SLD format):' in line and 'transformed' not in line:
+                bbox_str = line.split('Bounding Box (SLD format):')[1].strip()
+                current_object['sld_bbox'] = json.loads(bbox_str)
+            elif 'Bounding Box (SLD format) transformed:' in line:
+                bbox_str = line.split('Bounding Box (SLD format) transformed:')[1].strip()
+                current_object['transformed_bbox'] = json.loads(bbox_str)
+        if current_object:
+            objects.append(current_object)
 
         # Extract generation prompt and background description
-        content_lines = content.split('\n')
         generation_prompt = None
         bg_prompt = None
         
@@ -86,27 +84,29 @@ def generate_sld_config(
 
         if not generation_prompt or not bg_prompt:
             raise ValueError("Could not extract generation prompt or background description")
-     
-        # Construct base config, must be a list of dicts
+
+        # Construct base config with all objects
         config_data = [{
             "input_fname": 'input.png',
             "output_dir": os.path.basename(sample_dir),
             "prompt": generation_prompt,
             "generator": "dalle",
             "llm_parsed_prompt": {
-                "objects": [
-                    [object_class, [None]]
-                ],
+                "objects": [[obj['class'], [None]] for obj in objects],
                 "bg_prompt": bg_prompt,
                 "neg_prompt": "null"
-            }
+            },
+            "llm_layout_suggestions": []
         }]
-        # Only add layout suggestions if bbox changed
-        if bbox_changed:
-            config_data[0]["llm_layout_suggestions"] = [
-                [f"{object_class} #1", transformed_bbox]
-            ]
+
+        # Add layout suggestions for each object
+        layout_suggestions = []
+        for i, obj in enumerate(objects):
+            bbox = obj.get('transformed_bbox', obj['sld_bbox'])
+            layout_suggestions.append([f"{obj['class']} #{i+1}", bbox])
         
+        config_data[0]["llm_layout_suggestions"] = layout_suggestions
+
         # Write validated config
         config_path = f"{sample_dir}/config_sld.json"
         with open(config_path, 'w', encoding='utf-8') as f:

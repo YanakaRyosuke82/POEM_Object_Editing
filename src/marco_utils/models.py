@@ -5,9 +5,10 @@ from typing import Dict, Any
 import logging
 from ultralytics import SAM
 class Models:
-    def __init__(self, device: str = "cuda"):
+    def __init__(self, device_reasoning: str = "cuda", DEEP_SEEK_GPU: str = "cuda"):
         """Initialize model container"""
-        self.device = device
+        self.device_reasoning = device_reasoning
+        self.DEEP_SEEK_GPU = DEEP_SEEK_GPU
         self.models: Dict[str, Any] = {}
         self.processors: Dict[str, Any] = {}
     # ======================================================================= load models ================================================================================== #
@@ -18,8 +19,8 @@ class Models:
             self.models['qwen'] = Qwen2VLForConditionalGeneration.from_pretrained(
                 "Qwen/Qwen2-VL-7B-Instruct",
                 torch_dtype=torch.bfloat16,
-                device_map={"": self.device}
-            ).to(self.device)
+                device_map = {"": self.device_reasoning}
+            )
             self.processors['qwen'] = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-7B-Instruct")
             logging.info("Loaded Qwen VL model successfully")
         except Exception as e:
@@ -43,7 +44,7 @@ class Models:
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 torch_dtype=torch.bfloat16,
-                device_map=self.device,
+                device_map=self.device_reasoning,
             )
             tokenizer = AutoTokenizer.from_pretrained(model_name)
             
@@ -61,8 +62,9 @@ class Models:
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 torch_dtype=torch.bfloat16,
-                device_map=self.device,
+                device_map={"": self.DEEP_SEEK_GPU},
             )
+            print(model.device)
             tokenizer = AutoTokenizer.from_pretrained(model_name)
             
             self.models['deepseek_r1_text'] = (model, tokenizer)
