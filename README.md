@@ -21,6 +21,7 @@
 ![masks](./docs/transformation_vis_cat.png)
 ![masks](./docs/sam_analysis_1.png)
 ![mixed](./docs/mixed.png)
+![masks](./docs/transformation_vis_mixed.png)
 ```
 === VLM IMAGE PARSING ===
 Detected Objects:
