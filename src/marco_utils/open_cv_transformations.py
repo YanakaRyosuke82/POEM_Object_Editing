@@ -45,17 +45,23 @@ def _process_object(mask: np.array, transformation_matrix: np.array) -> np.array
 
 
 
-def run_open_cv_transformations(matrix_transform_file, output_dir, MASK_FILE_NAME, ENHANCED_FILE_DESCRIPTION):
+def run_open_cv_transformations(matrix_transform_file, output_dir, ENHANCED_FILE_DESCRIPTION):
 
-    # Load the transformation matrix
-    loaded_matrix = np.load(matrix_transform_file)
-    
+    # Get object ID from file
+    object_id_path = os.path.join(output_dir, 'object_id.txt')
+    with open(object_id_path, 'r') as f:
+        object_id = int(f.read().strip())
+
+
     # Load and validate binary mask
-    mask_path = os.path.join(output_dir, MASK_FILE_NAME)
+    mask_file_name = f"mask_{object_id}.png"
+    mask_path = os.path.join(output_dir, mask_file_name)
     binary_mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-    
     if binary_mask is None:
         raise FileNotFoundError(f"Could not load binary mask from {mask_path}")
+    
+     # Load the transformation matrix
+    loaded_matrix = np.load(matrix_transform_file)
     
     height, width = binary_mask.shape
     
@@ -74,10 +80,7 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, MASK_FILE_NAM
     y_max, x_max = np.max(where_filter, axis=1)
     new_bbox = [x_min, y_min, x_max - x_min, y_max - y_min]
 
-    # Get object ID from file
-    object_id_path = os.path.join(output_dir, 'object_id.txt')
-    with open(object_id_path, 'r') as f:
-        object_id = int(f.read().strip())
+
     
     # Calculate normalized bbox
     normalized_bbox = [

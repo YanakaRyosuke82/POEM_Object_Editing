@@ -20,5 +20,3 @@ The background consists of a green hedge and a white blanket.
 
 Generation Prompt:
 Make the dog 12% larger
-
-=====================

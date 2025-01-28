@@ -18,8 +18,9 @@
 ![masks](./docs/transformation_vis_dog.png)
 ![masks](./docs/sam_analysis_1_dog.png)
 ![Cat Image](./docs/cat.png)
-![masks](./docs/transformation_vis.png)
+![masks](./docs/transformation_vis_cat.png)
 ![masks](./docs/sam_analysis_1.png)
+![mixed](./docs/mixed.png)
 ```
 === VLM IMAGE PARSING ===
 Detected Objects:

@@ -127,7 +127,6 @@ def main():
     reasoning_time = 0
     drawing_time = 0
     sample_count = 0
-
     # Process each image in input directory
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
         for filename in files:
@@ -138,7 +137,9 @@ def main():
 
             ## set paths    
             input_path = os.path.join(subdir, filename)
-            sample_dir = os.path.join(args.out_dir, f"sample_{sample_idx:03d}")
+            # Use the subfolder name from input dir as the output sample dir name
+            subfolder_name = os.path.basename(subdir)
+            sample_dir = os.path.join(args.out_dir, subfolder_name)
             os.makedirs(sample_dir, exist_ok=True)
             analysis_file = os.path.join(sample_dir, "analysis.txt")
             analysis_enhanced_file = os.path.join(sample_dir, "analysis_enhanced.txt")
@@ -148,7 +149,7 @@ def main():
             with open(edit_instruction_file, 'r') as file:
                 USER_EDIT = file.read().strip()
             
-            logger.info(f"Processing sample {sample_idx}: {input_path}")
+            logger.info(f"Processing sample #{sample_idx}: {input_path}")
             
             # Step 1: Process image
             processed_image = process_image(input_path, args.edit)
@@ -187,7 +188,6 @@ def main():
                 run_open_cv_transformations(
                     matrix_transform_file=transformation_matrix_file,
                     output_dir=sample_dir,
-                    MASK_FILE_NAME="mask_0.png",
                     ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
                 )
             reasoning_time += time.time() - reasoning_start
