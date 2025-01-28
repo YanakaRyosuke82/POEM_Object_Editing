@@ -1,12 +1,12 @@
 # 🚀 VLM Controller for Stable Diffusion (SD)
-
 ![Dog Image](./docs/dog.png)  
+![masks](./docs/transformation_vis_dog.png)
+![masks](./docs/sam_analysis_1_dog.png)
 ![Cat Image](./docs/cat.png)
 ![masks](./docs/transformation_vis.png)
 ![masks](./docs/sam_analysis_1.png)
 ```
-=== ENHANCED DETECTION RESULTS ===
-
+=== VLM IMAGE PARSING ===
 Detected Objects:
 Object 1:
   Class: Cat
@@ -27,6 +27,81 @@ The background appears to be a room with a door or a window, but it is out of fo
 Generation Prompt:
 Make the cat 12% smaller
 
+=====================
+```
+
+
+```
+=== LLM-MATH REASONING ===
+To make the cat 12% smaller, we need to apply a scaling transformation to the cat's dimensions. The scaling factor for both width and height will be \(1 - 0.12 = 0.88\). The center of the cat will remain the same.
+
+The transformation matrix for scaling is:
+\[
+\begin{pmatrix}
+s_x & 0 & 0 \\
+0 & s_y & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\]
+where \(s_x = 0.88\) and \(s_y = 0.88\).
+
+Let's calculate the new dimensions and the transformation matrix using Python.
+\`\`\`python
+import numpy as np
+
+# Original dimensions of the cat
+original_width = 0.606
+original_height = 0.813
+original_center = np.array([0.615, 0.516, 1])
+
+# Scaling factor
+scaling_factor = 0.88
+
+# Scaling transformation matrix
+scaling_matrix = np.array([[scaling_factor, 0, 0],
+                          [0, scaling_factor, 0],
+                          [0, 0, 1]])
+
+# New dimensions of the cat
+new_width = original_width * scaling_factor
+new_height = original_height * scaling_factor
+
+# New center of the cat (remains the same)
+new_center = original_center
+
+# Print the new dimensions and the transformation matrix
+print(f"New width: {new_width}")
+print(f"New height: {new_height}")
+print(f"New center: {new_center}")
+print(f"Scaling transformation matrix: \n{scaling_matrix}")
+\`\`\`
+\`\`\`output
+New width: 0.53328
+New height: 0.71904
+New center: [0.615 0.516 1]
+Scaling transformation matrix: 
+[[0.88 0.  0. ]
+ [0.  0.88 0. ]
+ [0.  0.  1. ]]
+\`\`\`
+The new dimensions of the cat after scaling are:
+- New width: \(0.53328\)
+- New height: \(0.71904\)
+- New center: \((0.615, 0.516, 1)\)
+
+The scaling transformation matrix is:
+\[
+\begin{pmatrix}
+0.88 & 0 & 0 \\
+0 & 0.88 & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\]
+
+So, the appropriate transformation matrix for the requested edit is:
+\[
+\boxed{\begin{pmatrix} 0.88 & 0 & 0 \\ 0 & 0.88 & 0 \\ 0 & 0 & 1 \end{pmatrix}}
+\]
 =====================
 ```
 
@@ -63,16 +138,19 @@ python src/main.py
 ```
 
 
+![vram](./docs/quantization_vram.png)
+[Reference](https://apxml.com/posts/gpu-requirements-deepseek-r1)
+
+
 ## 📐 Notation
-Image Coordinates: Square images are defined with the top-left at [0, 0] and the bottom-right at [1, 1].
-Box Format: [Top-left x, Top-left y, Width, Height]
-Operations: Includes addition, deletion, and repositioning.
+- Image Coordinates: Square images are defined with the top-left at [0, 0] and the bottom-right at [1, 1].
+- Box Format: [Top-left x, Top-left y, Width, Height]
+- Operations: Includes addition, deletion, and repositioning.
 
 
 
 ## 📖  Motivation
-We aim to leverage the prompting of large foundation models, such as stable diffusion, to enhance image editing.
-The goal of the project is to develop a "reasoning module" that interprets user prompts to extract mathematically precise parameters for both affine and non-affine transformations used in shape editing.
+We aim to enhance the control of diffusion-based models to improve image editing methods. We are developing a "reasoning block" that interprets user prompts to extract mathematically precise parameters for affine transformations utilized in shape editing.
      
 The novelty comes in three parts:
 1. the visual reasoning of user edit prompts for parsing of almost-mathematically precise shape edits.
@@ -81,9 +159,9 @@ The novelty comes in three parts:
 
 
 ## 🧠 Modelling
-This project builds upon the popular VLM-based pipeline, wherein a Vision-Language Model (VLM) aids in reasoning based on the user's input prompt, followed by a Stable Diffusion model acting as the drawing agent. 
+This project builds upon the popular VLM-based SD control pipeline, wherein a Vision-Language Model (VLM) aids in reasoning based on the user's input prompt, followed by a Stable Diffusion model acting as the drawing agent. 
 
-Our goal is to enhance this pipeline by refining the "reasoning phase" prior to the drawing phase. The ehancement wouild enable to have almost matematicallty precise shape edits. The output from the reasoning module will generate detailed information about (a) shape transformations and (b) appearance transformations of the main objects, leading to a holistic system. This output will then be processed using the SDL method [^2] inspired by self-guidance formulation[^1], with an extension of the NVIDIA-addit [^3] module specifically designed for improving the location of the "add object" operation.
+Our goal is to enhance this pipeline by refining the "reasoning phase" prior to the drawing phase. The ehancement wouild enable to have almost matematicallty precise shape edits. The output from the reasoning module will generate detailed information about (a) shape transformations and (b) appearance transformations of the main objects, leading to a holistic system. Inspired by self-guidance formulation[^1], our output will then be processed using the SDL method [^2] operating the edit int he latent space of diffusion models 
 
 
 
@@ -169,83 +247,10 @@ ModuleNotFoundError: No module named 'inflect'
     from openai import OpenAI
 ModuleNotFoundError: No module named 'openai'
 
-### Example:
-```
-To make the cat 12% smaller, we need to apply a scaling transformation to the cat's dimensions. The scaling factor for both width and height will be \(1 - 0.12 = 0.88\). The center of the cat will remain the same.
 
-The transformation matrix for scaling is:
-\[
-\begin{pmatrix}
-s_x & 0 & 0 \\
-0 & s_y & 0 \\
-0 & 0 & 1
-\end{pmatrix}
-\]
-where \(s_x = 0.88\) and \(s_y = 0.88\).
-
-Let's calculate the new dimensions and the transformation matrix using Python.
-\`\`\`python
-import numpy as np
-
-# Original dimensions of the cat
-original_width = 0.606
-original_height = 0.813
-original_center = np.array([0.615, 0.516, 1])
-
-# Scaling factor
-scaling_factor = 0.88
-
-# Scaling transformation matrix
-scaling_matrix = np.array([[scaling_factor, 0, 0],
-                          [0, scaling_factor, 0],
-                          [0, 0, 1]])
-
-# New dimensions of the cat
-new_width = original_width * scaling_factor
-new_height = original_height * scaling_factor
-
-# New center of the cat (remains the same)
-new_center = original_center
-
-# Print the new dimensions and the transformation matrix
-print(f"New width: {new_width}")
-print(f"New height: {new_height}")
-print(f"New center: {new_center}")
-print(f"Scaling transformation matrix: \n{scaling_matrix}")
-\`\`\`
-\`\`\`output
-New width: 0.53328
-New height: 0.71904
-New center: [0.615 0.516 1]
-Scaling transformation matrix: 
-[[0.88 0.  0. ]
- [0.  0.88 0. ]
- [0.  0.  1. ]]
-\`\`\`
-The new dimensions of the cat after scaling are:
-- New width: \(0.53328\)
-- New height: \(0.71904\)
-- New center: \((0.615, 0.516, 1)\)
-
-The scaling transformation matrix is:
-\[
-\begin{pmatrix}
-0.88 & 0 & 0 \\
-0 & 0.88 & 0 \\
-0 & 0 & 1
-\end{pmatrix}
-\]
-
-So, the appropriate transformation matrix for the requested edit is:
-\[
-\boxed{\begin{pmatrix} 0.88 & 0 & 0 \\ 0 & 0.88 & 0 \\ 0 & 0 & 1 \end{pmatrix}}
-\]
-
-```
 
 ### References:
 [^1]: Epstein, Dave, et al. "Diffusion self-guidance for controllable image generation." Advances in Neural Information Processing Systems 36 (2023): 16222-16239.
 
 [^2]: Wu, Tsung-Han, et al. "Self-correcting llm-controlled diffusion models." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2024.
 
-[^3]: Tewel, Yoad, et al. "Add-it: Training-Free Object Insertion in Images With Pretrained Diffusion Models." arXiv preprint arXiv:2411.07232 (2024).
