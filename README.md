@@ -20,7 +20,7 @@
 ![Cat Image](./docs/cat.png)
 ![masks](./docs/transformation_vis_cat.png)
 ![masks](./docs/sam_analysis_1.png)
-![mixed](./docs/mixed.png)
+![mixed](./docs/catanddog.drawio.png)
 ![masks](./docs/transformation_vis_mixed.png)
 ```
 === VLM IMAGE PARSING ===
