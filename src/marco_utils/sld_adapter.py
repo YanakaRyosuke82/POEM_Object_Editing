@@ -10,23 +10,9 @@ def generate_sld_config(
 ) -> str:
     """Generate Stable Layout Diffusion configuration from enhanced analysis.
     
-    This function processes the enhanced analysis file to generate a configuration
-    for the Stable Layout Diffusion model. It validates input content, formats
-    the data according to SLD requirements, and ensures proper JSON structure.
-    
-    Args:
-        sample_dir: Directory containing the sample images and outputs
-        analysis_enhanced_file: Path to file containing enhanced scene analysis
-        vlm_model: Vision-language model for processing scene descriptions
-        vlm_processor: Associated processor for the VL model
-        
     Returns:
         str: Generated SLD configuration as a validated JSON string
-        
-    Raises:
-        FileNotFoundError: If analysis file cannot be found
-        json.JSONDecodeError: If content fails JSON validation
-        ValueError: If bbox coordinates are invalid
+
     """
     try:
         # Load and validate input content
@@ -82,6 +68,7 @@ def generate_sld_config(
                     j += 1
                 bg_prompt = ' '.join(bg_lines)
 
+
         if not generation_prompt or not bg_prompt:
             raise ValueError("Could not extract generation prompt or background description")
 
@@ -99,11 +86,16 @@ def generate_sld_config(
             "llm_layout_suggestions": []
         }]
 
-        # Add layout suggestions for each object
+        # Add layout suggestions with class-specific numbering
         layout_suggestions = []
-        for i, obj in enumerate(objects):
+        class_counts = {}
+        
+        for obj in objects:
+            obj_class = obj['class']
+            # Increment count for this class
+            class_counts[obj_class] = class_counts.get(obj_class, 0) + 1
             bbox = obj.get('transformed_bbox', obj['sld_bbox'])
-            layout_suggestions.append([f"{obj['class']} #{i+1}", bbox])
+            layout_suggestions.append([f"{obj_class} #{class_counts[obj_class]}", bbox])
         
         config_data[0]["llm_layout_suggestions"] = layout_suggestions
 
