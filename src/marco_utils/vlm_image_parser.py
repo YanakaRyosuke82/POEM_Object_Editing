@@ -105,64 +105,101 @@ Note: provide:
         inputs = processor(text=[text], images=image_inputs, videos=video_inputs, 
                         padding=True, return_tensors="pt").to(device)
         
-        generated_ids = model.generate(**inputs, max_new_tokens=256)
+        generated_ids = model.generate(**inputs, max_new_tokens=1024)
         output_text = processor.batch_decode(
             [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)],
             skip_special_tokens=True, clean_up_tokenization_spaces=False
         )[0]
 
-    # Parse output
-    objects = []
-    scene_desc = ""
-    spatial_rel = ""
-    background_desc = ""
-    generation_prompt = user_edit
-    
-    for line in output_text.split('\n'):
-        if line.startswith('DETECT:') or line.startswith('POINTS:'):
-            parse_line(line, objects)
-        elif line.startswith('SCENE:'):
-            _, scene_desc = line.split(':', 1)
-        elif line.startswith('SPATIAL:'):
-            _, spatial_rel = line.split(':', 1)
-        elif line.startswith('BACKGROUND:'):
-            _, background_desc = line.split(':', 1)
-        # elif line.startswith('GENERATION:'):
-        #     _, generation_prompt = line.split(':', 1)
-
-    # Filter out any None or incomplete objects
-    objects = [obj for obj in objects if obj['class'] is not None and obj['bbox'] is not None]
-
-    # Debug: Visualize detected objects on the image
-    debug_image = cv2.imread(image_path)
-    height, width = debug_image.shape[:2]
-    for obj in objects:
-        if obj['bbox']:
-            xmin, ymin, xmax, ymax = [int(coord * width) if i % 2 == 0 else int(coord * height) 
-                                    for i, coord in enumerate(obj['bbox'])]
-            cv2.rectangle(debug_image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-            cv2.putText(debug_image, obj['class'], (xmin, ymin-10), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    try:
+        print(f"VLM OUTPUT TEXT: {output_text}")
+        # Parse output
+        objects = []
+        scene_desc = "a realistic image"  # Default fallback
+        spatial_rel = "a realistic image"  # Default fallback
+        background_desc = "a realistic image"  # Default fallback
+        generation_prompt = user_edit
         
-        if obj['point']:
-            x, y = obj['point']
-            px = int(x * width)
-            py = int(y * height)
-            cv2.circle(debug_image, (px, py), 5, (255, 0, 0), -1)
+        try:
+            for line in output_text.split('\n'):
+                try:
+                    if line.startswith('DETECT:') or line.startswith('POINTS:'):
+                        parse_line(line, objects)
+                    elif line.startswith('SCENE:'):
+                        _, scene_desc = line.split(':', 1)
+                        if not scene_desc.strip():
+                            scene_desc = "a realistic image"
+                    elif line.startswith('SPATIAL:'):
+                        _, spatial_rel = line.split(':', 1)
+                        if not spatial_rel.strip():
+                            spatial_rel = "a realistic image"
+                    elif line.startswith('BACKGROUND:'):
+                        _, background_desc = line.split(':', 1)
+                        if not background_desc.strip():
+                            background_desc = "a realistic image"
+                except ValueError:
+                    continue  # Skip malformed lines
+                except Exception as e:
+                    print(f"Error parsing line: {str(e)}")
+                    continue
+        except Exception as e:
+            print(f"Error processing output text: {str(e)}")
 
-    plt.imshow(cv2.cvtColor(debug_image, cv2.COLOR_BGR2RGB))
-    plt.title("Debug: Detected Objects")
-    plt.axis('off')
-    # plt.savefig(f"debug_image_{os.path.basename(image_path).split('.')[0]}.png")
-    return {
-        'objects': objects,
-        'scene_description': scene_desc.strip(),
-        'spatial_relationships': spatial_rel.strip(),
-        'background_description': background_desc.strip(),
-        'generation_prompt': generation_prompt.strip(),
-        'debug_image': debug_image
-    } 
+        # Filter out any None or incomplete objects
+        objects = [obj for obj in objects if obj['class'] is not None and obj['bbox'] is not None]
 
+        try:
+            # Debug: Visualize detected objects on the image
+            debug_image = cv2.imread(image_path)
+            if debug_image is None:
+                raise ValueError("Failed to load image for debugging")
+                
+            height, width = debug_image.shape[:2]
+            for obj in objects:
+                try:
+                    if obj['bbox']:
+                        xmin, ymin, xmax, ymax = [int(coord * width) if i % 2 == 0 else int(coord * height) 
+                                                for i, coord in enumerate(obj['bbox'])]
+                        cv2.rectangle(debug_image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+                        cv2.putText(debug_image, obj['class'], (xmin, ymin-10), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                    
+                    if obj['point']:
+                        x, y = obj['point']
+                        px = int(x * width)
+                        py = int(y * height)
+                        cv2.circle(debug_image, (px, py), 5, (255, 0, 0), -1)
+                except Exception as e:
+                    print(f"Error drawing object: {str(e)}")
+                    continue
+
+            plt.imshow(cv2.cvtColor(debug_image, cv2.COLOR_BGR2RGB))
+            plt.title("Debug: Detected Objects")
+            plt.axis('off')
+            
+        except Exception as e:
+            print(f"Error in visualization: {str(e)}")
+            debug_image = None
+
+        return {
+            'objects': objects,
+            'scene_description': scene_desc.strip(),
+            'spatial_relationships': spatial_rel.strip(),
+            'background_description': background_desc.strip(),
+            'generation_prompt': generation_prompt.strip(),
+            'debug_image': debug_image
+        }
+
+    except Exception as e:
+        print(f"Critical error in parse_image: {str(e)}")
+        return {
+            'objects': [],
+            'scene_description': "a realistic image",
+            'spatial_relationships': "a realistic image", 
+            'background_description': "a realistic image",
+            'generation_prompt': user_edit if user_edit else "a realistic image",
+            'debug_image': None
+        }
 
 
 
@@ -212,6 +249,11 @@ def save_results_image_parse(sample_dir: str, image: cv2.Mat, original_path: str
             f.write(f"{results['generation_prompt']}\n\n")
             
             f.write("=====================\n")
+
+    
+        
+    
+  
             
     except Exception as e:
         logging.error(f"Error saving results to {sample_dir}: {str(e)}")

@@ -16,6 +16,7 @@ import numpy as np
 import argparse
 import configparser
 from PIL import Image
+import time
 
 
 import torch
@@ -228,8 +229,12 @@ if __name__ == "__main__":
     parser.add_argument("--output-dir", type=str, default="demo/self_correction/results", help="Path to the output directory")
     parser.add_argument("--mode", type=str, default="self_correction", help="Mode of the demo", choices=["self_correction", "image_editing"])
     parser.add_argument("--config", type=str, default="demo_config.ini", help="Path to the config file")
+    parser.add_argument("--evaluation-folder-before", type=str, default="demo/self_correction/evaluation", help="Path to the evaluation folder")
+    parser.add_argument("--evaluation-folder-refined", type=str, default="demo/self_correction/evaluation_refined", help="Path to the evaluation folder")
+    parser.add_argument("--save-file-name", type=str, default=None, help="Path to the save file name")
     args = parser.parse_args()
-
+    if args.save_file_name is None:
+        args.save_file_name =time.time()
     # Open the json file configured for self-correction (a list of filenames with prompts and other info...)
     # Create the output directory
     with open(args.json_file) as f:
@@ -376,6 +381,8 @@ if __name__ == "__main__":
         # Save an intermediate file without the SDXL refinement
         curr_output_fname = os.path.join(dirname, f"intermediate_{rel_fname}.png")
         Image.fromarray(ret_dict.image).save(curr_output_fname)
+        # Save the image to the evaluation folder
+        Image.fromarray(ret_dict.image).save(os.path.join(args.evaluation_folder_before, f"{args.save_file_name}.png"))
         print("-" * 5 + f" Results " + "-" * 5)
         print("* Output File (Before SDXL): ", curr_output_fname)
         utils.free_memory()
@@ -386,5 +393,5 @@ if __name__ == "__main__":
             sdxl_refine(prompt, curr_output_fname, sdxl_output_fname)
         else:
             # For image editing, the prompt should be updated
-            sdxl_refine(ret_dict.final_prompt, curr_output_fname, sdxl_output_fname)
+            sdxl_refine(ret_dict.final_prompt, curr_output_fname, sdxl_output_fname, args.evaluation_folder_refined, args.save_file_name)
         print("* Output File (After SDXL): ", sdxl_output_fname)

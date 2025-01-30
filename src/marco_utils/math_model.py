@@ -309,7 +309,7 @@ def run_math_analysis(user_edit: str, file_path: str, img_path: str, model: Any,
             f.write(str(object_id))
         logging.info(f"Object ID saved to {OBJECT_ID_FILE}")
         
-        return matrix_array
+        return matrix_array, object_id
         
     except Exception as e:
         logging.error(f"Error in mathematical analysis for {file_path}: {str(e)}")

@@ -223,3 +223,6 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, ENHANCED_FILE
                 bbox_inches='tight',
                 pad_inches=0.1)
     plt.show()
+
+
+    return transformed_mask

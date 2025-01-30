@@ -119,6 +119,7 @@ def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM):
     with open(file_analysis_path, 'r') as f:
         content = f.read()
 
+    SAM_MASKS = {}
     # Run SAM inference for each object
     sam_bboxes = {}
     for class_key in input_points_by_class:
@@ -151,7 +152,7 @@ def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM):
         class_name = class_key.rsplit('_', 1)[0]
         obj_id = class_key.rsplit('_', 1)[1]
         plt.imsave(os.path.join(output_dir, f'mask_{obj_id}.png'), mask_array, cmap='gray')
-
+        SAM_MASKS[obj_id] = mask_array
         # Store normalized coordinates
         mask_bbox = {
             'xmin': float(xmin) / mask_array.shape[1],
@@ -191,3 +192,4 @@ def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM):
             section_match = re.search(f'{section}:\n(.*?)(?=\n\n|\n[A-Z]|$)', content, re.DOTALL)
             if section_match:
                 f.write(f"\n{section}:\n{section_match.group(1).strip()}\n")
+    return SAM_MASKS    

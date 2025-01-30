@@ -1,9 +1,10 @@
 from PIL import Image
 import torch
 from diffusers import StableDiffusionXLImg2ImgPipeline
+import os
+import time
 
-
-def sdxl_refine(prompt, input_fname, output_fname):
+def sdxl_refine(prompt, input_fname, output_fname, evaluation_folder, save_file_name):
     torch.set_float32_matmul_precision("high")
     pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
         "stabilityai/stable-diffusion-xl-refiner-1.0",
@@ -22,3 +23,6 @@ def sdxl_refine(prompt, input_fname, output_fname):
         num_inference_steps=50,
     ).images
     image[0].save(output_fname)
+
+    # Save the image to the evaluation folder
+    image[0].save(os.path.join(evaluation_folder, f"{save_file_name}.png"))

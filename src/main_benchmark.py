@@ -7,7 +7,7 @@ from typing import Optional
 import subprocess
 import time
 
-
+from datasets import load_dataset
 
 import cv2
 import torch
@@ -64,7 +64,7 @@ def process_image(image_path: str, edit_type: str) -> Optional[cv2.Mat]:
         logging.error(f"Error processing image {image_path}: {str(e)}")
         return None
 
-def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Logger, NORMAL_GPU: str, evaluation_folder_before: str, evaluation_folder_refined: str) -> None:
+def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Logger, NORMAL_GPU: str, evaluation_folder_before: str, evaluation_folder_refined: str, save_file_name: str) -> None:
     """
     Run the SLD (Structure-aware Latent Diffusion) pipeline
     """
@@ -82,7 +82,8 @@ def run_sld(json_path: str, input_path: str, output_dir: str, logger: logging.Lo
         '--mode', 'image_editing',
         '--config', config_ini,
         '--evaluation-folder-before', evaluation_folder_before,
-        '--evaluation-folder-refined', evaluation_folder_refined
+        '--evaluation-folder-refined', evaluation_folder_refined,
+        '--save-file-name', save_file_name
     ])
    
 
@@ -113,22 +114,49 @@ def main():
                       default='none', help='Edit instruction to apply to images')
     parser.add_argument('--draw', action='store_true', help='Enable drawing mode')
     parser.add_argument('--reasoning', action='store_true', help='Enable reasoning mode')
+    parser.add_argument('--max_objects', type=int, default=5, help='Maximum number of objects allowed to be in an image')
+    parser.add_argument('--dataset_size_samples', type=int, default=50, help='Number of samples to process')
     args = parser.parse_args()
     
     # Ensure output directory exists
     os.makedirs(args.out_dir, exist_ok=True)
 
 
-    evaluation_1_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_1_after_vlm"
-    evaluation_2_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_2_after_sam"
-    evaluation_3_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_3_after_llm_transformation"
-    evaluation_4_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_4_after_sld" 
-    evaluation_5_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_5_after_sld_refine" 
+    evaluation_1_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_1_after_vlm"
+    evaluation_2_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_2_after_sam"
+    evaluation_3_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_3_after_llm_transformation"
+    evaluation_4_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_4_after_sld" 
+    evaluation_5_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_5_after_sld_refine" 
     os.makedirs(evaluation_1_folder, exist_ok=True)
     os.makedirs(evaluation_2_folder, exist_ok=True)
     os.makedirs(evaluation_3_folder, exist_ok=True)
     os.makedirs(evaluation_4_folder, exist_ok=True)
     os.makedirs(evaluation_5_folder, exist_ok=True)
+
+
+    # CREATE DATASET FOLDER FOR BENCHMARK (instead of the INPUT_DEBUG)
+    dataset = load_dataset(
+        "monurcan/precise_benchmark_for_object_level_image_editing",
+        split="train"
+    )
+    dataset = dataset.to_iterable_dataset()
+    #dataset = dataset.take(args.dataset_size_samples)
+
+    for sample in dataset:
+        input_image, user_promppt, save_file_name= sample["input_image"], sample["edit_prompt"], sample['id']
+        subfolder_name = save_file_name
+        # Create input subfolder for this sample
+        sample_input_dir = os.path.join(args.in_dir, subfolder_name)
+        os.makedirs(sample_input_dir, exist_ok=True)
+        input_path = os.path.join(args.in_dir, subfolder_name, "input_image.png")
+        edit_instruction_file = os.path.join(args.in_dir, subfolder_name, "edit_instruction.txt")
+        with open(edit_instruction_file, 'w') as file:
+            file.write(user_promppt)
+        input_image.save(input_path)
+        # save the savefilename to a txt file
+        with open(os.path.join(args.in_dir, subfolder_name, "save_file_name.txt"), 'w') as file:
+            file.write(save_file_name)
+
     # Load models
     vlm_model, vlm_processor = models.get_qwen_vlm()
     sam_model = models.get_sam()
@@ -142,18 +170,15 @@ def main():
     sample_count = 0
 
 
-
-   
-
-
-
-
-
     # Process each image in input directory
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
         for filename in files:
             if not filename.lower().endswith(('.png', '.jpg', '.jpeg')):
                 continue
+
+            # read the save_file_name.txt
+            with open(os.path.join(subdir, "save_file_name.txt"), 'r') as file:
+                save_file_name = file.read().strip()
             
             sample_count += 1
 
@@ -188,6 +213,9 @@ def main():
                     print(f"No VLM parsing found for sample {sample_idx}")
                     continue
                 VLM_BBOXES = results['objects']
+                if len(VLM_BBOXES) > args.max_objects:
+                    print(f"Too many objects detected for sample {sample_idx}")
+                    continue
 
     
                 
@@ -254,8 +282,8 @@ def main():
                     continue
                 
                 # save the masks
-                cv2.imwrite(os.path.join(evaluation_2_folder, f"mask_{sample_idx}.png"), SAM_MASK)
-                cv2.imwrite(os.path.join(evaluation_3_folder, f"mask_{sample_idx}_transformed.png"), TRANSFORMED_MASK)
+                cv2.imwrite(os.path.join(evaluation_2_folder, f"{save_file_name}.png"), SAM_MASK)
+                cv2.imwrite(os.path.join(evaluation_3_folder, f"{save_file_name}.png"), TRANSFORMED_MASK)
                 # save the bboxes
                 # Save VLM bbox as binary mask
                 height, width = SAM_MASK.shape
@@ -265,7 +293,7 @@ def main():
                 xmax = int(VLM_BBOX[2] * width)
                 ymax = int(VLM_BBOX[3] * height)
                 vlm_mask[ymin:ymax, xmin:xmax] = 255
-                cv2.imwrite(os.path.join(evaluation_1_folder, f"mask_{sample_idx}_vlm.png"), vlm_mask)
+                cv2.imwrite(os.path.join(evaluation_1_folder, f"{save_file_name}.png"), vlm_mask)
 
                 
             ### IMAGE GENERATION ###
@@ -281,7 +309,8 @@ def main():
                     logger=logger,
                     NORMAL_GPU=NORMAL_GPU,
                     evaluation_folder_before=evaluation_4_folder,
-                    evaluation_folder_refined=evaluation_5_folder
+                    evaluation_folder_refined=evaluation_5_folder,
+                    save_file_name=save_file_name
                 )
             drawing_time += time.time() - drawing_start
           
