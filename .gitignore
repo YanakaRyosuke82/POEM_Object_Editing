@@ -3,3 +3,5 @@
 __pycache__
 sam2.1_b.pt
 temp_latents/
+benchmark_results/
+.vscode/
