@@ -1,5 +1,5 @@
 # 🚀 VLM Controller for Stable Diffusion (SD)
-
+<!-- 
 # Todo
 
 - [x] test Deepseek : seems to be better, but less consistent.
@@ -10,7 +10,7 @@
 - add some code to run the evaluations from onur
 - [x] add failure case as return identiy matrix if the LLM cannot parse the matrix correctly.
 - [ ] SHOULD ALSO STORE THE BBOX OF ALL DETECTION IN SLD FORMAT.
-![meme](./docs/meme.png)
+![meme](./docs/meme.png) -->
 
 
 # example
