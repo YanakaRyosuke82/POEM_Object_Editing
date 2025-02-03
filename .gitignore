@@ -5,3 +5,11 @@ sam2.1_b.pt
 temp_latents/
 benchmark_results/
 .vscode/
+benchmark_results_100/
+benchmark_results_500/
+benchmark_results_1000/
+benchmark_results_2000/
+benchmark_results_5000/
+benchmark_results_10000/
+benchmark_results_20000/
+benchmark_results_50000/
