@@ -1,0 +1,2776 @@
+{
+    "individual_results": {
+        "2007_000175_0_transform_0_prompt_0": {
+            "iou": 0.9112261528137283,
+            "mae": 0.02825927734375,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_000175_0_transform_0_prompt_1": {
+            "iou": 0.9112261528137283,
+            "mae": 0.02825927734375,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_000175_0_transform_0_prompt_2": {
+            "iou": 0.9112261528137283,
+            "mae": 0.02825927734375,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_000175_0_transform_1_prompt_0": {
+            "iou": 0.28281159855531757,
+            "mae": 0.3461761474609375,
+            "object_class": "sheep",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000175_0_transform_1_prompt_1": {
+            "iou": 0.28281159855531757,
+            "mae": 0.3461761474609375,
+            "object_class": "sheep",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000175_0_transform_1_prompt_2": {
+            "iou": 0.8038069932043173,
+            "mae": 0.06365585327148438,
+            "object_class": "sheep",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000452_0_transform_0_prompt_0": {
+            "iou": 0.17746468690410563,
+            "mae": 0.347198486328125,
+            "object_class": "sofa",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000452_0_transform_0_prompt_1": {
+            "iou": 0.17746468690410563,
+            "mae": 0.347198486328125,
+            "object_class": "sofa",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000452_0_transform_0_prompt_2": {
+            "iou": 0.11721649352150296,
+            "mae": 0.2622413635253906,
+            "object_class": "sofa",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000452_0_transform_1_prompt_1": {
+            "iou": 0.4186323605594889,
+            "mae": 0.12842941284179688,
+            "object_class": "sofa",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_000452_0_transform_1_prompt_2": {
+            "iou": 0.4186323605594889,
+            "mae": 0.12842941284179688,
+            "object_class": "sofa",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_000676_0_transform_0_prompt_0": {
+            "iou": 0.3919203326317951,
+            "mae": 0.22594451904296875,
+            "object_class": "sheep",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_000676_0_transform_0_prompt_1": {
+            "iou": 0.3919203326317951,
+            "mae": 0.22594451904296875,
+            "object_class": "sheep",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_000676_0_transform_0_prompt_2": {
+            "iou": 0.3919203326317951,
+            "mae": 0.22594451904296875,
+            "object_class": "sheep",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_000783_1_transform_0_prompt_0": {
+            "iou": 0.19753864152811212,
+            "mae": 0.13605880737304688,
+            "object_class": "horse",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000783_1_transform_0_prompt_1": {
+            "iou": 0.160136845065142,
+            "mae": 0.13672637939453125,
+            "object_class": "horse",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000783_1_transform_0_prompt_2": {
+            "iou": 0.19753864152811212,
+            "mae": 0.13605880737304688,
+            "object_class": "horse",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_000783_1_transform_1_prompt_0": {
+            "iou": 0.0,
+            "mae": 0.08028793334960938,
+            "object_class": "horse",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_000783_1_transform_1_prompt_1": {
+            "iou": 0.0,
+            "mae": 0.08028793334960938,
+            "object_class": "horse",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_000783_1_transform_1_prompt_2": {
+            "iou": 0.0,
+            "mae": 0.08028793334960938,
+            "object_class": "horse",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_001423_0_transform_0_prompt_0": {
+            "iou": 0.06324517566024669,
+            "mae": 0.19091796875,
+            "object_class": "person",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_001423_0_transform_1_prompt_0": {
+            "iou": 0.18585134336870837,
+            "mae": 0.15246963500976562,
+            "object_class": "person",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_001423_0_transform_1_prompt_1": {
+            "iou": 0.14460310023832318,
+            "mae": 0.16019439697265625,
+            "object_class": "person",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_001423_0_transform_1_prompt_2": {
+            "iou": 0.14460310023832318,
+            "mae": 0.16019439697265625,
+            "object_class": "person",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_001724_0_transform_0_prompt_0": {
+            "iou": 0.29694085656016317,
+            "mae": 0.31561279296875,
+            "object_class": "horse",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_001724_0_transform_0_prompt_1": {
+            "iou": 0.29694085656016317,
+            "mae": 0.31561279296875,
+            "object_class": "horse",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_001724_0_transform_0_prompt_2": {
+            "iou": 0.29694085656016317,
+            "mae": 0.31561279296875,
+            "object_class": "horse",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_001724_0_transform_1_prompt_0": {
+            "iou": 0.718666826519602,
+            "mae": 0.044757843017578125,
+            "object_class": "horse",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_001724_0_transform_1_prompt_1": {
+            "iou": 0.718666826519602,
+            "mae": 0.044757843017578125,
+            "object_class": "horse",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_001724_0_transform_1_prompt_2": {
+            "iou": 0.718666826519602,
+            "mae": 0.044757843017578125,
+            "object_class": "horse",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_001774_0_transform_0_prompt_0": {
+            "iou": 0.1783052495139339,
+            "mae": 0.23215484619140625,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_001774_0_transform_0_prompt_1": {
+            "iou": 0.1783052495139339,
+            "mae": 0.23215484619140625,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_001825_0_transform_1_prompt_2": {
+            "iou": 0.44087334437086095,
+            "mae": 0.20612335205078125,
+            "object_class": "cat",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_001834_0_transform_0_prompt_0": {
+            "iou": 0.319241506157394,
+            "mae": 0.27814483642578125,
+            "object_class": "dining table",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_001834_0_transform_0_prompt_1": {
+            "iou": 0.3191607923992087,
+            "mae": 0.2796478271484375,
+            "object_class": "dining table",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_001834_0_transform_1_prompt_0": {
+            "iou": 0.38356137721637246,
+            "mae": 0.24163818359375,
+            "object_class": "dining table",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_001834_0_transform_1_prompt_1": {
+            "iou": 0.38356137721637246,
+            "mae": 0.24163818359375,
+            "object_class": "dining table",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_001834_0_transform_1_prompt_2": {
+            "iou": 0.38356137721637246,
+            "mae": 0.24163818359375,
+            "object_class": "dining table",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_001872_0_transform_0_prompt_0": {
+            "iou": 0.21839559706470982,
+            "mae": 0.1430206298828125,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_001872_0_transform_0_prompt_1": {
+            "iou": 0.21839559706470982,
+            "mae": 0.1430206298828125,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_001872_0_transform_0_prompt_2": {
+            "iou": 0.21839559706470982,
+            "mae": 0.1430206298828125,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_001872_0_transform_1_prompt_0": {
+            "iou": 0.0,
+            "mae": 0.09505462646484375,
+            "object_class": "sheep",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_001872_0_transform_1_prompt_1": {
+            "iou": 0.0,
+            "mae": 0.09505462646484375,
+            "object_class": "sheep",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_001872_0_transform_1_prompt_2": {
+            "iou": 0.0,
+            "mae": 0.09505462646484375,
+            "object_class": "sheep",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002120_1_transform_1_prompt_0": {
+            "iou": 0.23182418727553547,
+            "mae": 0.31494903564453125,
+            "object_class": "person",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_002120_1_transform_1_prompt_1": {
+            "iou": 0.23182418727553547,
+            "mae": 0.31494903564453125,
+            "object_class": "person",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_002120_1_transform_1_prompt_2": {
+            "iou": 0.23182418727553547,
+            "mae": 0.31494903564453125,
+            "object_class": "person",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_002227_1_transform_0_prompt_0": {
+            "iou": 0.044930925468797366,
+            "mae": 0.16825485229492188,
+            "object_class": "bicycle",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_002227_1_transform_0_prompt_1": {
+            "iou": 0.045690001480009304,
+            "mae": 0.17218017578125,
+            "object_class": "bicycle",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_002227_1_transform_0_prompt_2": {
+            "iou": 0.04479840716774515,
+            "mae": 0.16836929321289062,
+            "object_class": "bicycle",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_002227_1_transform_1_prompt_0": {
+            "iou": 0.08689149779406266,
+            "mae": 0.09316253662109375,
+            "object_class": "bicycle",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002227_1_transform_1_prompt_1": {
+            "iou": 0.08689149779406266,
+            "mae": 0.09316253662109375,
+            "object_class": "bicycle",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002227_1_transform_1_prompt_2": {
+            "iou": 0.08689149779406266,
+            "mae": 0.09316253662109375,
+            "object_class": "bicycle",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002260_0_transform_0_prompt_0": {
+            "iou": 0.5760102629890955,
+            "mae": 0.12607574462890625,
+            "object_class": "motorbike",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_002260_0_transform_1_prompt_0": {
+            "iou": 0.8353735753482482,
+            "mae": 0.0386810302734375,
+            "object_class": "motorbike",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002260_0_transform_1_prompt_1": {
+            "iou": 0.8353735753482482,
+            "mae": 0.0386810302734375,
+            "object_class": "motorbike",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002260_0_transform_1_prompt_2": {
+            "iou": 0.8353735753482482,
+            "mae": 0.0386810302734375,
+            "object_class": "motorbike",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002281_0_transform_0_prompt_1": {
+            "iou": 0.05277981186278376,
+            "mae": 0.44903564453125,
+            "object_class": "car",
+            "transformation_type": "Reasoning",
+            "meta_transformation_type": "Reasoning"
+        },
+        "2007_002426_0_transform_0_prompt_0": {
+            "iou": 0.6042280466806964,
+            "mae": 0.07891464233398438,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_002426_0_transform_0_prompt_1": {
+            "iou": 0.6042280466806964,
+            "mae": 0.07891464233398438,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_002426_0_transform_0_prompt_2": {
+            "iou": 0.6042280466806964,
+            "mae": 0.07891464233398438,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_002426_0_transform_1_prompt_0": {
+            "iou": 0.15123921332530604,
+            "mae": 0.25814056396484375,
+            "object_class": "person",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_002426_0_transform_1_prompt_1": {
+            "iou": 0.02091197222354946,
+            "mae": 0.23450469970703125,
+            "object_class": "person",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_002426_0_transform_1_prompt_2": {
+            "iou": 0.15123921332530604,
+            "mae": 0.25814056396484375,
+            "object_class": "person",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_002470_0_transform_1_prompt_0": {
+            "iou": 0.5349016003008399,
+            "mae": 0.212310791015625,
+            "object_class": "cat",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_002470_0_transform_1_prompt_1": {
+            "iou": 0.37385062944812897,
+            "mae": 0.2758750915527344,
+            "object_class": "cat",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_002470_0_transform_1_prompt_2": {
+            "iou": 0.4833963030038094,
+            "mae": 0.2524528503417969,
+            "object_class": "cat",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_002565_0_transform_0_prompt_0": {
+            "iou": 0.021073195062138908,
+            "mae": 0.359375,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002565_0_transform_0_prompt_1": {
+            "iou": 0.023518224304484466,
+            "mae": 0.3212089538574219,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002565_0_transform_0_prompt_2": {
+            "iou": 0.02889588646823305,
+            "mae": 0.2599906921386719,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002565_0_transform_1_prompt_0": {
+            "iou": 0.4392541554751061,
+            "mae": 0.054950714111328125,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002565_0_transform_1_prompt_1": {
+            "iou": 0.4392541554751061,
+            "mae": 0.054950714111328125,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002565_0_transform_1_prompt_2": {
+            "iou": 0.4392541554751061,
+            "mae": 0.054950714111328125,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002597_1_transform_0_prompt_0": {
+            "iou": 0.4630530593555034,
+            "mae": 0.10735702514648438,
+            "object_class": "dog",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_002597_1_transform_0_prompt_1": {
+            "iou": 0.011634137918715839,
+            "mae": 0.316619873046875,
+            "object_class": "dog",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_002597_1_transform_1_prompt_0": {
+            "iou": 0.0019599177603135867,
+            "mae": 0.19813919067382812,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002597_1_transform_1_prompt_1": {
+            "iou": 0.0019599177603135867,
+            "mae": 0.19813919067382812,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002597_1_transform_1_prompt_2": {
+            "iou": 0.0019599177603135867,
+            "mae": 0.19813919067382812,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_002619_0_transform_0_prompt_1": {
+            "iou": 0.10548532202016757,
+            "mae": 0.16006088256835938,
+            "object_class": "aeroplane",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002619_0_transform_0_prompt_2": {
+            "iou": 0.18370141497840667,
+            "mae": 0.08868789672851562,
+            "object_class": "aeroplane",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_002619_0_transform_1_prompt_0": {
+            "iou": 0.35369121837005274,
+            "mae": 0.2621955871582031,
+            "object_class": "aeroplane",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_002619_0_transform_1_prompt_1": {
+            "iou": 0.35369121837005274,
+            "mae": 0.2621955871582031,
+            "object_class": "aeroplane",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_002619_0_transform_1_prompt_2": {
+            "iou": 0.35369121837005274,
+            "mae": 0.2621955871582031,
+            "object_class": "aeroplane",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_003169_0_transform_0_prompt_0": {
+            "iou": 0.4343863471314452,
+            "mae": 0.35652923583984375,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003169_0_transform_0_prompt_1": {
+            "iou": 0.4343863471314452,
+            "mae": 0.35652923583984375,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003169_0_transform_0_prompt_2": {
+            "iou": 0.4343863471314452,
+            "mae": 0.35652923583984375,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003169_0_transform_1_prompt_0": {
+            "iou": 0.45660407877178555,
+            "mae": 0.15378570556640625,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003169_0_transform_1_prompt_1": {
+            "iou": 0.45660407877178555,
+            "mae": 0.15378570556640625,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003169_0_transform_1_prompt_2": {
+            "iou": 0.45660407877178555,
+            "mae": 0.15378570556640625,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003194_0_transform_0_prompt_0": {
+            "iou": 0.18027782018012517,
+            "mae": 0.06145477294921875,
+            "object_class": "dog",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003194_0_transform_0_prompt_2": {
+            "iou": 0.18027782018012517,
+            "mae": 0.06145477294921875,
+            "object_class": "dog",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003194_0_transform_1_prompt_0": {
+            "iou": 0.1451435376481839,
+            "mae": 0.18072891235351562,
+            "object_class": "dog",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003194_0_transform_1_prompt_1": {
+            "iou": 0.1451435376481839,
+            "mae": 0.18072891235351562,
+            "object_class": "dog",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003194_0_transform_1_prompt_2": {
+            "iou": 0.1451435376481839,
+            "mae": 0.18072891235351562,
+            "object_class": "dog",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003205_0_transform_0_prompt_0": {
+            "iou": 0.2617095484177273,
+            "mae": 0.15423202514648438,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_003205_0_transform_0_prompt_1": {
+            "iou": 0.2617095484177273,
+            "mae": 0.15423202514648438,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_003205_0_transform_0_prompt_2": {
+            "iou": 0.2617095484177273,
+            "mae": 0.15423202514648438,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_003205_0_transform_1_prompt_0": {
+            "iou": 0.27379529701605043,
+            "mae": 0.15067672729492188,
+            "object_class": "person",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_003205_0_transform_1_prompt_1": {
+            "iou": 0.27379529701605043,
+            "mae": 0.15067672729492188,
+            "object_class": "person",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_003205_0_transform_1_prompt_2": {
+            "iou": 0.27379529701605043,
+            "mae": 0.15067672729492188,
+            "object_class": "person",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_003205_1_transform_0_prompt_0": {
+            "iou": 0.5224980944407652,
+            "mae": 0.14577484130859375,
+            "object_class": "chair",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_003205_1_transform_0_prompt_2": {
+            "iou": 0.5224980944407652,
+            "mae": 0.14577484130859375,
+            "object_class": "chair",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_003205_1_transform_1_prompt_0": {
+            "iou": 0.18963579813384168,
+            "mae": 0.3081092834472656,
+            "object_class": "chair",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003205_1_transform_1_prompt_2": {
+            "iou": 0.18963579813384168,
+            "mae": 0.3081092834472656,
+            "object_class": "chair",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003286_0_transform_0_prompt_2": {
+            "iou": 0.5201732212489958,
+            "mae": 0.18682098388671875,
+            "object_class": "train",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_003286_0_transform_1_prompt_0": {
+            "iou": 0.2031940554629195,
+            "mae": 0.3755149841308594,
+            "object_class": "train",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003286_0_transform_1_prompt_1": {
+            "iou": 0.2031940554629195,
+            "mae": 0.3755149841308594,
+            "object_class": "train",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003286_0_transform_1_prompt_2": {
+            "iou": 0.2031940554629195,
+            "mae": 0.3755149841308594,
+            "object_class": "train",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003349_0_transform_0_prompt_0": {
+            "iou": 0.18557221315125427,
+            "mae": 0.2093048095703125,
+            "object_class": "bird",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003349_0_transform_0_prompt_1": {
+            "iou": 0.48587326920588364,
+            "mae": 0.045467376708984375,
+            "object_class": "bird",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003349_0_transform_0_prompt_2": {
+            "iou": 0.40780961957432543,
+            "mae": 0.0673980712890625,
+            "object_class": "bird",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003349_0_transform_1_prompt_1": {
+            "iou": 0.719546032257487,
+            "mae": 0.059764862060546875,
+            "object_class": "bird",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003349_0_transform_1_prompt_2": {
+            "iou": 0.719546032257487,
+            "mae": 0.059764862060546875,
+            "object_class": "bird",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003506_0_transform_0_prompt_0": {
+            "iou": 0.08694227676177994,
+            "mae": 0.11693954467773438,
+            "object_class": "potted plant",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003506_0_transform_0_prompt_1": {
+            "iou": 0.0828732870039618,
+            "mae": 0.10773468017578125,
+            "object_class": "potted plant",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003506_0_transform_0_prompt_2": {
+            "iou": 0.08694227676177994,
+            "mae": 0.11693954467773438,
+            "object_class": "potted plant",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003506_0_transform_1_prompt_0": {
+            "iou": 0.5163898305084745,
+            "mae": 0.10884475708007812,
+            "object_class": "potted plant",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_003506_0_transform_1_prompt_1": {
+            "iou": 0.5163898305084745,
+            "mae": 0.10884475708007812,
+            "object_class": "potted plant",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_003506_0_transform_1_prompt_2": {
+            "iou": 0.5129716182347761,
+            "mae": 0.109710693359375,
+            "object_class": "potted plant",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_003525_0_transform_0_prompt_0": {
+            "iou": 0.7389173228346456,
+            "mae": 0.15178298950195312,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003525_0_transform_0_prompt_1": {
+            "iou": 0.7389173228346456,
+            "mae": 0.15178298950195312,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003525_0_transform_0_prompt_2": {
+            "iou": 0.7389173228346456,
+            "mae": 0.15178298950195312,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003525_0_transform_1_prompt_0": {
+            "iou": 0.6908411133218182,
+            "mae": 0.107879638671875,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003525_0_transform_1_prompt_2": {
+            "iou": 0.6908411133218182,
+            "mae": 0.107879638671875,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003587_0_transform_0_prompt_1": {
+            "iou": 0.14668170938086017,
+            "mae": 0.21350860595703125,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003587_0_transform_0_prompt_2": {
+            "iou": 0.11369115144639819,
+            "mae": 0.2861137390136719,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003587_0_transform_1_prompt_0": {
+            "iou": 0.5506442874863927,
+            "mae": 0.06771087646484375,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003587_0_transform_1_prompt_1": {
+            "iou": 0.5506442874863927,
+            "mae": 0.06771087646484375,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003715_0_transform_0_prompt_0": {
+            "iou": 0.045874994681530015,
+            "mae": 0.4277191162109375,
+            "object_class": "bus",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003715_0_transform_0_prompt_1": {
+            "iou": 0.039965601856313614,
+            "mae": 0.4940032958984375,
+            "object_class": "bus",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003715_0_transform_0_prompt_2": {
+            "iou": 0.045874994681530015,
+            "mae": 0.4277191162109375,
+            "object_class": "bus",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003715_0_transform_1_prompt_0": {
+            "iou": 0.7934361102071809,
+            "mae": 0.11623001098632812,
+            "object_class": "bus",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003715_0_transform_1_prompt_1": {
+            "iou": 0.7934361102071809,
+            "mae": 0.11623001098632812,
+            "object_class": "bus",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003715_0_transform_1_prompt_2": {
+            "iou": 0.7934361102071809,
+            "mae": 0.11623001098632812,
+            "object_class": "bus",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003848_0_transform_0_prompt_0": {
+            "iou": 0.1354230630525259,
+            "mae": 0.3383750915527344,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003848_0_transform_1_prompt_0": {
+            "iou": 0.5660525284202274,
+            "mae": 0.02533721923828125,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003848_0_transform_1_prompt_1": {
+            "iou": 0.5660525284202274,
+            "mae": 0.02533721923828125,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003848_0_transform_1_prompt_2": {
+            "iou": 0.5660525284202274,
+            "mae": 0.02533721923828125,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_003957_0_transform_0_prompt_0": {
+            "iou": 0.6842061867003807,
+            "mae": 0.0876617431640625,
+            "object_class": "train",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003957_0_transform_0_prompt_1": {
+            "iou": 0.6842061867003807,
+            "mae": 0.0876617431640625,
+            "object_class": "train",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003957_0_transform_0_prompt_2": {
+            "iou": 0.6842061867003807,
+            "mae": 0.0876617431640625,
+            "object_class": "train",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_003957_0_transform_1_prompt_0": {
+            "iou": 0.6307045401082099,
+            "mae": 0.047908782958984375,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003957_0_transform_1_prompt_1": {
+            "iou": 0.6307045401082099,
+            "mae": 0.047908782958984375,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003957_0_transform_1_prompt_2": {
+            "iou": 0.6307045401082099,
+            "mae": 0.047908782958984375,
+            "object_class": "train",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_003991_0_transform_0_prompt_0": {
+            "iou": 0.5844677847692418,
+            "mae": 0.13250732421875,
+            "object_class": "cat",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2007_003991_0_transform_0_prompt_1": {
+            "iou": 0.5844677847692418,
+            "mae": 0.13250732421875,
+            "object_class": "cat",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2007_003991_0_transform_0_prompt_2": {
+            "iou": 0.5844677847692418,
+            "mae": 0.13250732421875,
+            "object_class": "cat",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2007_004003_0_transform_1_prompt_0": {
+            "iou": 0.6210951614492658,
+            "mae": 0.13200759887695312,
+            "object_class": "motorbike",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_004003_0_transform_1_prompt_1": {
+            "iou": 0.6210951614492658,
+            "mae": 0.13200759887695312,
+            "object_class": "motorbike",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_004003_0_transform_1_prompt_2": {
+            "iou": 0.6210951614492658,
+            "mae": 0.13200759887695312,
+            "object_class": "motorbike",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_004143_0_transform_0_prompt_0": {
+            "iou": 0.6416995722277065,
+            "mae": 0.033229827880859375,
+            "object_class": "bird",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004143_0_transform_0_prompt_1": {
+            "iou": 0.6416995722277065,
+            "mae": 0.033229827880859375,
+            "object_class": "bird",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004143_0_transform_0_prompt_2": {
+            "iou": 0.6416995722277065,
+            "mae": 0.033229827880859375,
+            "object_class": "bird",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004143_0_transform_1_prompt_0": {
+            "iou": 0.538691908658217,
+            "mae": 0.131622314453125,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_004143_0_transform_1_prompt_1": {
+            "iou": 0.5170480766620518,
+            "mae": 0.13573074340820312,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_004143_0_transform_1_prompt_2": {
+            "iou": 0.47808390329353273,
+            "mae": 0.154571533203125,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_004241_0_transform_0_prompt_0": {
+            "iou": 0.32929570899029315,
+            "mae": 0.3402824401855469,
+            "object_class": "boat",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_004241_0_transform_0_prompt_1": {
+            "iou": 0.43765050987542986,
+            "mae": 0.21646499633789062,
+            "object_class": "boat",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_004241_0_transform_0_prompt_2": {
+            "iou": 0.32929570899029315,
+            "mae": 0.3402824401855469,
+            "object_class": "boat",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_004241_0_transform_1_prompt_0": {
+            "iou": 0.21175338612982014,
+            "mae": 0.36563873291015625,
+            "object_class": "boat",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_004241_0_transform_1_prompt_1": {
+            "iou": 0.21175338612982014,
+            "mae": 0.36563873291015625,
+            "object_class": "boat",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_004241_0_transform_1_prompt_2": {
+            "iou": 0.21066154439710724,
+            "mae": 0.36681365966796875,
+            "object_class": "boat",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_004468_0_transform_0_prompt_0": {
+            "iou": 0.7696131414200866,
+            "mae": 0.16424942016601562,
+            "object_class": "bottle",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_004468_0_transform_0_prompt_1": {
+            "iou": 0.7696131414200866,
+            "mae": 0.16424942016601562,
+            "object_class": "bottle",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_004468_0_transform_0_prompt_2": {
+            "iou": 0.7696131414200866,
+            "mae": 0.16424942016601562,
+            "object_class": "bottle",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_004468_0_transform_1_prompt_0": {
+            "iou": 0.08717331729162489,
+            "mae": 0.2604827880859375,
+            "object_class": "bottle",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004468_0_transform_1_prompt_1": {
+            "iou": 0.08717331729162489,
+            "mae": 0.2604827880859375,
+            "object_class": "bottle",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004468_0_transform_1_prompt_2": {
+            "iou": 0.08717331729162489,
+            "mae": 0.2604827880859375,
+            "object_class": "bottle",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004768_0_transform_0_prompt_0": {
+            "iou": 0.0,
+            "mae": 0.12116622924804688,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004768_0_transform_0_prompt_1": {
+            "iou": 0.0,
+            "mae": 0.12116622924804688,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004768_0_transform_0_prompt_2": {
+            "iou": 0.0,
+            "mae": 0.12116622924804688,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004768_0_transform_1_prompt_0": {
+            "iou": 0.7993524199045672,
+            "mae": 0.04491424560546875,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004768_0_transform_1_prompt_1": {
+            "iou": 0.7993524199045672,
+            "mae": 0.04491424560546875,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004768_0_transform_1_prompt_2": {
+            "iou": 0.7993524199045672,
+            "mae": 0.04491424560546875,
+            "object_class": "sheep",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_004856_0_transform_1_prompt_0": {
+            "iou": 0.08526742805450331,
+            "mae": 0.4937400817871094,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_004856_0_transform_1_prompt_1": {
+            "iou": 0.1490960319323785,
+            "mae": 0.262664794921875,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_004856_0_transform_1_prompt_2": {
+            "iou": 0.08526742805450331,
+            "mae": 0.4937400817871094,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_004998_0_transform_0_prompt_0": {
+            "iou": 0.3768838350403053,
+            "mae": 0.061038970947265625,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_004998_0_transform_0_prompt_1": {
+            "iou": 0.2202120709583396,
+            "mae": 0.11838531494140625,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_004998_0_transform_0_prompt_2": {
+            "iou": 0.2844543313268778,
+            "mae": 0.10429763793945312,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_005547_1_transform_0_prompt_0": {
+            "iou": 0.09454560212115473,
+            "mae": 0.2553291320800781,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_005547_1_transform_0_prompt_1": {
+            "iou": 0.09454560212115473,
+            "mae": 0.2553291320800781,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_005547_1_transform_0_prompt_2": {
+            "iou": 0.09454560212115473,
+            "mae": 0.2553291320800781,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_005547_1_transform_1_prompt_0": {
+            "iou": 0.4499396591588374,
+            "mae": 0.18604278564453125,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_005547_1_transform_1_prompt_1": {
+            "iou": 0.4499396591588374,
+            "mae": 0.18604278564453125,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_005547_1_transform_1_prompt_2": {
+            "iou": 0.4499396591588374,
+            "mae": 0.18604278564453125,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_005696_0_transform_0_prompt_0": {
+            "iou": 0.6657211473107073,
+            "mae": 0.14070892333984375,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_005696_0_transform_0_prompt_1": {
+            "iou": 0.6657211473107073,
+            "mae": 0.14070892333984375,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_005696_0_transform_0_prompt_2": {
+            "iou": 0.6657211473107073,
+            "mae": 0.14070892333984375,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_005702_1_transform_0_prompt_1": {
+            "iou": 0.039192817217552044,
+            "mae": 0.33310699462890625,
+            "object_class": "person",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2007_005702_1_transform_0_prompt_2": {
+            "iou": 0.039192817217552044,
+            "mae": 0.33310699462890625,
+            "object_class": "person",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2007_005702_1_transform_1_prompt_1": {
+            "iou": 0.24020493744845858,
+            "mae": 0.16518783569335938,
+            "object_class": "person",
+            "transformation_type": "Reasoning",
+            "meta_transformation_type": "Reasoning"
+        },
+        "2007_005951_0_transform_0_prompt_0": {
+            "iou": 0.03238471314451707,
+            "mae": 0.16264724731445312,
+            "object_class": "motorbike",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_005951_0_transform_0_prompt_1": {
+            "iou": 0.03238471314451707,
+            "mae": 0.16264724731445312,
+            "object_class": "motorbike",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_005951_0_transform_0_prompt_2": {
+            "iou": 0.03238471314451707,
+            "mae": 0.16264724731445312,
+            "object_class": "motorbike",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2007_005951_0_transform_1_prompt_1": {
+            "iou": 0.12482237678558074,
+            "mae": 0.13391876220703125,
+            "object_class": "motorbike",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_005951_0_transform_1_prompt_2": {
+            "iou": 0.12482237678558074,
+            "mae": 0.13391876220703125,
+            "object_class": "motorbike",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_006134_0_transform_0_prompt_0": {
+            "iou": 0.0,
+            "mae": 0.16985702514648438,
+            "object_class": "horse",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006134_0_transform_0_prompt_1": {
+            "iou": 0.0,
+            "mae": 0.16985702514648438,
+            "object_class": "horse",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006134_0_transform_0_prompt_2": {
+            "iou": 0.12503457119151182,
+            "mae": 0.13275146484375,
+            "object_class": "horse",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006134_0_transform_1_prompt_0": {
+            "iou": 0.5077448149120504,
+            "mae": 0.10013580322265625,
+            "object_class": "horse",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_006134_0_transform_1_prompt_1": {
+            "iou": 0.5077448149120504,
+            "mae": 0.10013580322265625,
+            "object_class": "horse",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_006134_0_transform_1_prompt_2": {
+            "iou": 0.5077448149120504,
+            "mae": 0.10013580322265625,
+            "object_class": "horse",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_006212_0_transform_0_prompt_0": {
+            "iou": 0.09861255186721991,
+            "mae": 0.053035736083984375,
+            "object_class": "aeroplane",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_006212_0_transform_0_prompt_1": {
+            "iou": 0.09861255186721991,
+            "mae": 0.053035736083984375,
+            "object_class": "aeroplane",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_006212_0_transform_1_prompt_0": {
+            "iou": 0.09101037532205278,
+            "mae": 0.14939117431640625,
+            "object_class": "aeroplane",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_006212_0_transform_1_prompt_1": {
+            "iou": 0.08792331081865237,
+            "mae": 0.14989852905273438,
+            "object_class": "aeroplane",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_006212_0_transform_1_prompt_2": {
+            "iou": 0.08792331081865237,
+            "mae": 0.14989852905273438,
+            "object_class": "aeroplane",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_006260_0_transform_0_prompt_0": {
+            "iou": 0.0,
+            "mae": 0.4347572326660156,
+            "object_class": "cat",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006260_0_transform_0_prompt_1": {
+            "iou": 0.0,
+            "mae": 0.4347572326660156,
+            "object_class": "cat",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006260_0_transform_1_prompt_0": {
+            "iou": 0.6299619623524823,
+            "mae": 0.0289459228515625,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006260_0_transform_1_prompt_1": {
+            "iou": 0.6299619623524823,
+            "mae": 0.0289459228515625,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006260_0_transform_1_prompt_2": {
+            "iou": 0.6299619623524823,
+            "mae": 0.0289459228515625,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006277_0_transform_0_prompt_0": {
+            "iou": 0.662759157930303,
+            "mae": 0.1370697021484375,
+            "object_class": "car",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006277_0_transform_1_prompt_0": {
+            "iou": 0.5446329294369209,
+            "mae": 0.0609283447265625,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006277_0_transform_1_prompt_1": {
+            "iou": 0.5446329294369209,
+            "mae": 0.0609283447265625,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006277_0_transform_1_prompt_2": {
+            "iou": 0.5446329294369209,
+            "mae": 0.0609283447265625,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_006449_0_transform_0_prompt_1": {
+            "iou": 0.14820500169037765,
+            "mae": 0.3556175231933594,
+            "object_class": "bicycle",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_006449_0_transform_0_prompt_2": {
+            "iou": 0.14820500169037765,
+            "mae": 0.3556175231933594,
+            "object_class": "bicycle",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_006449_0_transform_1_prompt_1": {
+            "iou": 0.12727103974754622,
+            "mae": 0.286956787109375,
+            "object_class": "bicycle",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_006449_0_transform_1_prompt_2": {
+            "iou": 0.12727103974754622,
+            "mae": 0.286956787109375,
+            "object_class": "bicycle",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_006678_0_transform_0_prompt_1": {
+            "iou": 0.4524753240977949,
+            "mae": 0.4321022033691406,
+            "object_class": "sheep",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2007_006678_0_transform_0_prompt_2": {
+            "iou": 0.45227529800748284,
+            "mae": 0.43224334716796875,
+            "object_class": "sheep",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2007_006678_0_transform_1_prompt_0": {
+            "iou": 0.6598410669844046,
+            "mae": 0.135040283203125,
+            "object_class": "sheep",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_006678_0_transform_1_prompt_1": {
+            "iou": 0.6598410669844046,
+            "mae": 0.135040283203125,
+            "object_class": "sheep",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_006678_0_transform_1_prompt_2": {
+            "iou": 0.6618213963491876,
+            "mae": 0.1415557861328125,
+            "object_class": "sheep",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_006680_0_transform_0_prompt_0": {
+            "iou": 0.7616357042527359,
+            "mae": 0.11458206176757812,
+            "object_class": "train",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006680_0_transform_0_prompt_1": {
+            "iou": 0.6093746401013475,
+            "mae": 0.19408035278320312,
+            "object_class": "train",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006680_0_transform_0_prompt_2": {
+            "iou": 0.05350370550781114,
+            "mae": 0.4150886535644531,
+            "object_class": "train",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006680_0_transform_1_prompt_0": {
+            "iou": 0.6730065886334414,
+            "mae": 0.1872406005859375,
+            "object_class": "train",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006680_0_transform_1_prompt_1": {
+            "iou": 0.7666014611361731,
+            "mae": 0.11151123046875,
+            "object_class": "train",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006680_0_transform_1_prompt_2": {
+            "iou": 0.7591584025318595,
+            "mae": 0.11960220336914062,
+            "object_class": "train",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006865_0_transform_0_prompt_0": {
+            "iou": 0.6957668534572853,
+            "mae": 0.11660003662109375,
+            "object_class": "bird",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006865_0_transform_0_prompt_2": {
+            "iou": 0.5630657423729547,
+            "mae": 0.15412139892578125,
+            "object_class": "bird",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006946_0_transform_1_prompt_0": {
+            "iou": 0.3413648570639761,
+            "mae": 0.30031585693359375,
+            "object_class": "aeroplane",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006946_0_transform_1_prompt_1": {
+            "iou": 0.3413648570639761,
+            "mae": 0.30031585693359375,
+            "object_class": "aeroplane",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_006946_0_transform_1_prompt_2": {
+            "iou": 0.3413648570639761,
+            "mae": 0.30031585693359375,
+            "object_class": "aeroplane",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_007250_1_transform_0_prompt_0": {
+            "iou": 0.398902550373647,
+            "mae": 0.2586669921875,
+            "object_class": "tv monitor",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007250_1_transform_0_prompt_1": {
+            "iou": 0.398902550373647,
+            "mae": 0.2586669921875,
+            "object_class": "tv monitor",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007250_1_transform_1_prompt_0": {
+            "iou": 0.7962716625316315,
+            "mae": 0.1256103515625,
+            "object_class": "tv monitor",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_007250_1_transform_1_prompt_1": {
+            "iou": 0.7962716625316315,
+            "mae": 0.1256103515625,
+            "object_class": "tv monitor",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_007387_0_transform_0_prompt_1": {
+            "iou": 0.4079217403201532,
+            "mae": 0.264129638671875,
+            "object_class": "train",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007387_0_transform_0_prompt_2": {
+            "iou": 0.4079217403201532,
+            "mae": 0.264129638671875,
+            "object_class": "train",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007387_0_transform_1_prompt_0": {
+            "iou": 0.6561265151641462,
+            "mae": 0.15735244750976562,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_007387_0_transform_1_prompt_1": {
+            "iou": 0.6561265151641462,
+            "mae": 0.15735244750976562,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_007387_0_transform_1_prompt_2": {
+            "iou": 0.6561265151641462,
+            "mae": 0.15735244750976562,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_007480_0_transform_0_prompt_0": {
+            "iou": 0.6722149903856955,
+            "mae": 0.18923187255859375,
+            "object_class": "bus",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_007480_0_transform_0_prompt_1": {
+            "iou": 0.66006533008887,
+            "mae": 0.19610977172851562,
+            "object_class": "bus",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_007480_0_transform_0_prompt_2": {
+            "iou": 0.66006533008887,
+            "mae": 0.19610977172851562,
+            "object_class": "bus",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_007480_0_transform_1_prompt_0": {
+            "iou": 0.2809463835912199,
+            "mae": 0.3963813781738281,
+            "object_class": "bus",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007480_0_transform_1_prompt_1": {
+            "iou": 0.2809463835912199,
+            "mae": 0.3963813781738281,
+            "object_class": "bus",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007480_0_transform_1_prompt_2": {
+            "iou": 0.2809463835912199,
+            "mae": 0.3963813781738281,
+            "object_class": "bus",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007481_0_transform_0_prompt_0": {
+            "iou": 0.5867527558450778,
+            "mae": 0.16431427001953125,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007481_0_transform_0_prompt_1": {
+            "iou": 0.5796515216255994,
+            "mae": 0.16887283325195312,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007481_0_transform_0_prompt_2": {
+            "iou": 0.5867527558450778,
+            "mae": 0.16431427001953125,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007481_0_transform_1_prompt_0": {
+            "iou": 0.655801311312142,
+            "mae": 0.12656402587890625,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007481_0_transform_1_prompt_1": {
+            "iou": 0.5464300097807951,
+            "mae": 0.18043899536132812,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007481_0_transform_1_prompt_2": {
+            "iou": 0.626280855228948,
+            "mae": 0.13982391357421875,
+            "object_class": "bird",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_007591_0_transform_0_prompt_0": {
+            "iou": 0.5762261357154127,
+            "mae": 0.1331939697265625,
+            "object_class": "bus",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_007591_0_transform_1_prompt_0": {
+            "iou": 0.4621297761700203,
+            "mae": 0.027225494384765625,
+            "object_class": "bus",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_007591_0_transform_1_prompt_1": {
+            "iou": 0.35800344234079173,
+            "mae": 0.05976104736328125,
+            "object_class": "bus",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_007591_0_transform_1_prompt_2": {
+            "iou": 0.4621297761700203,
+            "mae": 0.027225494384765625,
+            "object_class": "bus",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_007891_0_transform_1_prompt_0": {
+            "iou": 0.19973017798351364,
+            "mae": 0.24664688110351562,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_007891_0_transform_1_prompt_1": {
+            "iou": 0.19973017798351364,
+            "mae": 0.24664688110351562,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_007891_0_transform_1_prompt_2": {
+            "iou": 0.19973017798351364,
+            "mae": 0.24664688110351562,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_007948_0_transform_0_prompt_0": {
+            "iou": 0.0,
+            "mae": 0.049411773681640625,
+            "object_class": "car",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_007948_0_transform_0_prompt_1": {
+            "iou": 0.0,
+            "mae": 0.049411773681640625,
+            "object_class": "car",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_007948_0_transform_0_prompt_2": {
+            "iou": 0.0,
+            "mae": 0.049411773681640625,
+            "object_class": "car",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_007948_0_transform_1_prompt_0": {
+            "iou": 0.16171339619603142,
+            "mae": 0.17872238159179688,
+            "object_class": "car",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_007948_0_transform_1_prompt_1": {
+            "iou": 0.16171339619603142,
+            "mae": 0.17872238159179688,
+            "object_class": "car",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_007948_0_transform_1_prompt_2": {
+            "iou": 0.16171339619603142,
+            "mae": 0.17872238159179688,
+            "object_class": "car",
+            "transformation_type": "Flip",
+            "meta_transformation_type": "Flip"
+        },
+        "2007_008222_0_transform_0_prompt_0": {
+            "iou": 0.15952507296365084,
+            "mae": 0.1933441162109375,
+            "object_class": "dog",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008222_0_transform_0_prompt_1": {
+            "iou": 0.15776799115905454,
+            "mae": 0.19478607177734375,
+            "object_class": "dog",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008222_0_transform_0_prompt_2": {
+            "iou": 0.08416249890322014,
+            "mae": 0.19908523559570312,
+            "object_class": "dog",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008222_0_transform_1_prompt_0": {
+            "iou": 0.09950850002180292,
+            "mae": 0.5514335632324219,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_008222_0_transform_1_prompt_1": {
+            "iou": 0.09950850002180292,
+            "mae": 0.5514335632324219,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_008222_0_transform_1_prompt_2": {
+            "iou": 0.09950850002180292,
+            "mae": 0.5514335632324219,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_008260_0_transform_1_prompt_0": {
+            "iou": 0.3148406510737245,
+            "mae": 0.1910858154296875,
+            "object_class": "dog",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008260_0_transform_1_prompt_1": {
+            "iou": 0.3148406510737245,
+            "mae": 0.1910858154296875,
+            "object_class": "dog",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008260_0_transform_1_prompt_2": {
+            "iou": 0.3148406510737245,
+            "mae": 0.1910858154296875,
+            "object_class": "dog",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008575_0_transform_0_prompt_0": {
+            "iou": 0.7040833461097604,
+            "mae": 0.1546173095703125,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008575_0_transform_0_prompt_1": {
+            "iou": 0.16527570198526592,
+            "mae": 0.48149871826171875,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008575_0_transform_0_prompt_2": {
+            "iou": 0.7040833461097604,
+            "mae": 0.1546173095703125,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008575_0_transform_1_prompt_0": {
+            "iou": 0.7394526030818062,
+            "mae": 0.17034912109375,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008575_0_transform_1_prompt_1": {
+            "iou": 0.7394526030818062,
+            "mae": 0.17034912109375,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008575_0_transform_1_prompt_2": {
+            "iou": 0.7394526030818062,
+            "mae": 0.17034912109375,
+            "object_class": "cat",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008714_0_transform_0_prompt_0": {
+            "iou": 0.3986707736707737,
+            "mae": 0.16532516479492188,
+            "object_class": "aeroplane",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008714_0_transform_0_prompt_1": {
+            "iou": 0.7875414266868304,
+            "mae": 0.05037689208984375,
+            "object_class": "aeroplane",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_008714_0_transform_1_prompt_0": {
+            "iou": 0.3044193671181404,
+            "mae": 0.21608734130859375,
+            "object_class": "aeroplane",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_008714_0_transform_1_prompt_1": {
+            "iou": 0.30766548787169395,
+            "mae": 0.21209716796875,
+            "object_class": "aeroplane",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_008714_0_transform_1_prompt_2": {
+            "iou": 0.30411835852076285,
+            "mae": 0.21728515625,
+            "object_class": "aeroplane",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_008980_0_transform_1_prompt_0": {
+            "iou": 0.06841249615536711,
+            "mae": 0.24263763427734375,
+            "object_class": "dog",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009082_0_transform_0_prompt_0": {
+            "iou": 0.09658234714994676,
+            "mae": 0.1715240478515625,
+            "object_class": "cow",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_009082_0_transform_0_prompt_1": {
+            "iou": 0.2416185937630633,
+            "mae": 0.06920623779296875,
+            "object_class": "cow",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_009082_0_transform_1_prompt_0": {
+            "iou": 0.4038878171835584,
+            "mae": 0.1532440185546875,
+            "object_class": "cow",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009082_0_transform_1_prompt_1": {
+            "iou": 0.40067404205436297,
+            "mae": 0.15602493286132812,
+            "object_class": "cow",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009082_0_transform_1_prompt_2": {
+            "iou": 0.40067404205436297,
+            "mae": 0.15602493286132812,
+            "object_class": "cow",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009088_0_transform_0_prompt_0": {
+            "iou": 0.8315566781868087,
+            "mae": 0.070465087890625,
+            "object_class": "bird",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009088_0_transform_0_prompt_1": {
+            "iou": 0.8315566781868087,
+            "mae": 0.070465087890625,
+            "object_class": "bird",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009088_0_transform_0_prompt_2": {
+            "iou": 0.8315566781868087,
+            "mae": 0.070465087890625,
+            "object_class": "bird",
+            "transformation_type": "MoveByPixel",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009088_0_transform_1_prompt_0": {
+            "iou": 0.8038787216607485,
+            "mae": 0.03012847900390625,
+            "object_class": "bird",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_009088_0_transform_1_prompt_1": {
+            "iou": 0.8038787216607485,
+            "mae": 0.03012847900390625,
+            "object_class": "bird",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_009088_0_transform_1_prompt_2": {
+            "iou": 0.8038787216607485,
+            "mae": 0.03012847900390625,
+            "object_class": "bird",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_009096_0_transform_0_prompt_0": {
+            "iou": 0.3192001481207184,
+            "mae": 0.30858612060546875,
+            "object_class": "car",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009096_0_transform_0_prompt_1": {
+            "iou": 0.3190201680388146,
+            "mae": 0.3073272705078125,
+            "object_class": "car",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009096_0_transform_0_prompt_2": {
+            "iou": 0.3376569110503682,
+            "mae": 0.29024505615234375,
+            "object_class": "car",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009562_0_transform_0_prompt_0": {
+            "iou": 0.6329413674053528,
+            "mae": 0.18980789184570312,
+            "object_class": "dog",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009562_0_transform_0_prompt_1": {
+            "iou": 0.7108755555214418,
+            "mae": 0.1436920166015625,
+            "object_class": "dog",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009597_0_transform_0_prompt_0": {
+            "iou": 0.10089849826967648,
+            "mae": 0.21605682373046875,
+            "object_class": "train",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_009597_0_transform_0_prompt_1": {
+            "iou": 0.10089849826967648,
+            "mae": 0.21605682373046875,
+            "object_class": "train",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_009597_0_transform_0_prompt_2": {
+            "iou": 0.10089849826967648,
+            "mae": 0.21605682373046875,
+            "object_class": "train",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2007_009597_0_transform_1_prompt_1": {
+            "iou": 0.06243291305531969,
+            "mae": 0.22324371337890625,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_009597_0_transform_1_prompt_2": {
+            "iou": 0.06243291305531969,
+            "mae": 0.22324371337890625,
+            "object_class": "train",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_009605_0_transform_0_prompt_0": {
+            "iou": 0.7215606789967064,
+            "mae": 0.037731170654296875,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_009605_0_transform_0_prompt_1": {
+            "iou": 0.7215606789967064,
+            "mae": 0.037731170654296875,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_009605_0_transform_0_prompt_2": {
+            "iou": 0.7215606789967064,
+            "mae": 0.037731170654296875,
+            "object_class": "dog",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2007_009605_0_transform_1_prompt_0": {
+            "iou": 0.3268693508627773,
+            "mae": 0.203125,
+            "object_class": "dog",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009605_0_transform_1_prompt_1": {
+            "iou": 0.32484711857379767,
+            "mae": 0.19878768920898438,
+            "object_class": "dog",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009605_0_transform_1_prompt_2": {
+            "iou": 0.3590203036825877,
+            "mae": 0.21014785766601562,
+            "object_class": "dog",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2007_009788_0_transform_0_prompt_0": {
+            "iou": 0.029729525536415835,
+            "mae": 0.09798049926757812,
+            "object_class": "bicycle",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_009788_0_transform_0_prompt_1": {
+            "iou": 0.0063770566888630515,
+            "mae": 0.10758209228515625,
+            "object_class": "bicycle",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_009788_0_transform_0_prompt_2": {
+            "iou": 0.0063770566888630515,
+            "mae": 0.10758209228515625,
+            "object_class": "bicycle",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2007_009788_0_transform_1_prompt_1": {
+            "iou": 0.07437325562809684,
+            "mae": 0.2871856689453125,
+            "object_class": "bicycle",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2007_009788_0_transform_1_prompt_2": {
+            "iou": 0.20168215578225288,
+            "mae": 0.24150466918945312,
+            "object_class": "bicycle",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000016_0_transform_0_prompt_1": {
+            "iou": 0.21374070172078025,
+            "mae": 0.2818450927734375,
+            "object_class": "tv monitor",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000016_0_transform_0_prompt_2": {
+            "iou": 0.21374070172078025,
+            "mae": 0.2818450927734375,
+            "object_class": "tv monitor",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000016_0_transform_1_prompt_0": {
+            "iou": 0.4723122040980621,
+            "mae": 0.2100372314453125,
+            "object_class": "tv monitor",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000016_0_transform_1_prompt_1": {
+            "iou": 0.4941602144691701,
+            "mae": 0.2058563232421875,
+            "object_class": "tv monitor",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000016_0_transform_1_prompt_2": {
+            "iou": 0.454109523352834,
+            "mae": 0.217132568359375,
+            "object_class": "tv monitor",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000074_0_transform_0_prompt_0": {
+            "iou": 0.41256576481530327,
+            "mae": 0.16142654418945312,
+            "object_class": "car",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000074_0_transform_0_prompt_1": {
+            "iou": 0.44160755864816487,
+            "mae": 0.15826416015625,
+            "object_class": "car",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000074_0_transform_0_prompt_2": {
+            "iou": 0.2808702861880664,
+            "mae": 0.19190216064453125,
+            "object_class": "car",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000074_0_transform_1_prompt_0": {
+            "iou": 0.013596554894275898,
+            "mae": 0.23329925537109375,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000074_0_transform_1_prompt_1": {
+            "iou": 0.0,
+            "mae": 0.1957855224609375,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000074_0_transform_1_prompt_2": {
+            "iou": 0.08900785510581878,
+            "mae": 0.138916015625,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000089_0_transform_1_prompt_2": {
+            "iou": 0.1864108524077795,
+            "mae": 0.23633575439453125,
+            "object_class": "chair",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000107_0_transform_0_prompt_0": {
+            "iou": 0.3505396049684382,
+            "mae": 0.194671630859375,
+            "object_class": "chair",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000107_0_transform_0_prompt_1": {
+            "iou": 0.3505396049684382,
+            "mae": 0.194671630859375,
+            "object_class": "chair",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000107_0_transform_1_prompt_0": {
+            "iou": 0.6833047114164116,
+            "mae": 0.06472015380859375,
+            "object_class": "chair",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2008_000107_0_transform_1_prompt_1": {
+            "iou": 0.6833047114164116,
+            "mae": 0.06472015380859375,
+            "object_class": "chair",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2008_000107_0_transform_1_prompt_2": {
+            "iou": 0.6833047114164116,
+            "mae": 0.06472015380859375,
+            "object_class": "chair",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2008_000120_0_transform_0_prompt_0": {
+            "iou": 0.02568827677940504,
+            "mae": 0.2682456970214844,
+            "object_class": "boat",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000120_0_transform_0_prompt_1": {
+            "iou": 0.02568827677940504,
+            "mae": 0.2682456970214844,
+            "object_class": "boat",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000120_0_transform_0_prompt_2": {
+            "iou": 0.02568827677940504,
+            "mae": 0.2682456970214844,
+            "object_class": "boat",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000120_0_transform_1_prompt_0": {
+            "iou": 0.018215321411309812,
+            "mae": 0.24796295166015625,
+            "object_class": "boat",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000120_0_transform_1_prompt_1": {
+            "iou": 0.018215321411309812,
+            "mae": 0.24796295166015625,
+            "object_class": "boat",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000120_0_transform_1_prompt_2": {
+            "iou": 0.018215321411309812,
+            "mae": 0.24796295166015625,
+            "object_class": "boat",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000188_0_transform_0_prompt_0": {
+            "iou": 0.39045404091125324,
+            "mae": 0.2199554443359375,
+            "object_class": "potted plant",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000188_0_transform_0_prompt_1": {
+            "iou": 0.39045404091125324,
+            "mae": 0.2199554443359375,
+            "object_class": "potted plant",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000188_0_transform_0_prompt_2": {
+            "iou": 0.39045404091125324,
+            "mae": 0.2199554443359375,
+            "object_class": "potted plant",
+            "transformation_type": "MoveByPercentage",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000188_0_transform_1_prompt_0": {
+            "iou": 0.32475837511808736,
+            "mae": 0.2481231689453125,
+            "object_class": "potted plant",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000188_0_transform_1_prompt_1": {
+            "iou": 0.3517274860425601,
+            "mae": 0.2445068359375,
+            "object_class": "potted plant",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000188_0_transform_1_prompt_2": {
+            "iou": 0.32475837511808736,
+            "mae": 0.2481231689453125,
+            "object_class": "potted plant",
+            "transformation_type": "Rotate",
+            "meta_transformation_type": "Rotate"
+        },
+        "2008_000284_0_transform_0_prompt_0": {
+            "iou": 0.4867772244437357,
+            "mae": 0.15961074829101562,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2008_000284_0_transform_0_prompt_1": {
+            "iou": 0.4308423212121939,
+            "mae": 0.18097305297851562,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2008_000284_0_transform_0_prompt_2": {
+            "iou": 0.4308423212121939,
+            "mae": 0.18097305297851562,
+            "object_class": "person",
+            "transformation_type": "Shear",
+            "meta_transformation_type": "Shear"
+        },
+        "2008_000284_0_transform_1_prompt_0": {
+            "iou": 0.4897717666948436,
+            "mae": 0.1611785888671875,
+            "object_class": "person",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000284_0_transform_1_prompt_1": {
+            "iou": 0.4897717666948436,
+            "mae": 0.1611785888671875,
+            "object_class": "person",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000284_0_transform_1_prompt_2": {
+            "iou": 0.4897717666948436,
+            "mae": 0.1611785888671875,
+            "object_class": "person",
+            "transformation_type": "MoveTo",
+            "meta_transformation_type": "Move"
+        },
+        "2008_000345_0_transform_0_prompt_0": {
+            "iou": 0.6676963812886143,
+            "mae": 0.014362335205078125,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2008_000345_0_transform_0_prompt_1": {
+            "iou": 0.6676963812886143,
+            "mae": 0.014362335205078125,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2008_000345_0_transform_0_prompt_2": {
+            "iou": 0.6676963812886143,
+            "mae": 0.014362335205078125,
+            "object_class": "cat",
+            "transformation_type": "ScaleBy",
+            "meta_transformation_type": "ScaleBy"
+        },
+        "2008_000345_0_transform_1_prompt_2": {
+            "iou": 0.10533526028964563,
+            "mae": 0.22670364379882812,
+            "object_class": "cat",
+            "transformation_type": "ScaleAbsolutelyToPixels",
+            "meta_transformation_type": "Scale"
+        },
+        "2008_000361_0_transform_0_prompt_0": {
+            "iou": 0.5119757786504392,
+            "mae": 0.12420654296875,
+            "object_class": "bird",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2008_000361_0_transform_0_prompt_2": {
+            "iou": 0.45779529121603424,
+            "mae": 0.1459197998046875,
+            "object_class": "bird",
+            "transformation_type": "Compose",
+            "meta_transformation_type": "Compose"
+        },
+        "2008_000399_0_transform_1_prompt_0": {
+            "iou": 0.3397319088390205,
+            "mae": 0.20180511474609375,
+            "object_class": "car",
+            "transformation_type": "ScaleAbsolutelyToPercentage",
+            "meta_transformation_type": "Scale"
+        }
+    },
+    "categorical_results": {
+        "object_class": {
+            "sheep": {
+                "iou": 0.43147568653779333,
+                "mae": 0.15411802438589242,
+                "number_of_samples": 26
+            },
+            "sofa": {
+                "iou": 0.2618821176897384,
+                "mae": 0.24269943237304686,
+                "number_of_samples": 5
+            },
+            "horse": {
+                "iou": 0.29168367740490697,
+                "mae": 0.13909403483072916,
+                "number_of_samples": 18
+            },
+            "person": {
+                "iou": 0.28102976223666293,
+                "mae": 0.196364987281061,
+                "number_of_samples": 31
+            },
+            "cat": {
+                "iou": 0.46843250788650115,
+                "mae": 0.1968887143018769,
+                "number_of_samples": 41
+            },
+            "dining table": {
+                "iou": 0.357817286041144,
+                "mae": 0.25654144287109376,
+                "number_of_samples": 5
+            },
+            "bicycle": {
+                "iou": 0.08437233071327195,
+                "mae": 0.19435170491536458,
+                "number_of_samples": 15
+            },
+            "motorbike": {
+                "iou": 0.44101794719886245,
+                "mae": 0.11616007486979167,
+                "number_of_samples": 12
+            },
+            "car": {
+                "iou": 0.26004781060120263,
+                "mae": 0.18388762297453703,
+                "number_of_samples": 27
+            },
+            "train": {
+                "iou": 0.41240110684131837,
+                "mae": 0.17780036926269532,
+                "number_of_samples": 40
+            },
+            "dog": {
+                "iou": 0.306640899719227,
+                "mae": 0.20070266723632812,
+                "number_of_samples": 31
+            },
+            "aeroplane": {
+                "iou": 0.27449180432570336,
+                "mae": 0.18626191880967882,
+                "number_of_samples": 18
+            },
+            "chair": {
+                "iou": 0.4361671981743105,
+                "mae": 0.17276077270507811,
+                "number_of_samples": 10
+            },
+            "bird": {
+                "iou": 0.6182906980229772,
+                "mae": 0.10186188309280961,
+                "number_of_samples": 27
+            },
+            "potted plant": {
+                "iou": 0.33125962323264513,
+                "mae": 0.1724694569905599,
+                "number_of_samples": 12
+            },
+            "bus": {
+                "iou": 0.450356115848391,
+                "mae": 0.23225831985473633,
+                "number_of_samples": 16
+            },
+            "boat": {
+                "iou": 0.1551767532570757,
+                "mae": 0.29531224568684894,
+                "number_of_samples": 12
+            },
+            "bottle": {
+                "iou": 0.4283932293558557,
+                "mae": 0.21236610412597656,
+                "number_of_samples": 6
+            },
+            "tv monitor": {
+                "iou": 0.47093464124135376,
+                "mae": 0.21836344401041666,
+                "number_of_samples": 9
+            },
+            "cow": {
+                "iou": 0.30868736844105893,
+                "mae": 0.141204833984375,
+                "number_of_samples": 5
+            }
+        },
+        "meta_transformation_type": {
+            "ScaleBy": {
+                "iou": 0.5083688071461591,
+                "mae": 0.11684456993551816,
+                "number_of_samples": 68
+            },
+            "Move": {
+                "iou": 0.3747442944730926,
+                "mae": 0.20976558484529195,
+                "number_of_samples": 95
+            },
+            "Rotate": {
+                "iou": 0.4161152202514863,
+                "mae": 0.21567181178501674,
+                "number_of_samples": 56
+            },
+            "Scale": {
+                "iou": 0.2212794061816701,
+                "mae": 0.17050754876784335,
+                "number_of_samples": 81
+            },
+            "Flip": {
+                "iou": 0.33112718606332525,
+                "mae": 0.17853015402088995,
+                "number_of_samples": 23
+            },
+            "Shear": {
+                "iou": 0.3576954298406677,
+                "mae": 0.19374239444732666,
+                "number_of_samples": 32
+            },
+            "Reasoning": {
+                "iou": 0.14649237465562118,
+                "mae": 0.3071117401123047,
+                "number_of_samples": 2
+            },
+            "Compose": {
+                "iou": 0.41181229785717566,
+                "mae": 0.24424531724717882,
+                "number_of_samples": 9
+            }
+        },
+        "transformation_type": {
+            "ScaleBy": {
+                "iou": 0.5083688071461591,
+                "mae": 0.11684456993551816,
+                "number_of_samples": 68
+            },
+            "MoveTo": {
+                "iou": 0.3904019189899102,
+                "mae": 0.20914414871570675,
+                "number_of_samples": 43
+            },
+            "Rotate": {
+                "iou": 0.4161152202514863,
+                "mae": 0.21567181178501674,
+                "number_of_samples": 56
+            },
+            "ScaleAbsolutelyToPercentage": {
+                "iou": 0.32746299889318353,
+                "mae": 0.13819950382883955,
+                "number_of_samples": 41
+            },
+            "MoveByPixel": {
+                "iou": 0.4336576474530444,
+                "mae": 0.19050588105854235,
+                "number_of_samples": 38
+            },
+            "ScaleAbsolutelyToPixels": {
+                "iou": 0.11244122365236883,
+                "mae": 0.20362329483032227,
+                "number_of_samples": 40
+            },
+            "Flip": {
+                "iou": 0.33112718606332525,
+                "mae": 0.17853015402088995,
+                "number_of_samples": 23
+            },
+            "Shear": {
+                "iou": 0.3576954298406677,
+                "mae": 0.19374239444732666,
+                "number_of_samples": 32
+            },
+            "Reasoning": {
+                "iou": 0.14649237465562118,
+                "mae": 0.3071117401123047,
+                "number_of_samples": 2
+            },
+            "MoveByPercentage": {
+                "iou": 0.16674534679728342,
+                "mae": 0.26395062037876676,
+                "number_of_samples": 14
+            },
+            "Compose": {
+                "iou": 0.41181229785717566,
+                "mae": 0.24424531724717882,
+                "number_of_samples": 9
+            }
+        },
+        "summary": {
+            "overall": {
+                "iou": 0.367369796612199,
+                "mae": 0.1827329937877551,
+                "number_of_samples": 366
+            }
+        }
+    }
+}

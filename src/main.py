@@ -110,6 +110,7 @@ def main():
     parser.add_argument("--reasoning", action="store_true", help="Enable reasoning mode")
     parser.add_argument("--max_objects", type=int, default=5, help="Maximum number of objects allowed to be in an image")
     parser.add_argument("--dataset_size_samples", type=int, default=50, help="Number of samples to process")
+    parser.add_argument("--is_benchmark_dataset", action="store_true", help="Enable benchmark dataset mode")
     args = parser.parse_args()
 
     # Create output directories
@@ -141,7 +142,12 @@ def main():
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue
 
-            save_file_name = os.path.basename(subdir).strip()
+            if args.is_benchmark_dataset:
+                # read the save_file_name.txt
+                with open(os.path.join(subdir, "save_file_name.txt"), "r") as file:
+                    save_file_name = file.read().strip()
+            else:
+                save_file_name = os.path.basename(subdir).strip()
             sample_count += 1
 
             # Set up paths

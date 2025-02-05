@@ -14,7 +14,10 @@ benchmark_results_10000/
 benchmark_results_20000/
 benchmark_results_50000/
 benchmark_results_FULL/
+exp_breaking_point_easy_user_edit/
 exp_breaking_point/
 error/
 *.pt
+*.out
+*.err
 benchmark_results_backup_5_feb_2025
