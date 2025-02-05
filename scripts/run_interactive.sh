@@ -24,10 +24,9 @@ export TMPDIR="$CACHE_PATH/tmp"
 export BETTER_EXCEPTIONS=1
 
 python src/main_benchmark.py \
-    --in_dir benchmark_results_500/input_benchmark \
-    --out_dir benchmark_results_500/output_benchmark \
+    --in_dir benchmark_results_FULL/input_benchmark \
+    --out_dir benchmark_results_FULL/output_benchmark \
     --edit "grayscale" \
     --max_objects 5 \
-    --dataset_size_samples 500 \
     --reasoning \
     --draw
