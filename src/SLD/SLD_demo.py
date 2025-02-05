@@ -1,7 +1,7 @@
-
 ########################    modified by marco    #########################
 import os
 import sys
+
 # Set the working directory to the script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
@@ -39,6 +39,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 # Operation #1: Addition (The code is in sld/image_generator.py)
+
 
 # Operation #2: Deletion (Preprocessing region mask for removal)
 def get_remove_region(entry, remove_objects, move_objects, preserve_objs, models, config):
@@ -91,9 +92,7 @@ def get_repos_info(entry, move_objects, models, config):
         new_img, obj = resize_image(image_source, item[0][1], item[1][1])
         old_object_region = run_sam_postprocess(run_sam(obj, new_img, models), H, W, config).astype(np.bool_)
         all_latents, _ = get_all_latents(new_img, models, inv_seed)
-        new_move_objects.append(
-            [item[0][0], obj, item[1][1], old_object_region, all_latents]
-        )
+        new_move_objects.append([item[0][0], obj, item[1][1], old_object_region, all_latents])
 
     return new_move_objects
 
@@ -123,9 +122,7 @@ def get_attrmod_latent(entry, change_attr_objects, models, config):
     inv_seed = int(config.get("SLD", "inv_seed"))
 
     # Initialize the Stable Diffusion pipeline
-    pipe = StableDiffusionDiffEditPipeline.from_pretrained(
-        "stabilityai/stable-diffusion-2-1-base", torch_dtype=torch.float16
-    ).to("cuda")
+    pipe = StableDiffusionDiffEditPipeline.from_pretrained("stabilityai/stable-diffusion-2-1-base", torch_dtype=torch.float16).to("cuda")
 
     pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
     pipe.inverse_scheduler = DDIMInverseScheduler.from_config(pipe.scheduler.config)
@@ -167,11 +164,7 @@ def get_attrmod_latent(entry, change_attr_objects, models, config):
     return new_change_objects
 
 
-def correction(
-    entry, add_objects, move_objects,
-    remove_region, change_attr_objects,
-    models, config
-):
+def correction(entry, add_objects, move_objects, remove_region, change_attr_objects, models, config):
     spec = {
         "add_objects": add_objects,
         "move_objects": move_objects,
@@ -208,9 +201,7 @@ def spot_objects(prompt, data, config):
 
 def spot_differences(prompt, det_results, data, config, mode="self_correction"):
     if data.get("llm_layout_suggestions") is None:
-        questions = (
-            f"User Prompt: {prompt}\nCurrent Objects: {det_results}\nReasoning:\n"
-        )
+        questions = f"User Prompt: {prompt}\nCurrent Objects: {det_results}\nReasoning:\n"
         if mode == "self_correction":
             message = spot_difference_template + questions
         else:
@@ -229,12 +220,22 @@ if __name__ == "__main__":
     parser.add_argument("--output-dir", type=str, default="demo/self_correction/results", help="Path to the output directory")
     parser.add_argument("--mode", type=str, default="self_correction", help="Mode of the demo", choices=["self_correction", "image_editing"])
     parser.add_argument("--config", type=str, default="demo_config.ini", help="Path to the config file")
-    parser.add_argument("--evaluation-folder-before", type=str, default="demo/self_correction/evaluation", help="Path to the evaluation folder")
-    parser.add_argument("--evaluation-folder-refined", type=str, default="demo/self_correction/evaluation_refined", help="Path to the evaluation folder")
+    parser.add_argument("--evaluation-path-before", type=str, default="demo/self_correction/evaluation", help="Path to the evaluation folder")
+    parser.add_argument("--evaluation-path-refined", type=str, default="demo/self_correction/evaluation_refined", help="Path to the evaluation folder")
     parser.add_argument("--save-file-name", type=str, default=None, help="Path to the save file name")
     args = parser.parse_args()
     if args.save_file_name is None:
-        args.save_file_name =time.time()
+        args.save_file_name = time.time()
+
+    # Check if input path is absolute
+    if not os.path.isabs(args.evaluation_path_before) and not os.path.isabs(args.evaluation_path_refined):
+        print("Error: Evaluation path before and refined must be an absolute path")
+        sys.exit(1)
+
+    # Create evaluation folders if they don't exist
+    os.makedirs(args.evaluation_path_before, exist_ok=True)
+    os.makedirs(args.evaluation_path_refined, exist_ok=True)
+
     # Open the json file configured for self-correction (a list of filenames with prompts and other info...)
     # Create the output directory
     with open(args.json_file) as f:
@@ -257,9 +258,7 @@ if __name__ == "__main__":
         key=models.sd_key,
         use_fp16=False,
         load_inverse_scheduler=True,
-        scheduler_cls=diffusers.schedulers.__dict__[diffusion_scheduler]
-        if diffusion_scheduler is not None
-        else None,
+        scheduler_cls=diffusers.schedulers.__dict__[diffusion_scheduler] if diffusion_scheduler is not None else None,
     )
     sam_model_dict = sam.load_sam()
     models.model_dict.update(sam_model_dict)
@@ -280,7 +279,7 @@ if __name__ == "__main__":
         rel_fname = data[idx]["input_fname"]
         # fname = os.path.join(args.input_dir, f"{rel_fname}.png")  ### marco
         fname = args.input_dir
-        
+
         prompt = data[idx]["prompt"]
         # dirname = os.path.join(save_dir, data[idx]["output_dir"]) ### marco
         dirname = save_dir
@@ -294,11 +293,14 @@ if __name__ == "__main__":
 
         # Step 1: Spot Objects with LLM
         llm_parsed_prompt = spot_objects(prompt, data[idx], config)
-        entry = {"instructions": prompt, "output": [fname], "generator": data[idx]["generator"],
-                 "objects": llm_parsed_prompt["objects"], 
-                 "bg_prompt": llm_parsed_prompt["bg_prompt"],
-                 "neg_prompt": llm_parsed_prompt["neg_prompt"]
-                }
+        entry = {
+            "instructions": prompt,
+            "output": [fname],
+            "generator": data[idx]["generator"],
+            "objects": llm_parsed_prompt["objects"],
+            "bg_prompt": llm_parsed_prompt["bg_prompt"],
+            "neg_prompt": llm_parsed_prompt["neg_prompt"],
+        }
         print("-" * 5 + f" Parsing Prompts " + "-" * 5)
         print(f"* Objects: {entry['objects']}")
         print(f"* Background: {entry['bg_prompt']}")
@@ -306,17 +308,21 @@ if __name__ == "__main__":
 
         # Step 2: Run open vocabulary detector
         print("-" * 5 + f" Running Detector " + "-" * 5)
-        default_attr_threshold = float(config.get("SLD", "attr_detection_threshold")) 
+        default_attr_threshold = float(config.get("SLD", "attr_detection_threshold"))
         default_prim_threshold = float(config.get("SLD", "prim_detection_threshold"))
         default_nms_threshold = float(config.get("SLD", "nms_threshold"))
 
         attr_threshold = float(config.get(entry["generator"], "attr_detection_threshold", fallback=default_attr_threshold))
         prim_threshold = float(config.get(entry["generator"], "prim_detection_threshold", fallback=default_prim_threshold))
         nms_threshold = float(config.get(entry["generator"], "nms_threshold", fallback=default_nms_threshold))
-        det_results = det.run(prompt, entry["objects"], entry["output"][-1],
-                              attr_detection_threshold=attr_threshold, 
-                              prim_detection_threshold=prim_threshold, 
-                              nms_threshold=nms_threshold)
+        det_results = det.run(
+            prompt,
+            entry["objects"],
+            entry["output"][-1],
+            attr_detection_threshold=attr_threshold,
+            prim_detection_threshold=prim_threshold,
+            nms_threshold=nms_threshold,
+        )
 
         print("-" * 5 + f" Getting Modification Suggestions " + "-" * 5)
 
@@ -351,7 +357,7 @@ if __name__ == "__main__":
             fname=os.path.join(dirname, "det_result_obj.png"),
         )
         # Check if there are any changes to apply
-        if (total_ops == 0):
+        if total_ops == 0:
             print("-" * 5 + f" Results " + "-" * 5)
             output_fname = os.path.join(dirname, f"final_{rel_fname}.png")
             shutil.copy(entry["output"][-1], output_fname)
@@ -363,26 +369,18 @@ if __name__ == "__main__":
         # Step 4: T2I Ops: Addition / Deletion / Repositioning / Attr. Modification
         print("-" * 5 + f" Image Manipulation " + "-" * 5)
 
-        deletion_region = get_remove_region(
-            entry, deletion_objs, repositioning_objs, [], models, config
-        )
-        repositioning_objs = get_repos_info(
-            entry, repositioning_objs, models, config
-        )
-        attr_modification_objs = get_attrmod_latent(
-            entry, attr_modification_objs, models, config
-        )
-        
-        ret_dict = correction(
-            entry, addition_objs, repositioning_objs,
-            deletion_region, attr_modification_objs, 
-            models, config
-        )
+        deletion_region = get_remove_region(entry, deletion_objs, repositioning_objs, [], models, config)
+        repositioning_objs = get_repos_info(entry, repositioning_objs, models, config)
+        attr_modification_objs = get_attrmod_latent(entry, attr_modification_objs, models, config)
+
+        ret_dict = correction(entry, addition_objs, repositioning_objs, deletion_region, attr_modification_objs, models, config)
         # Save an intermediate file without the SDXL refinement
         curr_output_fname = os.path.join(dirname, f"intermediate_{rel_fname}.png")
         Image.fromarray(ret_dict.image).save(curr_output_fname)
-        # Save the image to the evaluation folder
-        Image.fromarray(ret_dict.image).save(os.path.join(args.evaluation_folder_before, f"{args.save_file_name}.png"))
+
+        # ********** MARCO **********
+        Image.fromarray(ret_dict.image).save(os.path.join(args.evaluation_path_before, f"{args.save_file_name}.png"))
+        # ********** MARCO **********
         print("-" * 5 + f" Results " + "-" * 5)
         print("* Output File (Before SDXL): ", curr_output_fname)
         utils.free_memory()
@@ -393,5 +391,5 @@ if __name__ == "__main__":
             sdxl_refine(prompt, curr_output_fname, sdxl_output_fname)
         else:
             # For image editing, the prompt should be updated
-            sdxl_refine(ret_dict.final_prompt, curr_output_fname, sdxl_output_fname, args.evaluation_folder_refined, args.save_file_name)
+            sdxl_refine(ret_dict.final_prompt, curr_output_fname, sdxl_output_fname, args.evaluation_path_refined, args.save_file_name)
         print("* Output File (After SDXL): ", sdxl_output_fname)

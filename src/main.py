@@ -1,19 +1,13 @@
 import os
-import sys
 import logging
 import argparse
-import shutil
 from typing import Optional
 import subprocess
 import time
 
-
 import cv2
 import torch
 import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-import configparser
 
 # Custom utils imports
 from marco_utils.models import Models
@@ -26,10 +20,6 @@ from marco_utils.sld_adapter import generate_sld_config
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
 
-# # SLD imports
-# from SLDclean.SLD_demo import main as sld_main
-
-
 def setup_logging() -> logging.Logger:
     """Configure and return logger"""
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -37,16 +27,7 @@ def setup_logging() -> logging.Logger:
 
 
 def process_image(image_path: str, edit_type: str) -> Optional[cv2.Mat]:
-    """
-    Process image according to edit type
-
-    Args:
-        image_path: Path to input image
-        edit_type: Type of edit to apply ('resize' or 'grayscale')
-
-    Returns:
-        Processed image or None if failed
-    """
+    """Process image according to edit type"""
     try:
         image = cv2.imread(image_path)
         if image is None:
@@ -65,15 +46,23 @@ def process_image(image_path: str, edit_type: str) -> Optional[cv2.Mat]:
 
 
 def run_sld(
-    json_path: str, input_path: str, output_dir: str, logger: logging.Logger, NORMAL_GPU: str, evaluation_folder_before: str, evaluation_folder_refined: str
+    json_path: str,
+    input_path: str,
+    output_dir: str,
+    logger: logging.Logger,
+    NORMAL_GPU: str,
+    evaluation_folder_before: str,
+    evaluation_folder_refined: str,
+    save_file_name: str,
 ) -> None:
     """
     Run the SLD (Structure-aware Latent Diffusion) pipeline
     """
-    # Path to the external script
     ext_script = "src/SLD/SLD_demo.py"
     config_ini = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/src/SLD/demo_config.ini"
-    # Run the script
+
+    evaluation_before_path = os.path.abspath(evaluation_folder_before)
+    evaluation_refined_path = os.path.abspath(evaluation_folder_refined)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = NORMAL_GPU.replace("cuda:", "")
     subprocess.run(
@@ -90,10 +79,12 @@ def run_sld(
             "image_editing",
             "--config",
             config_ini,
-            "--evaluation-folder-before",
-            evaluation_folder_before,
-            "--evaluation-folder-refined",
-            evaluation_folder_refined,
+            "--evaluation-path-before",
+            evaluation_before_path,
+            "--evaluation-path-refined",
+            evaluation_refined_path,
+            "--save-file-name",
+            save_file_name,
         ]
     )
 
@@ -102,14 +93,9 @@ def main():
     """Main entry point of the program"""
     logger = setup_logging()
 
-    # Check for CUDA availability and select device
-    if torch.cuda.is_available():
-        DEEP_SEEK_GPU = "cuda:1"  # Select CUDA device 1
-        NORMAL_GPU = "cuda:0"  # Select CUDA device 2
-
-    else:
-        DEEP_SEEK_GPU = "cpu"
-        NORMAL_GPU = "cpu"
+    # Set up CUDA devices
+    DEEP_SEEK_GPU = "cuda:1" if torch.cuda.is_available() else "cpu"
+    NORMAL_GPU = "cuda:0" if torch.cuda.is_available() else "cpu"
     logger.info(f"Using device: {DEEP_SEEK_GPU}")
 
     # Initialize models
@@ -117,33 +103,33 @@ def main():
 
     # Parse arguments
     parser = argparse.ArgumentParser(description="Process images with edit instructions")
-    parser.add_argument("--in_dir", type=str, required=True, help="Directory containing input images")
-    parser.add_argument("--out_dir", type=str, required=True, help="Directory for output files")
-    parser.add_argument("--edit", type=str, choices=["resize", "grayscale", "none"], default="none", help="Edit instruction to apply to images")
+    parser.add_argument("--in_dir", type=str, required=True, help="Input images directory")
+    parser.add_argument("--out_dir", type=str, required=True, help="Output directory")
+    parser.add_argument("--edit", type=str, choices=["resize", "grayscale", "none"], default="none")
     parser.add_argument("--draw", action="store_true", help="Enable drawing mode")
     parser.add_argument("--reasoning", action="store_true", help="Enable reasoning mode")
+    parser.add_argument("--max_objects", type=int, default=5, help="Maximum number of objects allowed to be in an image")
+    parser.add_argument("--dataset_size_samples", type=int, default=50, help="Number of samples to process")
     args = parser.parse_args()
 
-    # Ensure output directory exists
+    # Create output directories
     os.makedirs(args.out_dir, exist_ok=True)
+    evaluation_folders = {
+        "evaluation_1_after_vlm": os.path.join(args.out_dir, "evaluation_1_after_vlm"),
+        "evaluation_2_after_sam": os.path.join(args.out_dir, "evaluation_2_after_sam"),
+        "evaluation_3_after_llm_transformation": os.path.join(args.out_dir, "evaluation_3_after_llm_transformation"),
+        "evaluation_4_after_sld": os.path.join(args.out_dir, "evaluation_4_after_sld"),
+        "evaluation_5_after_sld_refine": os.path.join(args.out_dir, "evaluation_5_after_sld_refine"),
+    }
+    for folder in evaluation_folders.values():
+        os.makedirs(folder, exist_ok=True)
 
-    evaluation_1_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_1_after_vlm"
-    evaluation_2_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_2_after_sam"
-    evaluation_3_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_3_after_llm_transformation"
-    evaluation_4_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_4_after_sld"
-    evaluation_5_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/evaluation_5_after_sld_refine"
-    os.makedirs(evaluation_1_folder, exist_ok=True)
-    os.makedirs(evaluation_2_folder, exist_ok=True)
-    os.makedirs(evaluation_3_folder, exist_ok=True)
-    os.makedirs(evaluation_4_folder, exist_ok=True)
-    os.makedirs(evaluation_5_folder, exist_ok=True)
     # Load models
     vlm_model, vlm_processor = models.get_qwen_vlm()
     sam_model = models.get_sam()
-    # math_model, math_tokenizer = models.get_qwen_math()
     math_model, math_tokenizer = models.get_deepseek_r1_text()
 
-    # time computations and logging
+    # Initialize timing variables
     start_time = time.time()
     reasoning_time = 0
     drawing_time = 0
@@ -155,14 +141,16 @@ def main():
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue
 
+            save_file_name = os.path.basename(subdir).strip()
             sample_count += 1
 
-            ## set paths
+            # Set up paths
             input_path = os.path.join(subdir, filename)
             # Use the subfolder name from input dir as the output sample dir name
             subfolder_name = os.path.basename(subdir)
             sample_dir = os.path.join(args.out_dir, subfolder_name)
             os.makedirs(sample_dir, exist_ok=True)
+
             analysis_file = os.path.join(sample_dir, "analysis.txt")
             analysis_enhanced_file = os.path.join(sample_dir, "analysis_enhanced.txt")
             transformation_matrix_file = os.path.join(sample_dir, "transformation_matrix.npy")
@@ -176,6 +164,7 @@ def main():
             processed_image = process_image(input_path, args.edit)
             if processed_image is None:
                 continue
+
             ### REASONING ###
             reasoning_start = time.time()
             if args.reasoning:
@@ -187,6 +176,9 @@ def main():
                     print(f"No VLM parsing found for sample {sample_idx}")
                     continue
                 VLM_BBOXES = results["objects"]
+                if len(VLM_BBOXES) > args.max_objects:
+                    print(f"Too many objects detected for sample {sample_idx}")
+                    continue
 
                 # Step 2: Refine detections with SAM
                 logger.info(f"Refining detections for sample {sample_idx}")
@@ -200,7 +192,7 @@ def main():
                 logger.info(f"Performing mathematical analysis for sample {sample_idx}")
                 try:
                     _, OBJECT_ID = run_math_analysis(
-                        user_edit=USER_EDIT,  # Now using the read edit instruction specific to this sample
+                        user_edit=USER_EDIT,
                         file_path=analysis_enhanced_file,
                         img_path=input_path,
                         model=math_model,
@@ -222,8 +214,7 @@ def main():
                     TRANSFORMED_MASK = np.zeros_like(processed_image)
                     continue
 
-                ### PREPARE FOR EVALUATION
-                # SELECT THE CORRECT BBOX AND MASK
+                # Get masks and bounding boxes
                 try:
                     VLM_BBOX = VLM_BBOXES[OBJECT_ID - 1]["bbox"]
                 except:
@@ -240,19 +231,19 @@ def main():
                     SAM_MASK = np.zeros_like(processed_image)
                     continue
 
-                # save the masks
-                cv2.imwrite(os.path.join(evaluation_2_folder, f"mask_{sample_idx}.png"), SAM_MASK)
-                cv2.imwrite(os.path.join(evaluation_3_folder, f"mask_{sample_idx}_transformed.png"), TRANSFORMED_MASK)
-                # save the bboxes
-                # Save VLM bbox as binary mask
+                # Save evaluation results
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
+
+                # Create and save VLM mask
                 height, width = SAM_MASK.shape
                 vlm_mask = np.zeros((height, width), dtype=np.uint8)
-                xmin = int(VLM_BBOX[0] * width)
-                ymin = int(VLM_BBOX[1] * height)
-                xmax = int(VLM_BBOX[2] * width)
-                ymax = int(VLM_BBOX[3] * height)
+                xmin, ymin = int(VLM_BBOX[0] * width), int(VLM_BBOX[1] * height)
+                xmax, ymax = int(VLM_BBOX[2] * width), int(VLM_BBOX[3] * height)
                 vlm_mask[ymin:ymax, xmin:xmax] = 255
-                cv2.imwrite(os.path.join(evaluation_1_folder, f"mask_{sample_idx}_vlm.png"), vlm_mask)
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
+
+                reasoning_time += time.time() - reasoning_start
 
             ### IMAGE GENERATION ###
             drawing_start = time.time()
@@ -266,25 +257,24 @@ def main():
                     output_dir=os.path.abspath(sample_dir),
                     logger=logger,
                     NORMAL_GPU=NORMAL_GPU,
-                    evaluation_folder_before=evaluation_4_folder,
-                    evaluation_folder_refined=evaluation_5_folder,
+                    evaluation_folder_before=evaluation_folders["evaluation_4_after_sld"],
+                    evaluation_folder_refined=evaluation_folders["evaluation_5_after_sld_refine"],
+                    save_file_name=save_file_name,
                 )
             drawing_time += time.time() - drawing_start
 
-    # time computations and logging
-    end_time = time.time()
-    total_time = end_time - start_time
-
+    # Log timing statistics
     if sample_count > 0:
-        avg_total_time = total_time / sample_count
-        avg_reasoning_time = reasoning_time / sample_count if args.reasoning else 0
-        avg_drawing_time = drawing_time / sample_count if args.draw else 0
+        total_time = time.time() - start_time
+        avg_total = total_time / sample_count
+        avg_reasoning = reasoning_time / sample_count if args.reasoning else 0
+        avg_drawing = drawing_time / sample_count if args.draw else 0
 
-        logger.info(f"Average processing time per sample: {avg_total_time:.2f} seconds")
+        logger.info(f"Average processing time per sample: {avg_total:.2f}s")
         if args.reasoning:
-            logger.info(f"Average reasoning time per sample: {avg_reasoning_time:.2f} seconds")
+            logger.info(f"Average reasoning time per sample: {avg_reasoning:.2f}s")
         if args.draw:
-            logger.info(f"Average drawing time per sample: {avg_drawing_time:.2f} seconds")
+            logger.info(f"Average drawing time per sample: {avg_drawing:.2f}s")
 
 
 if __name__ == "__main__":

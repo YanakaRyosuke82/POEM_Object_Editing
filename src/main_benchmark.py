@@ -77,9 +77,11 @@ def run_sld(
     # Path to the external script
     ext_script = "src/SLD/SLD_demo.py"
     config_ini = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/src/SLD/demo_config.ini"
-    # Run the script
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = NORMAL_GPU.replace("cuda:", "")
+    # os.environ["CUDA_VISIBLE_DEVICES"] = NORMAL_GPU.replace("cuda:", "")
+
+    evaluation_before_path = os.path.abspath(evaluation_folder_before)
+    evaluation_refined_path = os.path.abspath(evaluation_folder_refined)
     subprocess.run(
         [
             "python",
@@ -94,10 +96,10 @@ def run_sld(
             "image_editing",
             "--config",
             config_ini,
-            "--evaluation-folder-before",
-            evaluation_folder_before,
-            "--evaluation-folder-refined",
-            evaluation_folder_refined,
+            "--evaluation-path-before",
+            evaluation_before_path,
+            "--evaluation-path-refined",
+            evaluation_refined_path,
             "--save-file-name",
             save_file_name,
         ]
@@ -135,11 +137,12 @@ def main():
     # Ensure output directory exists
     os.makedirs(args.out_dir, exist_ok=True)
 
-    evaluation_1_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_1_after_vlm"
-    evaluation_2_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_2_after_sam"
-    evaluation_3_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_3_after_llm_transformation"
-    evaluation_4_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_4_after_sld"
-    evaluation_5_folder = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/benchmark_results/evaluation_5_after_sld_refine"
+    # Create evaluation folders in the output directory
+    evaluation_1_folder = os.path.join(args.out_dir, "evaluation_1_after_vlm")
+    evaluation_2_folder = os.path.join(args.out_dir, "evaluation_2_after_sam")
+    evaluation_3_folder = os.path.join(args.out_dir, "evaluation_3_after_llm_transformation")
+    evaluation_4_folder = os.path.join(args.out_dir, "evaluation_4_after_sld")
+    evaluation_5_folder = os.path.join(args.out_dir, "evaluation_5_after_sld_refine")
     os.makedirs(evaluation_1_folder, exist_ok=True)
     os.makedirs(evaluation_2_folder, exist_ok=True)
     os.makedirs(evaluation_3_folder, exist_ok=True)
@@ -147,24 +150,26 @@ def main():
     os.makedirs(evaluation_5_folder, exist_ok=True)
 
     # CREATE DATASET FOLDER FOR BENCHMARK (instead of the INPUT_DEBUG)
-    dataset = load_dataset("monurcan/precise_benchmark_for_object_level_image_editing", split="train")
-    dataset = dataset.to_iterable_dataset()
-    # dataset = dataset.take(args.dataset_size_samples)
+    downloaddataset = False
+    if downloaddataset:
+        dataset = load_dataset("monurcan/precise_benchmark_for_object_level_image_editing", split="train")
+        dataset = dataset.to_iterable_dataset()
+        # dataset = dataset.take(args.dataset_size_samples)
 
-    for sample in dataset:
-        input_image, user_promppt, save_file_name = sample["input_image"], sample["edit_prompt"], sample["id"]
-        subfolder_name = save_file_name
-        # Create input subfolder for this sample
-        sample_input_dir = os.path.join(args.in_dir, subfolder_name)
-        os.makedirs(sample_input_dir, exist_ok=True)
-        input_path = os.path.join(args.in_dir, subfolder_name, "input_image.png")
-        edit_instruction_file = os.path.join(args.in_dir, subfolder_name, "edit_instruction.txt")
-        with open(edit_instruction_file, "w") as file:
-            file.write(user_promppt)
-        input_image.save(input_path)
-        # save the savefilename to a txt file
-        with open(os.path.join(args.in_dir, subfolder_name, "save_file_name.txt"), "w") as file:
-            file.write(save_file_name)
+        for sample in dataset:
+            input_image, user_promppt, save_file_name = sample["input_image"], sample["edit_prompt"], sample["id"]
+            subfolder_name = save_file_name
+            # Create input subfolder for this sample
+            sample_input_dir = os.path.join(args.in_dir, subfolder_name)
+            os.makedirs(sample_input_dir, exist_ok=True)
+            input_path = os.path.join(args.in_dir, subfolder_name, "input_image.png")
+            edit_instruction_file = os.path.join(args.in_dir, subfolder_name, "edit_instruction.txt")
+            with open(edit_instruction_file, "w") as file:
+                file.write(user_promppt)
+            input_image.save(input_path)
+            # save the savefilename to a txt file
+            with open(os.path.join(args.in_dir, subfolder_name, "save_file_name.txt"), "w") as file:
+                file.write(save_file_name)
 
     # Load models
     vlm_model, vlm_processor = models.get_qwen_vlm()
