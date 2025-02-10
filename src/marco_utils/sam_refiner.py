@@ -1,4 +1,3 @@
-import torch
 import numpy as np
 import cv2
 import os
@@ -7,14 +6,16 @@ import logging
 from typing import Dict, List, Any, Tuple
 import matplotlib.pyplot as plt
 from ultralytics import SAM
+
+
 def parse_detection_file(file_path: str, img_path: str) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, np.ndarray], List[Dict]]:
     """
-    Parse detection file to extract points and bounding boxes organized by class and object ID
-    
+    Parse detection file to extract points and bounding boxes organized by class and object ID.
+
     Args:
         file_path: Path to analysis.txt file
         img_path: Path to corresponding image
-        
+
     Returns:
         Tuple of (input_points_by_class, input_labels_by_class, input_boxes_by_class, objects)
         where each *_by_class is a dict mapping class names to numpy arrays
@@ -23,71 +24,58 @@ def parse_detection_file(file_path: str, img_path: str) -> Tuple[Dict[str, np.nd
     img = cv2.imread(img_path)
     img_height, img_width = img.shape[:2]
 
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         content = f.read()
 
     objects = []
-    object_blocks = re.findall(r'Object (\d+):(.*?)(?=Object \d+:|$)', content, re.DOTALL)
+    object_blocks = re.findall(r"Object (\d+):(.*?)(?=Object \d+:|$)", content, re.DOTALL)
 
-    # Track points, labels and boxes by class
     points_by_class = {}
     labels_by_class = {}
     boxes_by_class = {}
 
     for obj_id, obj_block in object_blocks:
-        class_match = re.search(r'Class:\s*(\w+)', obj_block)
+        class_match = re.search(r"Class:\s*([\w\s]+)", obj_block)
         if not class_match:
             continue
-            
+
         class_name = class_match.group(1).strip()
-        bbox_match = re.search(r'Bounding Box \(normalized\):\s*xmin=([\d.]+),\s*ymin=([\d.]+),\s*xmax=([\d.]+),\s*ymax=([\d.]+)', obj_block)
+        bbox_match = re.search(r"Bounding Box \(normalized\):\s*xmin=([\d.]+),\s*ymin=([\d.]+),\s*xmax=([\d.]+),\s*ymax=([\d.]+)", obj_block)
         if not bbox_match:
             continue
 
         xmin, ymin, xmax, ymax = map(float, bbox_match.groups())
-        
-        # Extract segmentation points if they exist
+
+        # Extract segmentation points
         seg_points = []
-        point_matches = re.finditer(r'\(([\d.]+),\s*([\d.]+)\)', obj_block)
+        point_matches = re.finditer(r"\(([\d.]+),\s*([\d.]+)\)", obj_block)
         for match in point_matches:
             x, y = map(float, match.groups())
             seg_points.append([x * img_width, y * img_height])
 
-        # Calculate center point
+        # Calculate center point and expanded bbox for easier SAM segmentation
         center_x = (xmin + xmax) / 2 * img_width
         center_y = (ymin + ymax) / 2 * img_height
-        
-        # Make bbox 30% bigger for better SAM segmentation results
+
         width = (xmax - xmin) * img_width
         height = (ymax - ymin) * img_height
-        
+
         xmin = max(0, xmin * img_width - width * 0.15)
         ymin = max(0, ymin * img_height - height * 0.15)
         xmax = min(img_width, xmax * img_width + width * 0.15)
         ymax = min(img_height, ymax * img_height + height * 0.15)
-        
-        obj_data = {
-            'id': int(obj_id),
-            'class': class_name,
-            'center': [center_x, center_y],
-            'bbox': [xmin, ymin, xmax, ymax],
-            'seg_points': seg_points
-        }
+
+        obj_data = {"id": int(obj_id), "class": class_name, "center": [center_x, center_y], "bbox": [xmin, ymin, xmax, ymax], "seg_points": seg_points}
         objects.append(obj_data)
 
-        # Initialize arrays for new classes
         class_key = f"{class_name}_{obj_id}"
         if class_key not in points_by_class:
             points_by_class[class_key] = []
             labels_by_class[class_key] = []
             boxes_by_class[class_key] = []
 
-        # Add center point and box
-        points_by_class[class_key].append([center_x, center_y])
-        labels_by_class[class_key].append(1)  # 1 indicates foreground point
         boxes_by_class[class_key].append([xmin, ymin, xmax, ymax])
 
-        # Add segmentation points
         if seg_points:
             points_by_class[class_key].extend(seg_points)
             labels_by_class[class_key].extend([1] * len(seg_points))
@@ -100,44 +88,50 @@ def parse_detection_file(file_path: str, img_path: str) -> Tuple[Dict[str, np.nd
 
     return points_by_class, labels_by_class, boxes_by_class, objects
 
-def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM):
+
+def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM, debug: bool = True) -> Dict[str, np.ndarray]:
     """
-    Run SAM refinement on detected objects
-    
+    Run SAM refinement on detected objects.
+
     Args:
         file_analysis_path: Path to analysis file
         img_path: Path to image
         sam_model: Loaded SAM model
+        debug: If True, saves debug visualization
+
+    Returns:
+        Dict mapping object IDs to refined segmentation masks
     """
     output_dir = os.path.dirname(file_analysis_path)
     os.makedirs(output_dir, exist_ok=True)
 
-    # Parse detection file
     input_points_by_class, input_labels_by_class, input_boxes_by_class, objects = parse_detection_file(file_analysis_path, img_path)
 
-    # Get original content for preserving text sections
-    with open(file_analysis_path, 'r') as f:
+    with open(file_analysis_path, "r") as f:
         content = f.read()
 
     SAM_MASKS = {}
-    # Run SAM inference for each object
     sam_bboxes = {}
+
+    # Initialize debug visualization if enabled
+    if debug:
+        orig_img = cv2.imread(img_path)
+        orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB)
+        debug_img = orig_img.copy()
+
     for class_key in input_points_by_class:
         points = input_points_by_class[class_key]
         labels = input_labels_by_class[class_key]
         boxes = input_boxes_by_class[class_key]
 
-        # Run SAM for this object
+        # Run SAM inference
         results = sam_model(img_path, points=points.tolist(), labels=labels.tolist())
 
         if len(results) == 0 or len(results[0].masks.data) == 0:
             logging.warning(f"No mask found for {class_key}")
             continue
 
-        # Get mask for this object
         mask_array = results[0].masks.data[0].cpu().numpy()
-
-        # Get bounding box from mask
         rows = np.any(mask_array, axis=1)
         cols = np.any(mask_array, axis=0)
 
@@ -149,22 +143,47 @@ def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM):
         xmin, xmax = np.where(cols)[0][[0, -1]]
 
         # Save visualization and mask
-        class_name = class_key.rsplit('_', 1)[0]
-        obj_id = class_key.rsplit('_', 1)[1]
-        plt.imsave(os.path.join(output_dir, f'mask_{obj_id}.png'), mask_array, cmap='gray')
+        obj_id = class_key.rsplit("_", 1)[1]
+        plt.imsave(os.path.join(output_dir, f"mask_{obj_id}.png"), mask_array, cmap="gray")
         SAM_MASKS[obj_id] = mask_array
+
+        if debug:
+            # Add visualization elements
+            mask_overlay = np.zeros_like(orig_img)
+            mask_overlay[mask_array > 0] = [255, 0, 0]  # Red mask
+            debug_img = cv2.addWeighted(debug_img, 1.0, mask_overlay, 0.5, 0)
+
+            # Draw bounding box
+            cv2.rectangle(debug_img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 255, 0), 2)
+
+            # Draw points
+            for point in points:
+                cv2.circle(debug_img, (int(point[0]), int(point[1])), 3, (0, 0, 255), -1)
+
+            # Add text label
+            cv2.putText(debug_img, class_key, (int(xmin), int(ymin) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
         # Store normalized coordinates
         mask_bbox = {
-            'xmin': float(xmin) / mask_array.shape[1],
-            'ymin': float(ymin) / mask_array.shape[0],
-            'xmax': float(xmax) / mask_array.shape[1],
-            'ymax': float(ymax) / mask_array.shape[0]
+            "xmin": float(xmin) / mask_array.shape[1],
+            "ymin": float(ymin) / mask_array.shape[0],
+            "xmax": float(xmax) / mask_array.shape[1],
+            "ymax": float(ymax) / mask_array.shape[0],
         }
         sam_bboxes[class_key] = mask_bbox
 
+    if debug:
+        # Save debug visualization
+        plt.figure(figsize=(12, 12))
+        plt.imshow(debug_img)
+        plt.title("SAM Refinement Debug View")
+        plt.axis("off")
+        plt.savefig(os.path.join(output_dir, "sam_debug_visualization.png"), bbox_inches="tight", pad_inches=0)
+        plt.close()
+
     # Write enhanced analysis file
     enhanced_file = os.path.join(output_dir, "analysis_enhanced.txt")
-    with open(enhanced_file, 'w') as f:
+    with open(enhanced_file, "w") as f:
         f.write("=== ENHANCED DETECTION RESULTS ===\n\n")
         f.write("Detected Objects:\n")
 
@@ -175,21 +194,21 @@ def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM):
 
             if class_key in sam_bboxes:
                 bbox = sam_bboxes[class_key]
-                f.write(f"  Bounding Box (normalized): xmin={bbox['xmin']:.3f}, ymin={bbox['ymin']:.3f}, "
-                       f"xmax={bbox['xmax']:.3f}, ymax={bbox['ymax']:.3f}\n")
-                width = bbox['xmax'] - bbox['xmin']
-                height = bbox['ymax'] - bbox['ymin']
-                f.write(f"  Bounding Box (SLD format): [{bbox['xmin']:.3f}, {bbox['ymin']:.3f}, "
-                       f"{width:.3f}, {height:.3f}]\n")
+                f.write(
+                    f"  Bounding Box (normalized): xmin={bbox['xmin']:.3f}, ymin={bbox['ymin']:.3f}, " f"xmax={bbox['xmax']:.3f}, ymax={bbox['ymax']:.3f}\n"
+                )
+                width = bbox["xmax"] - bbox["xmin"]
+                height = bbox["ymax"] - bbox["ymin"]
+                f.write(f"  Bounding Box (SLD format): [{bbox['xmin']:.3f}, {bbox['ymin']:.3f}, " f"{width:.3f}, {height:.3f}]\n")
 
-            if obj['seg_points']:
+            if obj["seg_points"]:
                 f.write("  Segmentation Points:\n")
-                for point in obj['seg_points']:
+                for point in obj["seg_points"]:
                     f.write(f"    ({point[0]/mask_array.shape[1]:.3f}, {point[1]/mask_array.shape[0]:.3f})\n")
 
-        # Preserve original text sections
-        for section in ['Scene Description', 'Spatial Relationships', 'Background Description', 'Generation Prompt']:
-            section_match = re.search(f'{section}:\n(.*?)(?=\n\n|\n[A-Z]|$)', content, re.DOTALL)
+        for section in ["Scene Description", "Spatial Relationships", "Background Description", "Generation Prompt"]:
+            section_match = re.search(f"{section}:\n(.*?)(?=\n\n|\n[A-Z]|$)", content, re.DOTALL)
             if section_match:
                 f.write(f"\n{section}:\n{section_match.group(1).strip()}\n")
-    return SAM_MASKS    
+
+    return SAM_MASKS

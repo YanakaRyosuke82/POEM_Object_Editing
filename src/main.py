@@ -54,6 +54,7 @@ def run_sld(
     evaluation_folder_before: str,
     evaluation_folder_refined: str,
     save_file_name: str,
+    mode: str,
 ) -> None:
     """
     Run the SLD (Structure-aware Latent Diffusion) pipeline
@@ -76,7 +77,7 @@ def run_sld(
             "--output-dir",
             output_dir,
             "--mode",
-            "image_editing",
+            mode,
             "--config",
             config_ini,
             "--evaluation-path-before",
@@ -111,6 +112,7 @@ def main():
     parser.add_argument("--max_objects", type=int, default=5, help="Maximum number of objects allowed to be in an image")
     parser.add_argument("--dataset_size_samples", type=int, default=50, help="Number of samples to process")
     parser.add_argument("--is_benchmark_dataset", action="store_true", help="Enable benchmark dataset mode")
+    parser.add_argument("--mode", type=str, choices=["self_correction", "image_editing"], default="image_editing", help="Mode to run the pipeline in")
     args = parser.parse_args()
 
     # Create output directories
@@ -136,6 +138,8 @@ def main():
     drawing_time = 0
     sample_count = 0
 
+    # isoccured = False
+
     # Process each image in input directory
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
         for filename in files:
@@ -146,9 +150,15 @@ def main():
                 # read the save_file_name.txt
                 with open(os.path.join(subdir, "save_file_name.txt"), "r") as file:
                     save_file_name = file.read().strip()
+                    # if save_file_name == "2007_003194_0_transform_0_prompt_1":      DAY 1
+                    #     isoccured = True
+                    # if save_file_name == "2008_004365_1_transform_1_prompt_1":  # DAY 2
+                    #     isoccured = True
             else:
                 save_file_name = os.path.basename(subdir).strip()
             sample_count += 1
+            # if not isoccured:
+            #     continue
 
             # Set up paths
             input_path = os.path.join(subdir, filename)
@@ -179,11 +189,11 @@ def main():
                     results = parse_image(input_path, vlm_model, vlm_processor, NORMAL_GPU, USER_EDIT)
                     save_results_image_parse(sample_dir, processed_image, input_path, results)
                 except:
-                    print(f"No VLM parsing found for sample {sample_idx}")
+                    logger.error(f"No VLM parsing found for sample {sample_idx}")
                     continue
                 VLM_BBOXES = results["objects"]
                 if len(VLM_BBOXES) > args.max_objects:
-                    print(f"Too many objects detected for sample {sample_idx}")
+                    logger.error(f"Too many objects detected for sample {sample_idx}")
                     continue
 
                 # Step 2: Refine detections with SAM
@@ -191,7 +201,7 @@ def main():
                 try:
                     SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
                 except:
-                    print(f"No SAM masks found for sample {sample_idx}")
+                    logger.error(f"No SAM masks found for sample {sample_idx}")
                     continue
 
                 # Step 3:  LLM: Mathematical analysis
@@ -206,7 +216,7 @@ def main():
                         device=DEEP_SEEK_GPU,
                     )
                 except:
-                    print(f"No math analysis found for object {OBJECT_ID}")
+                    logger.error(f"No math analysis found for object {OBJECT_ID}")
                     continue
 
                 # Step 4: Apply transformations
@@ -215,7 +225,7 @@ def main():
                         matrix_transform_file=transformation_matrix_file, output_dir=sample_dir, ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
                     )
                 except:
-                    print(f"No transformation matrix found for object {OBJECT_ID}")
+                    logger.error(f"No transformation matrix found for object {OBJECT_ID}")
                     # Create a black image with the same dimensions as the input image
                     TRANSFORMED_MASK = np.zeros_like(processed_image)
                     continue
@@ -224,7 +234,7 @@ def main():
                 try:
                     VLM_BBOX = VLM_BBOXES[OBJECT_ID - 1]["bbox"]
                 except:
-                    print(f"No bounding box found for object {OBJECT_ID}")
+                    logger.error(f"No bounding box found for object {OBJECT_ID}")
                     # Create a black mask with same dimensions as SAM_MASKS
                     VLM_BBOX = [0, 0, 1, 1]
                     continue
@@ -232,7 +242,7 @@ def main():
                 try:
                     SAM_MASK = SAM_MASKS[str(OBJECT_ID)].astype(np.uint8) * 255
                 except:
-                    print(f"No SAM mask found for object {OBJECT_ID}")
+                    logger.error(f"No SAM mask found for object {OBJECT_ID}")
                     # Create a black image with the same dimensions as the input image
                     SAM_MASK = np.zeros_like(processed_image)
                     continue
@@ -266,6 +276,7 @@ def main():
                     evaluation_folder_before=evaluation_folders["evaluation_4_after_sld"],
                     evaluation_folder_refined=evaluation_folders["evaluation_5_after_sld_refine"],
                     save_file_name=save_file_name,
+                    mode=args.mode,
                 )
             drawing_time += time.time() - drawing_start
 

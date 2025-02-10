@@ -1,3 +1,4 @@
+import torch
 import logging
 import os
 import re
@@ -158,32 +159,34 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
         {
             "role": "system",
             "content": (
-                "You are a computer vision math expert. Your task is to output a 3x3 transformation matrix and object ID based on the user's edit request.\n\n"
-                "OUTPUT FORMAT REQUIREMENTS:\n"
-                "1. Brief reasoning (max 2 lines)\n"
-                "2. Object ID in format: <<OBJECT_ID_START>>N<<OBJECT_ID_END>> where N is the integer ID\n"
-                "3. Matrix in format:\n"
+                "You are a math expert. Your task is to output a 3x3 transformation matrix and the object ID.\n\n"
+                "Your response MUST follow this EXACT format:\n"
+                "1. First explain your reasoning in max 20 words.\n"
+                "2. Then output EXACTLY ONE matrix between these tokens:\n"
                 "<<MATRIX_START>>\n"
-                "[[a.aa  b.bb  c.cc]\n"
-                " [d.dd  e.ee  f.ff]\n"
-                " [g.gg  h.hh  i.ii]]\n"
+                "[[x.xx  x.xx  x.xx]\n"
+                " [x.xx  x.xx  x.xx]\n"
+                " [x.xx  x.xx  x.xx]]\n"
                 "<<MATRIX_END>>\n\n"
-                "MATRIX RULES:\n"
-                "- Must be exactly 3x3\n"
-                "- All numbers must be floats with 2 decimal places (1.00 not 1)\n"
+                "RULES:\n"
+                "- Matrix must be 3x3\n"
+                "- All numbers must be floats (e.g. 1.0 not 1)\n"
                 "- Use exactly 2 spaces between numbers\n"
-                "- Image coordinates: origin at top-left, X right, Y down\n\n"
-                "AVAILABLE TRANSFORMATIONS:\n"
-                "Translation: [[1.00  0.00  tx], [0.00  1.00  ty], [0.00  0.00  1.00]]\n"
-                "Rotation: [[cos(θ)  -sin(θ)  0.00], [sin(θ)  cos(θ)  0.00], [0.00  0.00  1.00]]\n"
-                "Scale: [[sx  0.00  0.00], [0.00  sy  0.00], [0.00  0.00  1.00]]\n"
-                "Shear: [[1.00  shx  0.00], [shy  1.00  0.00], [0.00  0.00  1.00]]\n"
-                "Flip X: [[-1.00  0.00  0.00], [0.00  1.00  0.00], [0.00  0.00  1.00]]\n\n"
-                "SCENE CONTEXT:\n"
-                f"{scene_context}\n\n"
-                "CRITICAL: Your response must contain exactly one matrix between <<MATRIX_START>> and <<MATRIX_END>> tokens, "
-                "and exactly one object ID between <<OBJECT_ID_START>> and <<OBJECT_ID_END>> tokens.\n"
-                "The object ID must be one of the IDs listed in OBJECT DETAILS."
+                "- Image origin is top-left corner\n"
+                "- X axis goes right, Y axis goes down\n\n"
+                "Available transformations:\n"
+                "1. Translation: [[1 0 tx], [0 1 ty], [0 0 1]]\n"
+                "2. Rotation: [[cos(θ) -sin(θ) 0], [sin(θ) cos(θ) 0], [0 0 1]]\n"
+                "3. Scale: [[sx 0 0], [0 sy 0], [0 0 1]]\n"
+                "4. Shear: [[1 shx 0], [shy 1 0], [0 0 1]]\n"
+                "5. Flip: [[-1 0 0], [0 1 0], [0 0 1]]\n\n"
+                "Scene context has information about all main object (including their object ID):\n"
+                "{scene_context}"
+                "The transformation matrix must be a 3x3 numpy array with float values, you must use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
+                "Remember: you must use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
+                "Don't forget to use the tokens <<MATRIX_START>> and <<MATRIX_END>> to indicate the start and end of the matrix, do not make any mistake in the format."
+                "The object ID is representing the one being subject to transformation, among the ones lines in the OBJECT DETAILS. Write it as an integer between <<OBJECT_ID_START>> and <<OBJECT_ID_END>> tokens."
+                "For example: <<OBJECT_ID_START>>1<<OBJECT_ID_END>> for object #1."
             ),
         },
         {"role": "user", "content": user_edit},
@@ -199,6 +202,7 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
 
         reasoning = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
         logging.info(f"Model Reasoning (Attempt {attempt + 1}):")
+        logging.info(reasoning)
 
         try:
             matrix, reasoning = parse_transformation_matrix(reasoning), reasoning
@@ -265,21 +269,25 @@ def run_math_analysis(user_edit: str, file_path: str, img_path: str, model: Any,
         # Get transformation matrix with scene context
         matrix_array, object_id, reasoning = get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device)
 
-        logging.info("Parsed Matrix: \n" + str(matrix_array))
-        logging.info("Object ID:" + str(object_id))
+        logging.info("Parsed Matrix:")
+        logging.info(matrix_array)
+
         # Store transformation matrix to file
         TRANSFORMATION_MATRIX_FILE = f"{file_dir}/transformation_matrix.npy"
         np.save(TRANSFORMATION_MATRIX_FILE, matrix_array)
+        logging.info(f"Transformation matrix saved to {TRANSFORMATION_MATRIX_FILE}")
 
         # Store reasoning to file
         REASONING_FILE = f"{file_dir}/math_reasoning.txt"
         with open(REASONING_FILE, "w") as f:
             f.write(reasoning)
+        logging.info(f"Reasoning saved to {REASONING_FILE}")
 
         # Store object ID to file
         OBJECT_ID_FILE = f"{file_dir}/object_id.txt"
         with open(OBJECT_ID_FILE, "w") as f:
             f.write(str(object_id))
+        logging.info(f"Object ID saved to {OBJECT_ID_FILE}")
 
         return matrix_array, object_id
 

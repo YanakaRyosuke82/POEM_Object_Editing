@@ -56,7 +56,8 @@ elif [ "$1" = "debug" ]; then
         --out_dir output_debug \
         --edit "grayscale" \
         --reasoning \
-        --draw
+        --draw \
+        --mode self_correction
 else
     echo "Invalid argument"
 fi

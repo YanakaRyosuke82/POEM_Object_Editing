@@ -58,7 +58,6 @@ def resize_and_crop_image(image_path, output_path, target_size=(512, 512)):
 
 # Example usage
 if __name__ == "__main__":
-    image_path = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/input_debug/sample_002/cat.png"  # Path to the input image
-    output_path = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/input_debug/sample_002/cat_Resized.png"  # Path to save the resized image
+    image_path = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/input_debug/sample_001/input.png"  # Path to the input image
+    output_path = image_path.replace(".png", "_Resized.png")
     resize_and_crop_image(image_path, output_path, target_size=(512, 512))
-

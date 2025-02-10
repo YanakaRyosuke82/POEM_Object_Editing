@@ -227,6 +227,8 @@ if __name__ == "__main__":
     if args.save_file_name is None:
         args.save_file_name = time.time()
 
+    print("-------------- DEBUG -------------- Mode: ", args.mode)
+
     # Check if input path is absolute
     if not os.path.isabs(args.evaluation_path_before) and not os.path.isabs(args.evaluation_path_refined):
         print("Error: Evaluation path before and refined must be an absolute path")
@@ -388,7 +390,8 @@ if __name__ == "__main__":
         # Can run this if applying SDXL as the refine process
         sdxl_output_fname = os.path.join(dirname, f"final_{rel_fname}.png")
         if args.mode == "self_correction":
-            sdxl_refine(prompt, curr_output_fname, sdxl_output_fname)
+            # For image editing, the prompt should be updated
+            sdxl_refine(prompt, curr_output_fname, sdxl_output_fname, args.evaluation_path_refined, args.save_file_name)
         else:
             # For image editing, the prompt should be updated
             sdxl_refine(ret_dict.final_prompt, curr_output_fname, sdxl_output_fname, args.evaluation_path_refined, args.save_file_name)
