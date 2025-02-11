@@ -78,7 +78,7 @@ def run_sld(
     ext_script = "src/SLD/SLD_demo.py"
     config_ini = "/dtu/blackhole/14/189044/marscho/VLM_controller_for_SD/src/SLD/demo_config.ini"
 
-    # os.environ["CUDA_VISIBLE_DEVICES"] = NORMAL_GPU.replace("cuda:", "")
+    os.environ["CUDA_VISIBLE_DEVICES"] = NORMAL_GPU.replace("cuda:", "")
 
     evaluation_before_path = os.path.abspath(evaluation_folder_before)
     evaluation_refined_path = os.path.abspath(evaluation_folder_refined)

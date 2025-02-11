@@ -205,20 +205,15 @@ Note: provide:
         }
 
 
-def save_results_image_parse(sample_dir: str, image: cv2.Mat, original_path: str, results: dict):
+def save_results_image_parse(sample_dir: str, results: dict):
     """
     Save processed image and analysis results in the exact specified format
 
     Args:
         sample_dir: Directory to save results
-        image: Processed image
-        original_path: Path to original image
         results: Dictionary containing analysis results
     """
     try:
-        # Save images
-        cv2.imwrite(os.path.join(sample_dir, "edited.png"), image)
-        cv2.imwrite(os.path.join(sample_dir, "original.png"), cv2.imread(original_path))
 
         # Save analysis with exact formatting
         with open(os.path.join(sample_dir, "analysis.txt"), "w") as f:

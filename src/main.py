@@ -21,28 +21,28 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
 
 def setup_logging() -> logging.Logger:
-    """Configure and return logger"""
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    return logging.getLogger(__name__)
+    """Configure and return logger with colored output for model loading and standard output for other logs.
 
+    Returns:
+        logging.Logger: Configured logger instance for the main module
+    """
+    # Set up colored logger for model loading
+    model_loader_logger = logging.getLogger("model_loader")
+    model_handler = logging.StreamHandler()
+    color_formatter = logging.Formatter("\033[36m%(asctime)s - %(name)s - %(levelname)s - %(message)s\033[0m")
+    model_handler.setFormatter(color_formatter)
+    model_loader_logger.addHandler(model_handler)
+    model_loader_logger.setLevel(logging.INFO)
 
-def process_image(image_path: str, edit_type: str) -> Optional[cv2.Mat]:
-    """Process image according to edit type"""
-    try:
-        image = cv2.imread(image_path)
-        if image is None:
-            raise ValueError(f"Failed to load image: {image_path}")
+    # Set up colored logging for other modules
+    logger = logging.getLogger(__name__)
+    handler = logging.StreamHandler()
+    color_formatter = logging.Formatter("\033[36m%(asctime)s - %(name)s - %(levelname)s - %(message)s\033[0m")
+    handler.setFormatter(color_formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
-        if edit_type == "resize":
-            return cv2.resize(image, (512, 512))
-        elif edit_type == "grayscale":
-            return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        else:
-            return image
-
-    except Exception as e:
-        logging.error(f"Error processing image {image_path}: {str(e)}")
-        return None
+    return logger
 
 
 def run_sld(
@@ -90,6 +90,66 @@ def run_sld(
     )
 
 
+def save_run_details(args, logger, output_path=None, timing_stats=None):
+    """Save important details about the run to a text file"""
+    if output_path is None:
+        output_path = os.path.join(args.out_dir, "run_details.txt")
+
+    # Create output directory if it doesn't exist
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    if timing_stats is None:
+        # Initial configuration
+        details = [
+            "=== Run Details ===",
+            f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"\nConfiguration:",
+            f"- Input directory: {args.in_dir}",
+            f"- Output directory: {args.out_dir}",
+            f"- Edit mode: {args.edit}",
+            f"- Drawing enabled: {args.draw}",
+            f"- Reasoning enabled: {args.reasoning}",
+            f"- Max objects: {args.max_objects}",
+            f"- Is benchmark dataset: {args.is_benchmark_dataset}",
+            f"- Mode: {args.mode}",
+            f"- VLM model: {args.vlm_model_name}",
+            f"- Math LLM model: {args.math_llm_name}",
+        ]
+
+        try:
+            with open(output_path, "w") as f:
+                f.write("\n".join(details))
+            logger.info(f"Initial run configuration saved to {output_path}")
+        except FileNotFoundError as e:
+            logger.error(f"Failed to save run details: {e}")
+
+    else:
+        # Append timing statistics
+        details = [
+            f"\n=== Performance Metrics ===",
+            f"- Total samples processed: {timing_stats['sample_count']}",
+            f"- Total runtime: {timing_stats['total_time']:.2f}s",
+            f"- Average time per sample: {timing_stats['avg_total']:.2f}s",
+        ]
+
+        if args.reasoning:
+            details.extend(
+                [f"- Total reasoning time: {timing_stats['reasoning_time']:.2f}s", f"- Average reasoning time per sample: {timing_stats['avg_reasoning']:.2f}s"]
+            )
+
+        if args.draw:
+            details.extend(
+                [f"- Total drawing time: {timing_stats['drawing_time']:.2f}s", f"- Average drawing time per sample: {timing_stats['avg_drawing']:.2f}s"]
+            )
+
+        try:
+            with open(output_path, "a") as f:
+                f.write("\n".join(details))
+            logger.info(f"Performance metrics appended to {output_path}")
+        except FileNotFoundError as e:
+            logger.error(f"Failed to append performance metrics: {e}")
+
+
 def main():
     """Main entry point of the program"""
     logger = setup_logging()
@@ -99,9 +159,6 @@ def main():
     NORMAL_GPU = "cuda:0" if torch.cuda.is_available() else "cpu"
     logger.info(f"Using device: {DEEP_SEEK_GPU}")
 
-    # Initialize models
-    models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
-
     # Parse arguments
     parser = argparse.ArgumentParser(description="Process images with edit instructions")
     parser.add_argument("--in_dir", type=str, required=True, help="Input images directory")
@@ -110,12 +167,26 @@ def main():
     parser.add_argument("--draw", action="store_true", help="Enable drawing mode")
     parser.add_argument("--reasoning", action="store_true", help="Enable reasoning mode")
     parser.add_argument("--max_objects", type=int, default=5, help="Maximum number of objects allowed to be in an image")
-    parser.add_argument("--dataset_size_samples", type=int, default=50, help="Number of samples to process")
     parser.add_argument("--is_benchmark_dataset", action="store_true", help="Enable benchmark dataset mode")
     parser.add_argument("--mode", type=str, choices=["self_correction", "image_editing"], default="image_editing", help="Mode to run the pipeline in")
-    parser.add_argument("--vlm_model_name", type=str, choices=["qwen", "llama"], default="qwen", help="VLM model to use")
-    parser.add_argument("--math_llm_name", type=str, choices=["deepseek", "llama"], default="deepseek", help="Math LLM model to use")
+    parser.add_argument(
+        "--vlm_model_name",
+        type=str,
+        choices=["qwen_2_5_vl_7b", "intern_vl_2_5_38B_MPO", "ovis1_6_gemma2_27B"],
+        default="qwen_2_5_vl_7b",
+        help="VLM model to use",
+    )
+    parser.add_argument(
+        "--math_llm_name",
+        type=str,
+        choices=["deepseek_r1_distill_qwen_32B", "qwen2_5_math_7b_instruct"],
+        default="deepseek_r1_distill_qwen_32B",
+        help="Math LLM model to use",
+    )
     args = parser.parse_args()
+
+    # save config details to txt
+    save_run_details(args=args, logger=logger)
 
     # Create output directories
     os.makedirs(args.out_dir, exist_ok=True)
@@ -131,11 +202,18 @@ def main():
         os.makedirs(folder, exist_ok=True)
 
     # Load models
-    vlm_model, vlm_processor = models.get_qwen_vlm()
+    models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
+    if args.vlm_model_name == "qwen_2_5_vl_7b":
+        vlm_model, vlm_processor = models.get_qwen_2_5_vl_7b()
+    elif args.vlm_model_name == "ovis1_6_gemma2_27B":
+        vlm_model, vlm_processor = models.get_ovis1_6_gemma2_27B()
     sam_model = models.get_sam()
-    math_model, math_tokenizer = models.get_deepseek_r1_text()
+    if args.math_llm_name == "deepseek_r1_distill_qwen_32B":
+        math_model, math_tokenizer = models.get_deepseek_r1_distill_qwen_32B()
+    elif args.math_llm_name == "qwen2_5_math_7b_instruct":
+        math_model, math_tokenizer = models.get_qwen2_5_math_7b_instruct()
 
-    # Initialize timing variables
+    # Initialize time tracking variables
     start_time = time.time()
     reasoning_time = 0
     drawing_time = 0
@@ -153,7 +231,6 @@ def main():
                 continue
 
             if args.is_benchmark_dataset:
-                # read the save_file_name.txt
                 with open(os.path.join(subdir, "save_file_name.txt"), "r") as file:
                     save_file_name = file.read().strip()
                     # if save_file_name == "2007_003194_0_transform_0_prompt_1":      DAY 1
@@ -168,7 +245,6 @@ def main():
 
             # Set up paths
             input_path = os.path.join(subdir, filename)
-            # Use the subfolder name from input dir as the output sample dir name
             subfolder_name = os.path.basename(subdir)
             sample_dir = os.path.join(args.out_dir, subfolder_name)
             os.makedirs(sample_dir, exist_ok=True)
@@ -178,22 +254,20 @@ def main():
             transformation_matrix_file = os.path.join(sample_dir, "transformation_matrix.npy")
             json_path = os.path.join(sample_dir, "config_sld.json")
             edit_instruction_file = os.path.join(subdir, "edit_instruction.txt")
+
             with open(edit_instruction_file, "r") as file:
                 USER_EDIT = file.read().strip()
 
             logger.info(f"Processing sample #{sample_idx}: {input_path}")
 
-            processed_image = process_image(input_path, args.edit)
-            if processed_image is None:
-                continue
-
             ### REASONING ###
             reasoning_start = time.time()
             if args.reasoning:
                 #  STEP 1 VLM ---  parsing
+                logger.info(f"Step 1: VLM Parsing for sample {sample_idx}")
                 try:
                     results = parse_image(input_path, vlm_model, vlm_processor, NORMAL_GPU, USER_EDIT)
-                    save_results_image_parse(sample_dir, processed_image, input_path, results)
+                    save_results_image_parse(sample_dir, results)
                 except:
                     logger.error(f"No VLM parsing found for sample {sample_idx}")
                     continue
@@ -203,7 +277,7 @@ def main():
                     continue
 
                 # Step 2: Refine detections with SAM
-                logger.info(f"Refining detections for sample {sample_idx}")
+                logger.info(f"Step 2: SAM Refine Detections for sample {sample_idx}")
                 try:
                     SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
                 except:
@@ -211,12 +285,12 @@ def main():
                     continue
 
                 # Step 3:  LLM: Mathematical analysis
-                logger.info(f"Performing mathematical analysis for sample {sample_idx}")
+                logger.info(f"Step 3 - LLM Math Analysis for sample {sample_idx}")
                 try:
                     _, OBJECT_ID = run_math_analysis(
                         user_edit=USER_EDIT,
                         file_path=analysis_enhanced_file,
-                        img_path=input_path,
+                        model_name=args.math_llm_name,
                         model=math_model,
                         tokenizer=math_tokenizer,
                         device=DEEP_SEEK_GPU,
@@ -226,6 +300,7 @@ def main():
                     continue
 
                 # Step 4: Apply transformations
+                logger.info(f"Step 4: OPEN-CV Transformations for sample {sample_idx}")
                 try:
                     TRANSFORMED_MASK, TRANSFORMED_ORACLE = run_open_cv_transformations(
                         matrix_transform_file=transformation_matrix_file,
@@ -236,7 +311,7 @@ def main():
                 except:
                     logger.error(f"No transformation matrix found for object {OBJECT_ID}")
                     # Create a black image with the same dimensions as the input image
-                    TRANSFORMED_MASK = np.zeros_like(processed_image)
+                    TRANSFORMED_MASK = np.zeros((512, 512))
                     continue
 
                 # Get masks and bounding boxes
@@ -253,7 +328,7 @@ def main():
                 except:
                     logger.error(f"No SAM mask found for object {OBJECT_ID}")
                     # Create a black image with the same dimensions as the input image
-                    SAM_MASK = np.zeros_like(processed_image)
+                    SAM_MASK = np.zeros((512, 512))
                     continue
 
                 # Save evaluation results
@@ -274,9 +349,11 @@ def main():
             ### IMAGE GENERATION ###
             drawing_start = time.time()
             if args.draw:
-                # Step 6: Generate config_sld.json for the SLD
+                logger.info(f"Step 5: SLD Generation for sample {sample_idx}")
+                # Step 5: Generate config_sld.json for the SLD
                 generate_sld_config(sample_dir, analysis_enhanced_file)
-                # Step 7: Run SLD to generate edited image
+                # Step 6: Run SLD to generate edited image
+                logger.info(f"Step 6: SLD Generation for sample {sample_idx}")
                 run_sld(
                     json_path=os.path.abspath(json_path),
                     input_path=os.path.abspath(input_path),
@@ -290,18 +367,26 @@ def main():
                 )
             drawing_time += time.time() - drawing_start
 
+    # After the main processing loop, before the timing statistics logging:
+    total_time = time.time() - start_time
+    timing_stats = {
+        "sample_count": sample_count,
+        "total_time": total_time,
+        "reasoning_time": reasoning_time,
+        "drawing_time": drawing_time,
+        "avg_total": total_time / sample_count if sample_count > 0 else 0,
+        "avg_reasoning": reasoning_time / sample_count if sample_count > 0 and args.reasoning else 0,
+        "avg_drawing": drawing_time / sample_count if sample_count > 0 and args.draw else 0,
+    }
+    save_run_details(args=args, logger=logger, timing_stats=timing_stats)
+
     # Log timing statistics
     if sample_count > 0:
-        total_time = time.time() - start_time
-        avg_total = total_time / sample_count
-        avg_reasoning = reasoning_time / sample_count if args.reasoning else 0
-        avg_drawing = drawing_time / sample_count if args.draw else 0
-
-        logger.info(f"Average processing time per sample: {avg_total:.2f}s")
+        logger.info(f"Average processing time per sample: {timing_stats['avg_total']:.2f}s")
         if args.reasoning:
-            logger.info(f"Average reasoning time per sample: {avg_reasoning:.2f}s")
+            logger.info(f"Average reasoning time per sample: {timing_stats['avg_reasoning']:.2f}s")
         if args.draw:
-            logger.info(f"Average drawing time per sample: {avg_drawing:.2f}s")
+            logger.info(f"Average drawing time per sample: {timing_stats['avg_drawing']:.2f}s")
 
 
 if __name__ == "__main__":

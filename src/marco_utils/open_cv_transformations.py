@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import os
 import matplotlib.pyplot as plt
-import json
 
 
 def _process_object(mask: np.array, transformation_matrix: np.array) -> np.array:

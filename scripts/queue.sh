@@ -6,10 +6,10 @@
 #BSUB -gpu "num=2:mode=exclusive_process:mps=yes"
 #BSUB -W 24:00
 #BSUB -R "rusage[mem=8GB]"
-#BSUB -o error/MARCO_BENCHMARK.out
-#BSUB -e error/MARCO_BENCHMARK.err
+#BSUB -o error/%J.out
+#BSUB -e error/%J.err
 
 
 
 
-bash scripts/interactive.sh MARCO_BENCHMARK
+bash scripts/interactive.sh BENCHMARK_VLM_QWEN_MATH_QWEN

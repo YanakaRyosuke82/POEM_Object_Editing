@@ -3,6 +3,7 @@ import os
 import re
 from typing import Dict, Any, List
 import numpy as np
+import torch.nn.functional as F
 
 
 # Define transformation matrices with clear mathematical formulas
@@ -24,11 +25,45 @@ class TransformationMatrices:
         return np.array([[1, shx, 0], [shy, 1, 0], [0, 0, 1]])
 
 
-def parse_qwen_math_matrix(reasoning):
+def parse_detection_file(file_path):
+    """Parse detection file and extract object information."""
+    with open(file_path, "r") as f:
+        detection_data = f.read()
+
+    # Extract scene description and spatial relationships
+    scene_desc_match = re.search(r"Scene Description:\n(.*?)\n", detection_data)
+    spatial_rel_match = re.search(r"Spatial Relationships:\n(.*?)\n", detection_data)
+
+    scene_desc = scene_desc_match.group(1) if scene_desc_match else ""
+    spatial_rel = spatial_rel_match.group(1) if spatial_rel_match else ""
+
+    objects = []
+    pattern = r"Object (\d+):\n\s+Class: (.*?)\n\s+Bounding Box.*?xmin=([\d.]+), ymin=([\d.]+), xmax=([\d.]+), ymax=([\d.]+)"
+
+    for match in re.finditer(pattern, detection_data):
+        xmin, ymin, xmax, ymax = map(float, match.groups()[2:])
+
+        corners = np.array([[xmin, ymin, 1], [xmax, ymin, 1], [xmax, ymax, 1], [xmin, ymax, 1]])  # top-left  # top-right  # bottom-right  # bottom-left
+
+        obj = {
+            "id": int(match.group(1)),
+            "class": match.group(2),
+            "bbox": [xmin, ymin, xmax, ymax],
+            "corners": corners,
+            "width": xmax - xmin,
+            "height": ymax - ymin,
+            "center": [(xmax + xmin) / 2, (ymax + ymin) / 2],
+        }
+        objects.append(obj)
+
+    return objects, scene_desc, spatial_rel
+
+
+def parse_transformation_matrix_qwen(reasoning):
     """Extract and parse transformation matrix from model reasoning."""
     # Look for matrix pattern in the output format, including LaTeX style matrices
     # Find the output marker first
-    output_start = reasoning.find("TRANSFORMATION_MATRIX")
+    output_start = reasoning.find("output")
     if output_start == -1:
         raise ValueError("Could not find output section in model reasoning")
 
@@ -40,10 +75,14 @@ def parse_qwen_math_matrix(reasoning):
         r"\[\s*\[\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\]"
         r"\s*,\s*\[\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\]"
         r"\s*,\s*\[\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\]\s*\]",
-        # LaTeX style matrix pattern
-        r"\\begin{pmatrix}\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*\\\\"
-        r"\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*\\\\"
-        r"\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*&\s*([-+]?\d*\.?\d+/?\d*)\s*\\end{pmatrix}",
+        # LaTeX style matrix pattern with pmatrix
+        r"\\begin{pmatrix}\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\\\"
+        r"\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\\\"
+        r"\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\end{pmatrix}",
+        # LaTeX style matrix pattern with brackets
+        r"\\\[\s*\\begin{pmatrix}\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\\\"
+        r"\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\\\"
+        r"\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\end{pmatrix}\s*\\\]",
     ]
 
     matrix_values = None
@@ -56,22 +95,13 @@ def parse_qwen_math_matrix(reasoning):
     if not matrix_values:
         raise ValueError("Could not find transformation matrix in model output section")
 
-    # Convert fractions (like sqrt(2)/2) to decimal numbers
-    def convert_fraction(s):
-        if "/" in s:
-            if "sqrt(2)" in s or "\\sqrt{2}" in s:
-                return np.sqrt(2) / 2
-            num, denom = s.split("/")
-            return float(num) / float(denom)
-        return float(s)
-
     # Convert all values to floats
-    matrix = np.array([convert_fraction(val) for val in matrix_values]).reshape(3, 3)
+    matrix = np.array([float(val) for val in matrix_values]).reshape(3, 3)
 
     return matrix
 
 
-def parse_transformation_matrix(reasoning):
+def parse_transformation_matrix_deepseek(reasoning):
     """Extract and parse transformation matrix from model reasoning."""
     # Find the start and end tokens
     start_token = "<<MATRIX_START>>"
@@ -113,7 +143,33 @@ def parse_transformation_matrix(reasoning):
     return matrix
 
 
-def parse_object_id(reasoning):
+def parse_object_id_qwen(reasoning):
+    """Extract and parse object ID (integer) from model reasoning."""
+    # Try different patterns for object ID
+    patterns = [
+        # Standard format
+        r"OBJECT_ID:\s*(\d+)",
+        # LaTeX boxed format
+        r"\\boxed{.*?,\s*(\d+)}",
+        # Plain number after comma in LaTeX
+        r"\\end{pmatrix},\s*(\d+)",
+        # Number after comma
+        r"matrix\},\s*(\d+)",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, reasoning)
+        if match:
+            try:
+                object_id = int(match.group(1))
+                return object_id
+            except ValueError:
+                continue
+
+    raise ValueError("Could not find valid object ID in the reasoning output.")
+
+
+def parse_object_id_deepseek(reasoning):
     """Extract and parse object ID (integer) from model reasoning."""
     # Find the start and end tokens
     start_token = "<<OBJECT_ID_START>>"
@@ -136,8 +192,7 @@ def parse_object_id(reasoning):
         raise ValueError(f"Could not parse object ID from text: {id_text}")
 
 
-def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device):
-    # Create context from scene information
+def generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, device):
     scene_context = f"""Scene Information:
     
     Spatial Relationships:
@@ -154,7 +209,7 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
         Center         : ({obj['center'][0]:.3f}, {obj['center'][1]:.3f})
         ----------------------"""
 
-    messages = [
+    messages_deepseek_r1_distill_qwen_32B = [
         {
             "role": "system",
             "content": (
@@ -189,6 +244,93 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
         {"role": "user", "content": user_edit},
     ]
 
+    mess1 = [
+        {
+            "role": "system",
+            "content": "Integrate natural language reasoning with programs to solve user query. Given the scene content and the user edit, determine the appropriate transformation matrix for the requested edit; and the object ID.\n\n"
+            "Scene content: " + scene_context + "\n\n"
+            "List of possible operations:\n"
+            "1. Translation: Moving objects in x,y directions\n"
+            "   Example: [[1 0 tx][0 1 ty][0 0 1]]\n\n"
+            "2. Rotation: Rotating objects by angle θ\n"
+            "   Example: [[cos(θ) -sin(θ) 0][sin(θ) cos(θ) 0][0 0 1]]\n\n"
+            "3. Scaling: Changing object size\n"
+            "   Example: [[sx 0 0][0 sy 0][0 0 1]]\n\n"
+            "4. Shear: Skewing objects\n"
+            "   Example: [[1 shx 0][shy 1 0][0 0 1]]\n\n"
+            "5. Combined transformations are also allowed:\n"
+            "   Example: multiply the transformation matrices corresponding to the operations. for example translation + rotation = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[1 0 tx][0 1 ty][0 0 1]]; additional examples: translation + scaling = [[1 0 tx][0 1 ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]], translation + rotation + scaling = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]]   \n\n"
+            " NOTE: I need the output matrix as a numpy array; and the output object ID as an integer\n"
+            "[[0.88 0.  0. ]\n"
+            " [0.  0.88 0. ]\n"
+            " [0.  0.  1. ]]  \n\n",
+        },
+        {"role": "user", "content": user_edit},
+    ]
+
+    messages_qwen2_5_math_7b_instruct = [
+        {
+            "role": "system",
+            "content": (
+                "Integrate natural language reasoning with programs to solve the problem above. You are a mathematical reasoning assistant that generates transformation matrices for image editing operations. Your task is to analyze the edit request and output a precise 3x3 transformation matrix and object ID.\n\n"
+                "Scene Context with Object IDs:\n" + scene_context + "\n\n"
+                "Output Format Requirements:\n"
+                "1. Provide clear mathematical reasoning explaining your approach\n"
+                "2. Use these exact output markers:\n\n"
+                "OBJECT_ID: <number>\n"
+                "TRANSFORMATION_MATRIX:\n"
+                "[[a.aa  b.bb  c.cc]\n"
+                " [d.dd  e.ee  f.ff]\n"
+                " [g.gg  h.hh  i.ii]]\n\n"
+                "Matrix Requirements:\n"
+                "- Must be 3x3 homogeneous transformation matrix\n"
+                "- Use exactly 2 spaces between numbers\n"
+                "- All numbers must be floats with 2 decimal places (e.g. 1.00)\n"
+                "- Follow numpy array format\n"
+                "- Image coordinates: origin at top-left, +X right, +Y down\n\n"
+                "Available Transformation Templates:\n"
+                "1. Translation (move by tx, ty):\n"
+                "   [[1.00  0.00  tx]\n"
+                "    [0.00  1.00  ty]\n"
+                "    [0.00  0.00  1.00]]\n\n"
+                "2. Rotation (by angle θ):\n"
+                "   [[cos(θ)  -sin(θ)  0.00]\n"
+                "    [sin(θ)   cos(θ)  0.00]\n"
+                "    [0.00     0.00    1.00]]\n\n"
+                "3. Scale (by factors sx, sy):\n"
+                "   [[sx    0.00  0.00]\n"
+                "    [0.00  sy    0.00]\n"
+                "    [0.00  0.00  1.00]]\n\n"
+                "4. Shear (by factors shx, shy):\n"
+                "   [[1.00  shx   0.00]\n"
+                "    [shy   1.00  0.00]\n"
+                "    [0.00  0.00  1.00]]\n\n"
+                "5. Flip X:\n"
+                "   [[-1.00  0.00  0.00]\n"
+                "    [0.00   1.00  0.00]\n"
+                "    [0.00   0.00  1.00]]\n\n"
+                "SCENE CONTEXT:\n"
+                f"{scene_context}\n\n"
+                "IMPORTANT:\n"
+                "- Object ID must be from the provided OBJECT DETAILS list\n"
+                "- Matrices can be combined by multiplication for compound transformations\n"
+                "- Ensure mathematical correctness and precise decimal formatting\n"
+            ),
+        },
+        {"role": "user", "content": user_edit},
+    ]
+    if model_name == "deepseek_r1_distill_qwen_32B":
+        return messages_deepseek_r1_distill_qwen_32B
+    elif model_name == "qwen2_5_math_7b_instruct":
+        return messages_qwen2_5_math_7b_instruct
+    else:
+        raise ValueError(f"Model {model_name} not supported")
+
+
+def run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device):
+
+    # 1. generate prompt
+    messages = generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, device)
     # Try parsing up to 5 times
     for attempt in range(5):
         text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -201,8 +343,14 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
         logging.info(f"Model Reasoning (Attempt {attempt + 1}):")
 
         try:
-            matrix, reasoning = parse_transformation_matrix(reasoning), reasoning
-            object_id = parse_object_id(reasoning)
+            if model_name == "deepseek_r1_distill_qwen_32B":
+                matrix = parse_transformation_matrix_deepseek(reasoning)
+                object_id = parse_object_id_deepseek(reasoning)
+            elif model_name == "qwen2_5_math_7b_instruct":
+                matrix = parse_transformation_matrix_qwen(reasoning)
+                object_id = parse_object_id_qwen(reasoning)
+            else:
+                raise ValueError(f"Model {model_name} not supported")
             return matrix, object_id, reasoning
         except:
             if attempt == 4:  # Last attempt
@@ -212,71 +360,27 @@ def get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, 
             continue
 
 
-def parse_detection_file(file_path):
-    """Parse detection file and extract object information."""
-    with open(file_path, "r") as f:
-        detection_data = f.read()
-
-    # Extract scene description and spatial relationships
-    scene_desc_match = re.search(r"Scene Description:\n(.*?)\n", detection_data)
-    spatial_rel_match = re.search(r"Spatial Relationships:\n(.*?)\n", detection_data)
-
-    scene_desc = scene_desc_match.group(1) if scene_desc_match else ""
-    spatial_rel = spatial_rel_match.group(1) if spatial_rel_match else ""
-
-    objects = []
-    pattern = r"Object (\d+):\n\s+Class: (.*?)\n\s+Bounding Box.*?xmin=([\d.]+), ymin=([\d.]+), xmax=([\d.]+), ymax=([\d.]+)"
-
-    for match in re.finditer(pattern, detection_data):
-        xmin, ymin, xmax, ymax = map(float, match.groups()[2:])
-
-        corners = np.array([[xmin, ymin, 1], [xmax, ymin, 1], [xmax, ymax, 1], [xmin, ymax, 1]])  # top-left  # top-right  # bottom-right  # bottom-left
-
-        obj = {
-            "id": int(match.group(1)),
-            "class": match.group(2),
-            "bbox": [xmin, ymin, xmax, ymax],
-            "corners": corners,
-            "width": xmax - xmin,
-            "height": ymax - ymin,
-            "center": [(xmax + xmin) / 2, (ymax + ymin) / 2],
-        }
-        objects.append(obj)
-
-    return objects, scene_desc, spatial_rel
-
-
-def run_math_analysis(user_edit: str, file_path: str, img_path: str, model: Any, tokenizer: Any, device: str):
-    """
-    Run mathematical analysis on a single sample
-
-    Args:
-        file_path: Path to analysis_enhanced.txt file
-        img_path: Path to original image
-        model: Qwen model instance
-        tokenizer: Qwen tokenizer instance
-        device: Computing device
-    """
+def run_math_analysis(user_edit: str, file_path: str, model_name: str, model: Any, tokenizer: Any, device: str):
     try:
-        # Parse detection file with enhanced information
+        # 0. parse detection file with enhanced information
         file_dir = os.path.dirname(file_path)
         objects, scene_desc, spatial_rel = parse_detection_file(file_path)
 
-        # Get transformation matrix with scene context
-        matrix_array, object_id, reasoning = get_transformation_matrix(model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device)
+        # 2. run math llm
+        matrix_array, object_id, reasoning = run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device)
 
         logging.info("Parsed Matrix: \n" + str(matrix_array))
+        logging.info("Parsed Matrix: \n" + str(matrix_array))
         logging.info("Object ID:" + str(object_id))
-        # Store transformation matrix to file
+
+        # 3. save files
         TRANSFORMATION_MATRIX_FILE = f"{file_dir}/transformation_matrix.npy"
         np.save(TRANSFORMATION_MATRIX_FILE, matrix_array)
 
-        # Store reasoning to file
         REASONING_FILE = f"{file_dir}/math_reasoning.txt"
         with open(REASONING_FILE, "w") as f:
             f.write(reasoning)
 
-        # Store object ID to file
         OBJECT_ID_FILE = f"{file_dir}/object_id.txt"
         with open(OBJECT_ID_FILE, "w") as f:
             f.write(str(object_id))

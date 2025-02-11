@@ -23,53 +23,39 @@ export TMPDIR="$CACHE_PATH/tmp"
 # for easier to read terminal errors
 export BETTER_EXCEPTIONS=1
 
-if [ "$1" = "MARCO_BENCHMARK" ]; then
+if [ "$1" = "BENCHMARK_VLM_QWEN_MATH_DEEPSEEK" ]; then
     python src/main.py \
-        --in_dir benchmark_results_FULL/input_benchmark \
-        --out_dir benchmark_results_FULL/output_benchmark \
-        --edit "grayscale" \
+        --in_dir benchmark/input \
+        --out_dir benchmark/output_math_deepseek \
         --is_benchmark_dataset \
         --max_objects 5 \
         --reasoning \
-        --draw
+        --draw \
+        --vlm_model_name qwen_2_5_vl_7b \
+        --math_llm_name deepseek_r1_distill_qwen_32B
 
-
-elif [ "$1" = "breaking_point" ]; then
+elif [ "$1" = "BENCHMARK_VLM_QWEN_MATH_QWEN" ]; then
     python src/main.py \
-        --in_dir exp_breaking_point/input \
-        --out_dir exp_breaking_point/output \
-        --edit "grayscale" \
-        --reasoning \
-        --draw
-
-elif [ "$1" = "exp_breaking_point_easy_user_edit" ]; then
-    python src/main.py \
-        --in_dir exp_breaking_point_easy_user_edit/input \
-        --out_dir exp_breaking_point_easy_user_edit/output \
-        --edit "grayscale" \
-        --reasoning \
-        --draw
-
-elif [ "$1" = "debug" ]; then
-    python src/main.py \
-        --in_dir input_debug \
-        --out_dir output_debug \
-        --edit "grayscale" \
+        --in_dir benchmark/input \
+        --out_dir benchmark/output_math_qwen \
+        --is_benchmark_dataset \
+        --max_objects 5 \
         --reasoning \
         --draw \
-        --mode self_correction
+        --vlm_model_name qwen_2_5_vl_7b \
+        --math_llm_name qwen2_5_math_7b_instruct
 
-elif [ "$1" = "exp_breaking_point_3" ]; then
+elif [ "$1" = "BENCHMARK_VLM_OVIS_GEMMA2_MATH_DEEPSEEK" ]; then
     python src/main.py \
-        --in_dir exp_breaking_point_3/input \
-        --out_dir exp_breaking_point_3/output \
-        --edit "grayscale" \
+        --in_dir benchmark/input \
+        --out_dir benchmark/output_vlm_ovis_gemma2 \
+        --is_benchmark_dataset \
+        --max_objects 5 \
         --reasoning \
         --draw \
-        --mode self_correction
-
+        --vlm_model_name ovis1_6_gemma2_27B \
+        --math_llm_name deepseek_r1_distill_qwen_32B
 else
     echo "Invalid argument"
 fi
-
 
