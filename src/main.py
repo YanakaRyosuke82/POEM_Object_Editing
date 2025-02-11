@@ -113,6 +113,8 @@ def main():
     parser.add_argument("--dataset_size_samples", type=int, default=50, help="Number of samples to process")
     parser.add_argument("--is_benchmark_dataset", action="store_true", help="Enable benchmark dataset mode")
     parser.add_argument("--mode", type=str, choices=["self_correction", "image_editing"], default="image_editing", help="Mode to run the pipeline in")
+    parser.add_argument("--vlm_model_name", type=str, choices=["qwen", "llama"], default="qwen", help="VLM model to use")
+    parser.add_argument("--math_llm_name", type=str, choices=["deepseek", "llama"], default="deepseek", help="Math LLM model to use")
     args = parser.parse_args()
 
     # Create output directories
@@ -123,6 +125,7 @@ def main():
         "evaluation_3_after_llm_transformation": os.path.join(args.out_dir, "evaluation_3_after_llm_transformation"),
         "evaluation_4_after_sld": os.path.join(args.out_dir, "evaluation_4_after_sld"),
         "evaluation_5_after_sld_refine": os.path.join(args.out_dir, "evaluation_5_after_sld_refine"),
+        "evaluation_6_after_llm_transformatio_oracle": os.path.join(args.out_dir, "evaluation_6_after_llm_transformation_oracle"),
     }
     for folder in evaluation_folders.values():
         os.makedirs(folder, exist_ok=True)
@@ -144,6 +147,9 @@ def main():
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
         for filename in files:
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
+                continue
+
+            if filename == "input_mask.png":
                 continue
 
             if args.is_benchmark_dataset:
@@ -221,8 +227,11 @@ def main():
 
                 # Step 4: Apply transformations
                 try:
-                    TRANSFORMED_MASK = run_open_cv_transformations(
-                        matrix_transform_file=transformation_matrix_file, output_dir=sample_dir, ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file
+                    TRANSFORMED_MASK, TRANSFORMED_ORACLE = run_open_cv_transformations(
+                        matrix_transform_file=transformation_matrix_file,
+                        output_dir=sample_dir,
+                        oracle_mask_path=os.path.join(subdir, "input_mask.png"),
+                        ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file,
                     )
                 except:
                     logger.error(f"No transformation matrix found for object {OBJECT_ID}")
@@ -250,6 +259,7 @@ def main():
                 # Save evaluation results
                 cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
                 cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_6_after_llm_transformatio_oracle"], f"{save_file_name}.png"), TRANSFORMED_ORACLE)
 
                 # Create and save VLM mask
                 height, width = SAM_MASK.shape

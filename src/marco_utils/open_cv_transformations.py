@@ -40,7 +40,7 @@ def _process_object(mask: np.array, transformation_matrix: np.array) -> np.array
     return transformed_mask
 
 
-def run_open_cv_transformations(matrix_transform_file, output_dir, ENHANCED_FILE_DESCRIPTION):
+def run_open_cv_transformations(matrix_transform_file, output_dir, oracle_mask_path, ENHANCED_FILE_DESCRIPTION):
 
     # Get object ID from file
     object_id_path = os.path.join(output_dir, "object_id.txt")
@@ -54,6 +54,11 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, ENHANCED_FILE
     if binary_mask is None:
         raise FileNotFoundError(f"Could not load binary mask from {mask_path}")
 
+    # Load oracle mask
+    oracle_mask = cv2.imread(oracle_mask_path, cv2.IMREAD_GRAYSCALE)
+    if oracle_mask is None:
+        raise FileNotFoundError(f"Could not load oracle mask from {oracle_mask_path}")
+
     # Load the transformation matrix
     loaded_matrix = np.load(matrix_transform_file)
 
@@ -65,8 +70,9 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, ENHANCED_FILE
     y_max, x_max = np.max(where_filter, axis=1)
     older_bbox = [x_min, y_min, x_max - x_min, y_max - y_min]
 
-    # Apply the transformation matrix to the object
+    # Apply the transformation matrix to both masks
     transformed_mask = _process_object(binary_mask, loaded_matrix)
+    transformed_oracle = _process_object(oracle_mask, loaded_matrix)
 
     # Find transformed object boundaries
     where_filter = np.where(transformed_mask != 0)
@@ -96,18 +102,27 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, ENHANCED_FILE
         f.writelines(analysis_lines)
 
     #### plotting
-    # Save the transformed mask
+    # Save the transformed masks
     output_mask_path = os.path.join(output_dir, "transformed_mask.png")
+    output_oracle_path = os.path.join(output_dir, "transformed_oracle.png")
     cv2.imwrite(output_mask_path, transformed_mask)
+    cv2.imwrite(output_oracle_path, transformed_oracle)
     print(f"\nTransformed mask saved to: {output_mask_path}")
+    print(f"Transformed oracle saved to: {output_oracle_path}")
 
     # Save the original and transformed masks as .npy files
     source_mask_path = os.path.join(output_dir, "source_mask.npy")
     target_mask_path = os.path.join(output_dir, "target_mask.npy")
+    source_oracle_path = os.path.join(output_dir, "source_oracle.npy")
+    target_oracle_path = os.path.join(output_dir, "target_oracle.npy")
     np.save(source_mask_path, binary_mask)
     np.save(target_mask_path, transformed_mask)
+    np.save(source_oracle_path, oracle_mask)
+    np.save(target_oracle_path, transformed_oracle)
     print(f"\nOriginal mask saved to: {source_mask_path}")
     print(f"Transformed mask saved to: {target_mask_path}")
+    print(f"Original oracle saved to: {source_oracle_path}")
+    print(f"Transformed oracle saved to: {target_oracle_path}")
     # Visualization - Mask Transformation
     plt.figure(figsize=(15, 5))
 
@@ -193,4 +208,4 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, ENHANCED_FILE
     plt.savefig(os.path.join(output_dir, "bbox_transformation_vis.png"), dpi=300, bbox_inches="tight", pad_inches=0.1)
     plt.show()
 
-    return transformed_mask
+    return transformed_mask, transformed_oracle

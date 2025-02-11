@@ -58,6 +58,18 @@ elif [ "$1" = "debug" ]; then
         --reasoning \
         --draw \
         --mode self_correction
+
+elif [ "$1" = "exp_breaking_point_3" ]; then
+    python src/main.py \
+        --in_dir exp_breaking_point_3/input \
+        --out_dir exp_breaking_point_3/output \
+        --edit "grayscale" \
+        --reasoning \
+        --draw \
+        --mode self_correction
+
 else
     echo "Invalid argument"
 fi
+
+
