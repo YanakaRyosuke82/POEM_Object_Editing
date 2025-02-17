@@ -16,6 +16,7 @@ from marco_utils.models import Models
 from marco_utils.open_cv_transformations import run_open_cv_transformations
 from marco_utils.sam_refiner import run_sam_refine
 from marco_utils.math_model import run_math_analysis
+from marco_utils.math_model_vlm import run_math_analysis_vlm
 from marco_utils.vlm_image_parser import parse_image, save_results_image_parse
 from marco_utils.sld_adapter import generate_sld_config
 from marco_utils.grounding_dino_refiner import run_grounding_dino_refine
@@ -116,7 +117,6 @@ def save_run_details(args, logger, output_path=None, timing_stats=None):
             f"- Is benchmark dataset: {args.is_benchmark_dataset}",
             f"- Mode: {args.mode}",
             f"- VLM model: {args.vlm_model_name}",
-            f"- Math LLM model: {args.math_llm_name}",
         ]
 
         try:
@@ -175,18 +175,10 @@ def main():
     parser.add_argument(
         "--vlm_model_name",
         type=str,
-        choices=["qwen_2_5_vl_7b", "intern_vl_2_5_8B"],
+        choices=["qwen_2_5_vl_7b"],
         default="qwen_2_5_vl_7b",
         help="VLM model to use",
     )
-    parser.add_argument(
-        "--math_llm_name",
-        type=str,
-        choices=["deepseek_r1_distill_qwen_32B", "qwen2_5_math_7b_instruct"],
-        default="deepseek_r1_distill_qwen_32B",
-        help="Math LLM model to use",
-    )
-    parser.add_argument("--skip_samples", type=int, default=0, help="Number of samples to skip")
     args = parser.parse_args()
 
     # save config details to txt
@@ -207,17 +199,7 @@ def main():
 
     # Load models
     models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
-    if args.vlm_model_name == "qwen_2_5_vl_7b":
-        vlm_model, vlm_processor = models.get_qwen_2_5_vl_7b()
-    elif args.vlm_model_name == "intern_vl_2_5_8B":
-        vlm_model = models.get_intern_vl_2_5_8B()
-        vlm_processor = None
-    sam_model = models.get_sam()
-    if args.math_llm_name == "deepseek_r1_distill_qwen_32B":
-        math_model, math_tokenizer = models.get_deepseek_r1_distill_qwen_32B()
-    elif args.math_llm_name == "qwen2_5_math_7b_instruct":
-        math_model, math_tokenizer = models.get_qwen2_5_math_7b_instruct()
-
+    vlm_model, vlm_processor = models.get_qwen_2_5_vl_7b()
     grounding_dino_model = models.get_grounding_dino()
 
     # Initialize time tracking variables
@@ -237,9 +219,6 @@ def main():
     progress_bar = tqdm(total=total_samples, desc="Processing samples")
 
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
-        if sample_idx < args.skip_samples:
-            continue
-
         for filename in files:
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue
@@ -250,15 +229,15 @@ def main():
             if args.is_benchmark_dataset:
                 with open(os.path.join(subdir, "save_file_name.txt"), "r") as file:
                     save_file_name = file.read().strip()
-                    # if save_file_name == "2007_003194_0_transform_0_prompt_1":  #    DAY 1
-                    #     isoccured = True
+                    if save_file_name == "2007_004241_0_transform_0_prompt_0":
+                        isoccured = True
                     # if save_file_name == "2008_004365_1_transform_1_prompt_1":  # DAY 2
                     #     isoccured = True
             else:
                 save_file_name = os.path.basename(subdir).strip()
             sample_count += 1
-            # if not isoccured:
-            #     continue
+            if not isoccured:
+                continue
 
             # Set up paths
             input_path = os.path.join(subdir, filename)
@@ -310,13 +289,13 @@ def main():
                 # Step 3:  LLM: Mathematical analysis
                 logger.info(f"Step 3 - LLM Math Analysis for sample {sample_idx}/{num_in_folders}")
                 try:
-                    _, OBJECT_ID = run_math_analysis(
+                    _, OBJECT_ID = run_math_analysis_vlm(
                         user_edit=USER_EDIT,
                         file_path=analysis_enhanced_file,
-                        model_name=args.math_llm_name,
-                        model=math_model,
-                        tokenizer=math_tokenizer,
-                        device=DEEP_SEEK_GPU,
+                        model_name="qwen_vlm",
+                        model=vlm_model,
+                        tokenizer=vlm_processor,
+                        device=NORMAL_GPU,
                         logger=logger,
                     )
                 except:
@@ -370,7 +349,6 @@ def main():
                     cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
 
                     # Step 5: Generate config_sld.json for the SLD
-
                     logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
                     generate_sld_config(sample_dir, analysis_enhanced_file)
                 except:

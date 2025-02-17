@@ -186,7 +186,6 @@ def main():
         default="deepseek_r1_distill_qwen_32B",
         help="Math LLM model to use",
     )
-    parser.add_argument("--skip_samples", type=int, default=0, help="Number of samples to skip")
     args = parser.parse_args()
 
     # save config details to txt
@@ -237,9 +236,6 @@ def main():
     progress_bar = tqdm(total=total_samples, desc="Processing samples")
 
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
-        if sample_idx < args.skip_samples:
-            continue
-
         for filename in files:
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue
@@ -250,15 +246,15 @@ def main():
             if args.is_benchmark_dataset:
                 with open(os.path.join(subdir, "save_file_name.txt"), "r") as file:
                     save_file_name = file.read().strip()
-                    # if save_file_name == "2007_003194_0_transform_0_prompt_1":  #    DAY 1
-                    #     isoccured = True
+                    if save_file_name == "2007_004241_0_transform_0_prompt_0":  #    DAY 1
+                        isoccured = True
                     # if save_file_name == "2008_004365_1_transform_1_prompt_1":  # DAY 2
                     #     isoccured = True
             else:
                 save_file_name = os.path.basename(subdir).strip()
             sample_count += 1
-            # if not isoccured:
-            #     continue
+            if not isoccured:
+                continue
 
             # Set up paths
             input_path = os.path.join(subdir, filename)

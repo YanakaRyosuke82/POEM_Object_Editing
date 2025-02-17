@@ -127,11 +127,13 @@ def run_sam_refine(file_analysis_path: str, img_path: str, sam_model: SAM, debug
         # Run SAM inference
         results = sam_model(img_path, points=points.tolist(), labels=labels.tolist())
 
+        breakpoint()
+
         if len(results) == 0 or len(results[0].masks.data) == 0:
             logging.warning(f"No mask found for {class_key}")
             continue
 
-        mask_array = results[0].masks.data[0].cpu().numpy()
+        mask_array = results[0].masks.data[2].cpu().numpy()
         rows = np.any(mask_array, axis=1)
         cols = np.any(mask_array, axis=0)
 

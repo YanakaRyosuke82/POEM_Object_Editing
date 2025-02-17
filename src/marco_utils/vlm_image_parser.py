@@ -1,11 +1,14 @@
 import torch
 from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 import logging
 import cv2
 import matplotlib.pyplot as plt
 import os
+
+from lmdeploy import pipeline
+from PIL import Image
 
 
 def parse_line(line: str, objects: list) -> None:
@@ -40,11 +43,11 @@ def parse_line(line: str, objects: list) -> None:
 
                 logging.warning(f"Error parsing DETECT values: {e}")
 
-        elif line.startswith("POINTS:"):
+        elif line.startswith("POINT:"):
             _, points_data = line.split(":", 1)
             parts = points_data.strip().split("|")
             if len(parts) != 3:
-                logging.warning(f"Skipping malformed POINTS line: {line}")
+                logging.warning(f"Skipping malformed POINT line: {line}")
                 return
 
             try:
@@ -53,13 +56,66 @@ def parse_line(line: str, objects: list) -> None:
                 if 0 <= obj_id - 1 < len(objects):
                     objects[obj_id - 1]["point"] = (x, y)
             except (ValueError, IndexError) as e:
-                logging.warning(f"Error parsing POINTS values: {e}")
+                logging.warning(f"Error parsing POINT values: {e}")
 
     except Exception as e:
         logging.warning(f"Error parsing line '{line}': {e}")
 
 
-def parse_image(image_path: str, model: Any, processor: Any, device: str, user_edit: str = None) -> Dict[str, Any]:
+import re
+import numpy as np
+
+
+def mock_parse_detection_file(file_path: str, img_path: str) -> List[Dict]:
+    """
+    Parse detection file to extract objects with their class, bounding box and point.
+
+    Args:
+        file_path: Path to analysis.txt file
+        img_path: Path to corresponding image
+
+    Returns:
+        List of dictionaries containing class, bbox and point for each object
+    """
+    with open(file_path, "r") as f:
+        content = f.read()
+
+    objects = []
+    object_blocks = re.findall(r"Object (\d+):(.*?)(?=Object \d+:|$)", content, re.DOTALL)
+
+    for _, obj_block in object_blocks:
+        # Extract class name without the "Bounding Box" text
+        class_match = re.search(r"Class:\s*([\w\s]+?)(?:\s*\n|$)", obj_block)
+        if not class_match:
+            continue
+
+        class_name = class_match.group(1).strip()
+
+        bbox_match = re.search(r"Bounding Box \(normalized\):\s*xmin=([\d.]+),\s*ymin=([\d.]+),\s*xmax=([\d.]+),\s*ymax=([\d.]+)", obj_block)
+        if not bbox_match:
+            continue
+
+        point_match = re.search(r"Segmentation Point:\s*\(([\d.]+),\s*([\d.]+)\)", obj_block)
+        if not point_match:
+            continue
+
+        xmin, ymin, xmax, ymax = map(float, bbox_match.groups())
+        point_x, point_y = map(float, point_match.groups())
+
+        obj_data = {"class": class_name, "bbox": [xmin, ymin, xmax, ymax], "point": (point_x, point_y)}
+        objects.append(obj_data)
+
+    return objects
+
+
+def parse_image(
+    image_path: str,
+    model_name: str,
+    model: Optional[Any] = None,
+    processor: Optional[Any] = None,
+    device: str = "cuda",
+    user_edit: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Parse an image using Qwen2VL model to detect objects, points, and scene understanding.
 
@@ -72,46 +128,88 @@ def parse_image(image_path: str, model: Any, processor: Any, device: str, user_e
     Returns:
         Dict containing detected objects, scene description, and spatial relationships
     """
-    # Prepare prompt
-    messages = [
-        {
-            "role": "system",
-            "content": """You are a leading computer vision expert specializing in object detection, scene understanding, and spatial relationships.
-For each detected object in the image, output exactly one line in the following format:
-DETECT: <object_id_number>|<object_class>|<xmin>|<ymin>|<xmax>|<ymax>
-POINTS: <object_id_number>|<x_center>|<y_center>
-SCENE: <scene_description>
-SPATIAL: <spatial_relationships>
-BACKGROUND: <background_description>
-GENERATION: <generation_prompt>
-Note: provide:
-- Bounding boxes use normalized coordinates: [0, 0] at top-left and [1, 1] at bottom-right.
-- Points share the same coordinate system; provide x_center and y_center.
-- Use consistent numerical object IDs for detections and points.
-- The generation prompt should be a concise prompt for image editing that captures the key visual elements and style
-        """,
-        },
-        {
-            "role": "user",
-            "content": [
-                {"type": "image", "image": image_path},
-                {"type": "text", "text": "Analyze this image, detect objects, provide keypoints, describe scene and spatial relationships."},
-            ],
-        },
-    ]
 
-    # Process image
-    text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    image_inputs, video_inputs = process_vision_info(messages)
+    if model_name == "qwen_2_5_vl_7b":
+        # Prepare prompt
+        messages = [
+            {
+                "role": "system",
+                "content": """You are a leading computer vision expert specializing in object detection, scene understanding, and spatial relationships.
+    For each detected object in the image, output exactly one line in the following format:
+    DETECT: <object_id_number>|<object_class>|<xmin>|<ymin>|<xmax>|<ymax>
+    POINT: <object_id_number>|<x_center>|<y_center>
+    SCENE: <scene_description>
+    SPATIAL: <spatial_relationships>
+    BACKGROUND: <background_description>
+    GENERATION: <generation_prompt>
+    Note: provide:
+    - Only detect and describe the 2-3 most prominent or important objects in the scene
+    - Bounding boxes use normalized coordinates: [0, 0] at top-left and [1, 1] at bottom-right.
+    - For each detected object, you MUST provide a POINT line with x_center and y_center coordinates
+    - The point coordinates MUST be inside the object's bounding box
+    - For most objects, place the point at the center of the bounding box (x_center=(xmin+xmax)/2, y_center=(ymin+ymax)/2) or at the main center of mass
+    - For some objects like people, the point may be offset from center to mark key features
+    - Use consistent numerical object IDs for detections and points
+    - The generation prompt should be a concise prompt for image editing that captures the key visual elements and style
+            """,
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "image": image_path},
+                    {"type": "text", "text": "Analyze this image, detect objects, provide keypoints, describe scene and spatial relationships."},
+                ],
+            },
+        ]
+        text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        image_inputs, video_inputs = process_vision_info(messages)
 
-    # Generate output
-    with torch.cuda.device(device):
-        inputs = processor(text=[text], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt").to(device)
+        # Generate output
+        with torch.cuda.device(device):
+            inputs = processor(text=[text], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt").to(device)
 
-        generated_ids = model.generate(**inputs, max_new_tokens=1024)
-        output_text = processor.batch_decode(
-            [out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)], skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )[0]
+            generated_ids = model.generate(**inputs, max_new_tokens=1024)
+            output_text = processor.batch_decode(
+                [out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)],
+                skip_special_tokens=True,
+                clean_up_tokenization_spaces=False,
+            )[0]
+
+    elif model_name == "intern_vl_2_5_8B":
+        image_sample = Image.open(image_path)
+        # Prepare prompt
+        messages = [
+            {
+                "role": "system",
+                "content": """You are a leading computer vision expert specializing in object detection, scene understanding, and spatial relationships.
+    For each detected object in the image, output exactly one line in the following format:
+    DETECT: <object_id_number>|<object_class>|<xmin>|<ymin>|<xmax>|<ymax>
+    POINT: <object_id_number>|<x_center>|<y_center>
+    SCENE: <scene_description>
+    SPATIAL: <spatial_relationships>
+    BACKGROUND: <background_description>
+    GENERATION: <generation_prompt>
+    Note: provide:
+    - Bounding boxes use normalized coordinates: [0, 0] at top-left and [1, 1] at bottom-right.
+    - Points share the same coordinate system; provide x_center and y_center.
+    - Use consistent numerical object IDs for detections and points.
+    - The generation prompt should be a concise prompt for image editing that captures the key visual elements and style
+            """,
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": image_sample}},
+                    {"type": "text", "text": "Analyze this image, detect objects, provide keypoints, describe scene and spatial relationships."},
+                ],
+            },
+        ]
+
+        response = model(messages)
+        output_text = response.text
+
+    else:
+        raise ValueError(f"Model {model_name} not supported")
 
     try:
         # Parse output
@@ -124,7 +222,7 @@ Note: provide:
         try:
             for line in output_text.split("\n"):
                 try:
-                    if line.startswith("DETECT:") or line.startswith("POINTS:"):
+                    if line.startswith("DETECT:") or line.startswith("POINT:"):
                         parse_line(line, objects)
                     elif line.startswith("SCENE:"):
                         _, scene_desc = line.split(":", 1)
@@ -214,7 +312,6 @@ def save_results_image_parse(sample_dir: str, results: dict):
         results: Dictionary containing analysis results
     """
     try:
-
         # Save analysis with exact formatting
         with open(os.path.join(sample_dir, "analysis.txt"), "w") as f:
             f.write("=== DETECTION RESULTS ===\n\n")

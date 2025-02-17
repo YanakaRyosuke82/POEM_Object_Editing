@@ -186,7 +186,6 @@ def main():
         default="deepseek_r1_distill_qwen_32B",
         help="Math LLM model to use",
     )
-    parser.add_argument("--skip_samples", type=int, default=0, help="Number of samples to skip")
     args = parser.parse_args()
 
     # save config details to txt
@@ -205,20 +204,20 @@ def main():
     for folder in evaluation_folders.values():
         os.makedirs(folder, exist_ok=True)
 
-    # Load models
-    models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
-    if args.vlm_model_name == "qwen_2_5_vl_7b":
-        vlm_model, vlm_processor = models.get_qwen_2_5_vl_7b()
-    elif args.vlm_model_name == "intern_vl_2_5_8B":
-        vlm_model = models.get_intern_vl_2_5_8B()
-        vlm_processor = None
-    sam_model = models.get_sam()
-    if args.math_llm_name == "deepseek_r1_distill_qwen_32B":
-        math_model, math_tokenizer = models.get_deepseek_r1_distill_qwen_32B()
-    elif args.math_llm_name == "qwen2_5_math_7b_instruct":
-        math_model, math_tokenizer = models.get_qwen2_5_math_7b_instruct()
+    # # Load models
+    # models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
+    # if args.vlm_model_name == "qwen_2_5_vl_7b":
+    #     vlm_model, vlm_processor = models.get_qwen_2_5_vl_7b()
+    # elif args.vlm_model_name == "intern_vl_2_5_8B":
+    #     vlm_model = models.get_intern_vl_2_5_8B()
+    #     vlm_processor = None
+    # sam_model = models.get_sam()
+    # if args.math_llm_name == "deepseek_r1_distill_qwen_32B":
+    #     math_model, math_tokenizer = models.get_deepseek_r1_distill_qwen_32B()
+    # elif args.math_llm_name == "qwen2_5_math_7b_instruct":
+    #     math_model, math_tokenizer = models.get_qwen2_5_math_7b_instruct()
 
-    grounding_dino_model = models.get_grounding_dino()
+    # grounding_dino_model = models.get_grounding_dino()
 
     # Initialize time tracking variables
     start_time = time.time()
@@ -237,9 +236,6 @@ def main():
     progress_bar = tqdm(total=total_samples, desc="Processing samples")
 
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
-        if sample_idx < args.skip_samples:
-            continue
-
         for filename in files:
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue
@@ -250,15 +246,13 @@ def main():
             if args.is_benchmark_dataset:
                 with open(os.path.join(subdir, "save_file_name.txt"), "r") as file:
                     save_file_name = file.read().strip()
-                    # if save_file_name == "2007_003194_0_transform_0_prompt_1":  #    DAY 1
-                    #     isoccured = True
-                    # if save_file_name == "2008_004365_1_transform_1_prompt_1":  # DAY 2
-                    #     isoccured = True
+                    if save_file_name == "2007_006865_0_transform_1_prompt_2":
+                        isoccured = True
             else:
                 save_file_name = os.path.basename(subdir).strip()
             sample_count += 1
-            # if not isoccured:
-            #     continue
+            if not isoccured:
+                continue
 
             # Set up paths
             input_path = os.path.join(subdir, filename)
@@ -276,108 +270,108 @@ def main():
                 USER_EDIT = file.read().strip()
 
             logger.info(f"Processing sample #{sample_idx}: {input_path}")
-            ### REASONING ###
-            reasoning_start = time.time()
-            if args.reasoning:
-                #  STEP 1 VLM ---  parsing
-                logger.info(f"Step 1: VLM Parsing for sample {sample_idx}/{num_in_folders}")
-                try:
-                    results = parse_image(input_path, args.vlm_model_name, vlm_model, vlm_processor, NORMAL_GPU, USER_EDIT)
-                    save_results_image_parse(sample_dir, results)
-                except:
-                    logger.error(f"No VLM parsing found for sample {sample_idx}")
-                    continue
-                VLM_BBOXES = results["objects"]
-                if len(VLM_BBOXES) > args.max_objects:
-                    logger.error(f"Too many objects detected for sample {sample_idx}/{num_in_folders}")
-                    continue
+            # ### REASONING ###
+            # reasoning_start = time.time()
+            # if args.reasoning:
+            #     #  STEP 1 VLM ---  parsing
+            #     logger.info(f"Step 1: VLM Parsing for sample {sample_idx}/{num_in_folders}")
+            #     try:
+            #         results = parse_image(input_path, args.vlm_model_name, vlm_model, vlm_processor, NORMAL_GPU, USER_EDIT)
+            #         save_results_image_parse(sample_dir, results)
+            #     except:
+            #         logger.error(f"No VLM parsing found for sample {sample_idx}")
+            #         continue
+            #     VLM_BBOXES = results["objects"]
+            #     if len(VLM_BBOXES) > args.max_objects:
+            #         logger.error(f"Too many objects detected for sample {sample_idx}/{num_in_folders}")
+            #         continue
 
-                # # Step 2: Refine detections with SAM
-                # logger.info(f"Step 2: SAM Refine Detections for sample {sample_idx}")
-                # try:
-                #     SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
-                # except:
-                #     logger.error(f"No SAM masks found for sample {sample_idx}")
-                #     continue
-                # step 2B: Refine detections with Grounding DINO
-                logger.info(f"Step 2B: Grounding DINO Refine Detections for sample {sample_idx}")
-                try:
-                    SAM_MASKS = run_grounding_dino_refine(file_analysis_path=analysis_file, img_path=input_path, grounding_dino_model=grounding_dino_model)
-                except:
-                    logger.error(f"No Grounding DINO masks found for sample {sample_idx}")
-                    continue
+            #     # # Step 2: Refine detections with SAM
+            #     # logger.info(f"Step 2: SAM Refine Detections for sample {sample_idx}")
+            #     # try:
+            #     #     SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
+            #     # except:
+            #     #     logger.error(f"No SAM masks found for sample {sample_idx}")
+            #     #     continue
+            #     # step 2B: Refine detections with Grounding DINO
+            #     logger.info(f"Step 2B: Grounding DINO Refine Detections for sample {sample_idx}")
+            #     try:
+            #         SAM_MASKS = run_grounding_dino_refine(file_analysis_path=analysis_file, img_path=input_path, grounding_dino_model=grounding_dino_model)
+            #     except:
+            #         logger.error(f"No Grounding DINO masks found for sample {sample_idx}")
+            #         continue
 
-                # Step 3:  LLM: Mathematical analysis
-                logger.info(f"Step 3 - LLM Math Analysis for sample {sample_idx}/{num_in_folders}")
-                try:
-                    _, OBJECT_ID = run_math_analysis(
-                        user_edit=USER_EDIT,
-                        file_path=analysis_enhanced_file,
-                        model_name=args.math_llm_name,
-                        model=math_model,
-                        tokenizer=math_tokenizer,
-                        device=DEEP_SEEK_GPU,
-                        logger=logger,
-                    )
-                except:
-                    logger.error(f"No math analysis found for object {OBJECT_ID}")
-                    continue
+            #     # Step 3:  LLM: Mathematical analysis
+            #     logger.info(f"Step 3 - LLM Math Analysis for sample {sample_idx}/{num_in_folders}")
+            #     try:
+            #         _, OBJECT_ID = run_math_analysis(
+            #             user_edit=USER_EDIT,
+            #             file_path=analysis_enhanced_file,
+            #             model_name=args.math_llm_name,
+            #             model=math_model,
+            #             tokenizer=math_tokenizer,
+            #             device=DEEP_SEEK_GPU,
+            #             logger=logger,
+            #         )
+            #     except:
+            #         logger.error(f"No math analysis found for object {OBJECT_ID}")
+            #         continue
 
-                # Step 4: Apply transformations
-                logger.info(f"Step 4: OPEN-CV Transformations for sample {sample_idx}/{num_in_folders}")
-                try:
-                    TRANSFORMED_MASK, TRANSFORMED_ORACLE = run_open_cv_transformations(
-                        matrix_transform_file=transformation_matrix_file,
-                        output_dir=sample_dir,
-                        oracle_mask_path=os.path.join(subdir, "input_mask.png"),
-                        ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file,
-                    )
-                except:
-                    logger.error(f"No transformation matrix found for object {OBJECT_ID}")
-                    # Create a black image with the same dimensions as the input image
-                    TRANSFORMED_MASK = np.zeros((512, 512))
-                    continue
+            #     # Step 4: Apply transformations
+            #     logger.info(f"Step 4: OPEN-CV Transformations for sample {sample_idx}/{num_in_folders}")
+            #     try:
+            #         TRANSFORMED_MASK, TRANSFORMED_ORACLE = run_open_cv_transformations(
+            #             matrix_transform_file=transformation_matrix_file,
+            #             output_dir=sample_dir,
+            #             oracle_mask_path=os.path.join(subdir, "input_mask.png"),
+            #             ENHANCED_FILE_DESCRIPTION=analysis_enhanced_file,
+            #         )
+            #     except:
+            #         logger.error(f"No transformation matrix found for object {OBJECT_ID}")
+            #         # Create a black image with the same dimensions as the input image
+            #         TRANSFORMED_MASK = np.zeros((512, 512))
+            #         continue
 
-                # Get masks and bounding boxes
-                try:
-                    VLM_BBOX = VLM_BBOXES[OBJECT_ID - 1]["bbox"]
-                except:
-                    logger.error(f"No bounding box found for object {OBJECT_ID}")
-                    # Create a black mask with same dimensions as SAM_MASKS
-                    VLM_BBOX = [0, 0, 1, 1]
-                    continue
+            #     # Get masks and bounding boxes
+            #     try:
+            #         VLM_BBOX = VLM_BBOXES[OBJECT_ID - 1]["bbox"]
+            #     except:
+            #         logger.error(f"No bounding box found for object {OBJECT_ID}")
+            #         # Create a black mask with same dimensions as SAM_MASKS
+            #         VLM_BBOX = [0, 0, 1, 1]
+            #         continue
 
-                try:
-                    SAM_MASK = SAM_MASKS[str(OBJECT_ID)].astype(np.uint8) * 255
-                except:
-                    logger.error(f"No SAM mask found for object {OBJECT_ID}")
-                    # Create a black image with the same dimensions as the input image
-                    SAM_MASK = np.zeros((512, 512))
-                    continue
+            #     try:
+            #         SAM_MASK = SAM_MASKS[str(OBJECT_ID)].astype(np.uint8) * 255
+            #     except:
+            #         logger.error(f"No SAM mask found for object {OBJECT_ID}")
+            #         # Create a black image with the same dimensions as the input image
+            #         SAM_MASK = np.zeros((512, 512))
+            #         continue
 
-                try:
-                    # Save evaluation results
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_6_after_llm_transformatio_oracle"], f"{save_file_name}.png"), TRANSFORMED_ORACLE)
+            #     try:
+            #         # Save evaluation results
+            #         cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
+            #         cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
+            #         cv2.imwrite(os.path.join(evaluation_folders["evaluation_6_after_llm_transformatio_oracle"], f"{save_file_name}.png"), TRANSFORMED_ORACLE)
 
-                    # Create and save VLM mask
-                    height, width = SAM_MASK.shape
-                    vlm_mask = np.zeros((height, width), dtype=np.uint8)
-                    xmin, ymin = int(VLM_BBOX[0] * width), int(VLM_BBOX[1] * height)
-                    xmax, ymax = int(VLM_BBOX[2] * width), int(VLM_BBOX[3] * height)
-                    vlm_mask[ymin:ymax, xmin:xmax] = 255
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
+            #         # Create and save VLM mask
+            #         height, width = SAM_MASK.shape
+            #         vlm_mask = np.zeros((height, width), dtype=np.uint8)
+            #         xmin, ymin = int(VLM_BBOX[0] * width), int(VLM_BBOX[1] * height)
+            #         xmax, ymax = int(VLM_BBOX[2] * width), int(VLM_BBOX[3] * height)
+            #         vlm_mask[ymin:ymax, xmin:xmax] = 255
+            #         cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
 
-                    # Step 5: Generate config_sld.json for the SLD
+            #         # Step 5: Generate config_sld.json for the SLD
 
-                    logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
-                    generate_sld_config(sample_dir, analysis_enhanced_file)
-                except:
-                    logger.error(f"No SLD config found for object {OBJECT_ID}")
-                    continue
+            #         logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
+            #         generate_sld_config(sample_dir, analysis_enhanced_file)
+            #     except:
+            #         logger.error(f"No SLD config found for object {OBJECT_ID}")
+            #         continue
 
-                reasoning_time += time.time() - reasoning_start
+            #     reasoning_time += time.time() - reasoning_start
 
             ### IMAGE GENERATION ###
             drawing_start = time.time()

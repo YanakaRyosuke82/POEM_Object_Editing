@@ -18,7 +18,6 @@ from marco_utils.sam_refiner import run_sam_refine
 from marco_utils.math_model import run_math_analysis
 from marco_utils.vlm_image_parser import parse_image, save_results_image_parse
 from marco_utils.sld_adapter import generate_sld_config
-from marco_utils.grounding_dino_refiner import run_grounding_dino_refine
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
@@ -186,7 +185,6 @@ def main():
         default="deepseek_r1_distill_qwen_32B",
         help="Math LLM model to use",
     )
-    parser.add_argument("--skip_samples", type=int, default=0, help="Number of samples to skip")
     args = parser.parse_args()
 
     # save config details to txt
@@ -218,8 +216,6 @@ def main():
     elif args.math_llm_name == "qwen2_5_math_7b_instruct":
         math_model, math_tokenizer = models.get_qwen2_5_math_7b_instruct()
 
-    grounding_dino_model = models.get_grounding_dino()
-
     # Initialize time tracking variables
     start_time = time.time()
     reasoning_time = 0
@@ -235,11 +231,7 @@ def main():
     # Process each image in input directory
     total_samples = sum(1 for _, _, files in os.walk(args.in_dir) for f in files if f.lower().endswith((".png", ".jpg", ".jpeg")) and f != "input_mask.png")
     progress_bar = tqdm(total=total_samples, desc="Processing samples")
-
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
-        if sample_idx < args.skip_samples:
-            continue
-
         for filename in files:
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue
@@ -250,15 +242,14 @@ def main():
             if args.is_benchmark_dataset:
                 with open(os.path.join(subdir, "save_file_name.txt"), "r") as file:
                     save_file_name = file.read().strip()
-                    # if save_file_name == "2007_003194_0_transform_0_prompt_1":  #    DAY 1
-                    #     isoccured = True
-                    # if save_file_name == "2008_004365_1_transform_1_prompt_1":  # DAY 2
-                    #     isoccured = True
             else:
                 save_file_name = os.path.basename(subdir).strip()
             sample_count += 1
-            # if not isoccured:
-            #     continue
+
+            # Skip first sample
+            if sample_count == 1:
+                progress_bar.update(1)
+                continue
 
             # Set up paths
             input_path = os.path.join(subdir, filename)
@@ -292,19 +283,12 @@ def main():
                     logger.error(f"Too many objects detected for sample {sample_idx}/{num_in_folders}")
                     continue
 
-                # # Step 2: Refine detections with SAM
-                # logger.info(f"Step 2: SAM Refine Detections for sample {sample_idx}")
-                # try:
-                #     SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
-                # except:
-                #     logger.error(f"No SAM masks found for sample {sample_idx}")
-                #     continue
-                # step 2B: Refine detections with Grounding DINO
-                logger.info(f"Step 2B: Grounding DINO Refine Detections for sample {sample_idx}")
+                # Step 2: Refine detections with SAM
+                logger.info(f"Step 2: SAM Refine Detections for sample {sample_idx}")
                 try:
-                    SAM_MASKS = run_grounding_dino_refine(file_analysis_path=analysis_file, img_path=input_path, grounding_dino_model=grounding_dino_model)
+                    SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
                 except:
-                    logger.error(f"No Grounding DINO masks found for sample {sample_idx}")
+                    logger.error(f"No SAM masks found for sample {sample_idx}")
                     continue
 
                 # Step 3:  LLM: Mathematical analysis
@@ -355,27 +339,22 @@ def main():
                     SAM_MASK = np.zeros((512, 512))
                     continue
 
-                try:
-                    # Save evaluation results
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_6_after_llm_transformatio_oracle"], f"{save_file_name}.png"), TRANSFORMED_ORACLE)
+                # Save evaluation results
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_6_after_llm_transformatio_oracle"], f"{save_file_name}.png"), TRANSFORMED_ORACLE)
 
-                    # Create and save VLM mask
-                    height, width = SAM_MASK.shape
-                    vlm_mask = np.zeros((height, width), dtype=np.uint8)
-                    xmin, ymin = int(VLM_BBOX[0] * width), int(VLM_BBOX[1] * height)
-                    xmax, ymax = int(VLM_BBOX[2] * width), int(VLM_BBOX[3] * height)
-                    vlm_mask[ymin:ymax, xmin:xmax] = 255
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
+                # Create and save VLM mask
+                height, width = SAM_MASK.shape
+                vlm_mask = np.zeros((height, width), dtype=np.uint8)
+                xmin, ymin = int(VLM_BBOX[0] * width), int(VLM_BBOX[1] * height)
+                xmax, ymax = int(VLM_BBOX[2] * width), int(VLM_BBOX[3] * height)
+                vlm_mask[ymin:ymax, xmin:xmax] = 255
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
 
-                    # Step 5: Generate config_sld.json for the SLD
-
-                    logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
-                    generate_sld_config(sample_dir, analysis_enhanced_file)
-                except:
-                    logger.error(f"No SLD config found for object {OBJECT_ID}")
-                    continue
+                # Step 5: Generate config_sld.json for the SLD
+                logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
+                generate_sld_config(sample_dir, analysis_enhanced_file)
 
                 reasoning_time += time.time() - reasoning_start
 

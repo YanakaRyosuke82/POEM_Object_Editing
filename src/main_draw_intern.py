@@ -18,7 +18,6 @@ from marco_utils.sam_refiner import run_sam_refine
 from marco_utils.math_model import run_math_analysis
 from marco_utils.vlm_image_parser import parse_image, save_results_image_parse
 from marco_utils.sld_adapter import generate_sld_config
-from marco_utils.grounding_dino_refiner import run_grounding_dino_refine
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
@@ -186,7 +185,6 @@ def main():
         default="deepseek_r1_distill_qwen_32B",
         help="Math LLM model to use",
     )
-    parser.add_argument("--skip_samples", type=int, default=0, help="Number of samples to skip")
     args = parser.parse_args()
 
     # save config details to txt
@@ -205,20 +203,18 @@ def main():
     for folder in evaluation_folders.values():
         os.makedirs(folder, exist_ok=True)
 
-    # Load models
-    models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
-    if args.vlm_model_name == "qwen_2_5_vl_7b":
-        vlm_model, vlm_processor = models.get_qwen_2_5_vl_7b()
-    elif args.vlm_model_name == "intern_vl_2_5_8B":
-        vlm_model = models.get_intern_vl_2_5_8B()
-        vlm_processor = None
-    sam_model = models.get_sam()
-    if args.math_llm_name == "deepseek_r1_distill_qwen_32B":
-        math_model, math_tokenizer = models.get_deepseek_r1_distill_qwen_32B()
-    elif args.math_llm_name == "qwen2_5_math_7b_instruct":
-        math_model, math_tokenizer = models.get_qwen2_5_math_7b_instruct()
-
-    grounding_dino_model = models.get_grounding_dino()
+    # # Load models
+    # models = Models(device_reasoning=NORMAL_GPU, DEEP_SEEK_GPU=DEEP_SEEK_GPU)
+    # if args.vlm_model_name == "qwen_2_5_vl_7b":
+    #     vlm_model, vlm_processor = models.get_qwen_2_5_vl_7b()
+    # elif args.vlm_model_name == "intern_vl_2_5_8B":
+    #     vlm_model = models.get_intern_vl_2_5_8B()
+    #     vlm_processor = None
+    # sam_model = models.get_sam()
+    # if args.math_llm_name == "deepseek_r1_distill_qwen_32B":
+    #     math_model, math_tokenizer = models.get_deepseek_r1_distill_qwen_32B()
+    # elif args.math_llm_name == "qwen2_5_math_7b_instruct":
+    #     math_model, math_tokenizer = models.get_qwen2_5_math_7b_instruct()
 
     # Initialize time tracking variables
     start_time = time.time()
@@ -237,9 +233,6 @@ def main():
     progress_bar = tqdm(total=total_samples, desc="Processing samples")
 
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
-        if sample_idx < args.skip_samples:
-            continue
-
         for filename in files:
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue
@@ -292,19 +285,12 @@ def main():
                     logger.error(f"Too many objects detected for sample {sample_idx}/{num_in_folders}")
                     continue
 
-                # # Step 2: Refine detections with SAM
-                # logger.info(f"Step 2: SAM Refine Detections for sample {sample_idx}")
-                # try:
-                #     SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
-                # except:
-                #     logger.error(f"No SAM masks found for sample {sample_idx}")
-                #     continue
-                # step 2B: Refine detections with Grounding DINO
-                logger.info(f"Step 2B: Grounding DINO Refine Detections for sample {sample_idx}")
+                # Step 2: Refine detections with SAM
+                logger.info(f"Step 2: SAM Refine Detections for sample {sample_idx}")
                 try:
-                    SAM_MASKS = run_grounding_dino_refine(file_analysis_path=analysis_file, img_path=input_path, grounding_dino_model=grounding_dino_model)
+                    SAM_MASKS = run_sam_refine(file_analysis_path=analysis_file, img_path=input_path, sam_model=sam_model)
                 except:
-                    logger.error(f"No Grounding DINO masks found for sample {sample_idx}")
+                    logger.error(f"No SAM masks found for sample {sample_idx}")
                     continue
 
                 # Step 3:  LLM: Mathematical analysis
@@ -355,27 +341,22 @@ def main():
                     SAM_MASK = np.zeros((512, 512))
                     continue
 
-                try:
-                    # Save evaluation results
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_6_after_llm_transformatio_oracle"], f"{save_file_name}.png"), TRANSFORMED_ORACLE)
+                # Save evaluation results
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_2_after_sam"], f"{save_file_name}.png"), SAM_MASK)
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_3_after_llm_transformation"], f"{save_file_name}.png"), TRANSFORMED_MASK)
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_6_after_llm_transformatio_oracle"], f"{save_file_name}.png"), TRANSFORMED_ORACLE)
 
-                    # Create and save VLM mask
-                    height, width = SAM_MASK.shape
-                    vlm_mask = np.zeros((height, width), dtype=np.uint8)
-                    xmin, ymin = int(VLM_BBOX[0] * width), int(VLM_BBOX[1] * height)
-                    xmax, ymax = int(VLM_BBOX[2] * width), int(VLM_BBOX[3] * height)
-                    vlm_mask[ymin:ymax, xmin:xmax] = 255
-                    cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
+                # Create and save VLM mask
+                height, width = SAM_MASK.shape
+                vlm_mask = np.zeros((height, width), dtype=np.uint8)
+                xmin, ymin = int(VLM_BBOX[0] * width), int(VLM_BBOX[1] * height)
+                xmax, ymax = int(VLM_BBOX[2] * width), int(VLM_BBOX[3] * height)
+                vlm_mask[ymin:ymax, xmin:xmax] = 255
+                cv2.imwrite(os.path.join(evaluation_folders["evaluation_1_after_vlm"], f"{save_file_name}.png"), vlm_mask)
 
-                    # Step 5: Generate config_sld.json for the SLD
-
-                    logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
-                    generate_sld_config(sample_dir, analysis_enhanced_file)
-                except:
-                    logger.error(f"No SLD config found for object {OBJECT_ID}")
-                    continue
+                # Step 5: Generate config_sld.json for the SLD
+                logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
+                generate_sld_config(sample_dir, analysis_enhanced_file)
 
                 reasoning_time += time.time() - reasoning_start
 

@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Any, Tuple, Optional
-
+from lmdeploy import pipeline
 import torch
 from transformers import (
     AutoModel,
@@ -10,6 +10,9 @@ from transformers import (
     Qwen2VLForConditionalGeneration,
 )
 from ultralytics import SAM
+from lmdeploy import pipeline, PytorchEngineConfig, TurbomindEngineConfig
+from autodistill.detection import CaptionOntology
+from autodistill_grounded_sam_2 import GroundedSAM2
 
 
 class Models:
@@ -21,22 +24,46 @@ class Models:
         self.processors: Dict[str, Any] = {}
         self.tokenizers: Dict[str, Any] = {}
 
+    def load_grounding_dino(self) -> None:
+        """Load Grounding DINO model"""
+        base_model = GroundedSAM2(
+            ontology=CaptionOntology(
+                {
+                    "object": "object",
+                }
+            ),
+            model="Grounding DINO",
+        )
+
+        self.models["grounding_dino"] = base_model
+
+    def get_grounding_dino(self):
+        """Get Grounding DINO model"""
+        if "grounding_dino" not in self.models:
+            self.load_grounding_dino()
+        return self.models["grounding_dino"]
+
     # ======================================================================= load models ================================================================================== #
     ############ VLM 1 ############
-    def load_intern_vl_2_5_38B_MPO(self) -> None:
+    def load_intern_vl_2_5_8B(self) -> None:
         """
-        Load InternVL2_5-38B-MPO model
-        https://huggingface.co/OpenGVLab/InternVL2_5-38B-MPO
+        Load InternVL2_5-8B model
+        https://huggingface.co/OpenGVLab/InternVL2_5-8B
         """
         try:
-            path = "OpenGVLab/InternVL2_5-38B-MPO"
-            model = (
-                AutoModel.from_pretrained(path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, use_flash_attn=True, trust_remote_code=True).eval().cuda()
-            )
-            self.models["intern_vl_2_5_38B_MPO"] = model
-            logging.info("Loaded intern_vl_2_5_38B_MPO model successfully")
+            # pipe = pipeline("OpenGVLab/InternVL2-8B")  # OKAY RESULTS, BUT ALMOST FITS THE MEMORY
+            # pipe = pipeline("llava-hf/Llava-interleave-qwen-7b-hf") NO POINTS
+            # pipe = pipeline("microsoft/Phi-3.5-vision-instruct")   # NOT GOOD.
+            # path = "OpenGVLab/InternVL2_5-8B-MPO"
+            # model = (
+            #     AutoModel.from_pretrained(path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, use_flash_attn=True, trust_remote_code=True).eval().cuda()
+            # )
+            model = "OpenGVLab/InternVL2_5-8B-MPO"
+            pipe = pipeline(model, backend_config=TurbomindEngineConfig(session_len=8192))
+            self.models["intern_vl_2_5_8B"] = pipe
+            logging.info("Loaded intern_vl_2_5_8B model successfully")
         except Exception as e:
-            logging.error(f"Failed to load intern_vl_2_5_38B_MPO model: {e}")
+            logging.error(f"Failed to load intern_vl_2_5_8B model: {e}")
             raise
 
     ############ VLM 2 ############
@@ -118,11 +145,11 @@ class Models:
 
     # ======================================================================= get models ================================================================================== #
     ############ VLM 1 ############
-    def get_intern_vl_2_5_38B_MPO(self):
-        """Get InternVL2_5-38B-MPO model"""
-        if "intern_vl_2_5_38B_MPO" not in self.models:
-            self.load_intern_vl_2_5_38B_MPO()
-        return self.models["intern_vl_2_5_38B_MPO"]
+    def get_intern_vl_2_5_8B(self):
+        """Get InternVL2_5-8B model"""
+        if "intern_vl_2_5_8B" not in self.models:
+            self.load_intern_vl_2_5_8B()
+        return self.models["intern_vl_2_5_8B"]
 
     ############ VLM 2 ############
     def get_qwen_2_5_vl_7b(self):
@@ -168,9 +195,9 @@ if __name__ == "__main__":
     model_loader_logger.addHandler(handler)
     model_loader_logger.setLevel(logging.INFO)
 
-    model_loader_logger.info("Loading InternVL2_5-38B-MPO model...")
+    model_loader_logger.info("Loading InternVL2_5-8B model...")
     models = Models()
-    models.load_intern_vl_2_5_38B_MPO()
+    models.load_intern_vl_2_5_8B()
     del models
 
     model_loader_logger.info("Loading Qwen VL 7B model...")

@@ -186,7 +186,6 @@ def main():
         default="deepseek_r1_distill_qwen_32B",
         help="Math LLM model to use",
     )
-    parser.add_argument("--skip_samples", type=int, default=0, help="Number of samples to skip")
     args = parser.parse_args()
 
     # save config details to txt
@@ -237,9 +236,6 @@ def main():
     progress_bar = tqdm(total=total_samples, desc="Processing samples")
 
     for sample_idx, (subdir, _, files) in enumerate(os.walk(args.in_dir)):
-        if sample_idx < args.skip_samples:
-            continue
-
         for filename in files:
             if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                 continue

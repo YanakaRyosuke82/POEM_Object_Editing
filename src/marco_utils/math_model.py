@@ -83,6 +83,18 @@ def parse_transformation_matrix_qwen(reasoning):
         r"\\\[\s*\\begin{pmatrix}\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\\\"
         r"\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\\\"
         r"\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*&\s*([-+]?\d*\.?\d+)\s*\\end{pmatrix}\s*\\\]",
+        # Standard array format with integers
+        r"\[\s*\[\s*([-+]?\d+)\s*,\s*([-+]?\d+)\s*,\s*([-+]?\d+)\s*\]"
+        r"\s*,\s*\[\s*([-+]?\d+)\s*,\s*([-+]?\d+)\s*,\s*([-+]?\d+)\s*\]"
+        r"\s*,\s*\[\s*([-+]?\d+)\s*,\s*([-+]?\d+)\s*,\s*([-+]?\d+)\s*\]\s*\]",
+        # LaTeX style matrix pattern with integers
+        r"\\begin{pmatrix}\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*\\\\"
+        r"\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*\\\\"
+        r"\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*\\end{pmatrix}",
+        # LaTeX style matrix pattern with brackets and integers
+        r"\\\[\s*\\begin{pmatrix}\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*\\\\"
+        r"\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*\\\\"
+        r"\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*&\s*([-+]?\d+)\s*\\end{pmatrix}\s*\\\]",
     ]
 
     matrix_values = None
@@ -150,21 +162,51 @@ def parse_object_id_qwen(reasoning):
         # Standard format
         r"OBJECT_ID:\s*(\d+)",
         # LaTeX boxed format
-        r"\\boxed{.*?,\s*(\d+)}",
+        r"\\boxed{(\d+)}",
         # Plain number after comma in LaTeX
         r"\\end{pmatrix},\s*(\d+)",
         # Number after comma
         r"matrix\},\s*(\d+)",
+        # Just the number after OBJECT_ID:
+        r"OBJECT_ID: (\d+)",
+        # Object ID in code block
+        r"object_id = (\d+)",
+        # Object ID in output block
+        r"OBJECT_ID: (\d+)",
+        # Object ID in LaTeX equation
+        r"\\text{Object ID} = (\d+)",
+        # Object ID in natural language
+        r"object (?:ID|id|Id) (?:is|=) (\d+)",
+        # Object ID in parentheses
+        r"\(object (?:ID|id|Id):\s*(\d+)\)",
+        # Object ID after colon
+        r"(?:ID|id|Id):\s*(\d+)",
     ]
 
     for pattern in patterns:
-        match = re.search(pattern, reasoning)
+        match = re.search(pattern, reasoning, re.IGNORECASE | re.MULTILINE)
         if match:
             try:
                 object_id = int(match.group(1))
                 return object_id
             except ValueError:
                 continue
+
+    # If no pattern matched, try to find just the number after "OBJECT_ID:"
+    if "OBJECT_ID:" in reasoning:
+        try:
+            id_text = reasoning.split("OBJECT_ID:")[1].strip().split()[0]
+            return int(id_text)
+        except (IndexError, ValueError):
+            pass
+
+    # Try to find any standalone number in the text
+    numbers = re.findall(r"\b\d+\b", reasoning)
+    if numbers:
+        try:
+            return int(numbers[0])
+        except ValueError:
+            pass
 
     raise ValueError("Could not find valid object ID in the reasoning output.")
 
@@ -209,15 +251,14 @@ def generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, dev
         Center         : ({obj['center'][0]:.3f}, {obj['center'][1]:.3f})
         ----------------------"""
 
-    messages_deepseek_r1_distill_qwen_32B = [
+    messages_deepseek_r1_distill_qwen_32B_ONUR = [
         {
             "role": "system",
             "content": (
                 "You are a computer vision math expert. Your task is to output a 3x3 transformation matrix and object ID based on the user's edit request.\n\n"
                 "OUTPUT FORMAT REQUIREMENTS:\n"
-                "1. Brief reasoning (max 2 lines)\n"
-                "2. Object ID in format: <<OBJECT_ID_START>>N<<OBJECT_ID_END>> where N is the integer ID\n"
-                "3. Matrix in format:\n"
+                "1. Object ID in format: <<OBJECT_ID_START>>N<<OBJECT_ID_END>> where N is the integer ID\n"
+                "2. Matrix in format:\n"
                 "<<MATRIX_START>>\n"
                 "[[a.aa  b.bb  c.cc]\n"
                 " [d.dd  e.ee  f.ff]\n"
@@ -228,7 +269,7 @@ def generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, dev
                 "- All numbers must be floats with 2 decimal places (1.00 not 1)\n"
                 "- Use exactly 2 spaces between numbers\n"
                 "- Image coordinates: origin at top-left, X right, Y down\n\n"
-                "AVAILABLE TRANSFORMATIONS:\n"
+                "AVAILABLE TRANSFORMATIONS templates:\n"
                 "Translation: [[1.00  0.00  tx], [0.00  1.00  ty], [0.00  0.00  1.00]]\n"
                 "Rotation: [[cos(θ)  -sin(θ)  0.00], [sin(θ)  cos(θ)  0.00], [0.00  0.00  1.00]]\n"
                 "Scale: [[sx  0.00  0.00], [0.00  sy  0.00], [0.00  0.00  1.00]]\n"
@@ -243,91 +284,46 @@ def generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, dev
         },
         {"role": "user", "content": user_edit},
     ]
-
-    mess1 = [
-        {
-            "role": "system",
-            "content": "Integrate natural language reasoning with programs to solve user query. Given the scene content and the user edit, determine the appropriate transformation matrix for the requested edit; and the object ID.\n\n"
-            "Scene content: " + scene_context + "\n\n"
-            "List of possible operations:\n"
-            "1. Translation: Moving objects in x,y directions\n"
-            "   Example: [[1 0 tx][0 1 ty][0 0 1]]\n\n"
-            "2. Rotation: Rotating objects by angle θ\n"
-            "   Example: [[cos(θ) -sin(θ) 0][sin(θ) cos(θ) 0][0 0 1]]\n\n"
-            "3. Scaling: Changing object size\n"
-            "   Example: [[sx 0 0][0 sy 0][0 0 1]]\n\n"
-            "4. Shear: Skewing objects\n"
-            "   Example: [[1 shx 0][shy 1 0][0 0 1]]\n\n"
-            "5. Combined transformations are also allowed:\n"
-            "   Example: multiply the transformation matrices corresponding to the operations. for example translation + rotation = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[1 0 tx][0 1 ty][0 0 1]]; additional examples: translation + scaling = [[1 0 tx][0 1 ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]], translation + rotation + scaling = [[cos(θ) -sin(θ) tx][sin(θ) cos(θ) ty][0 0 1]] * [[sx 0 0][0 sy 0][0 0 1]]   \n\n"
-            " NOTE: I need the output matrix as a numpy array; and the output object ID as an integer\n"
-            "[[0.88 0.  0. ]\n"
-            " [0.  0.88 0. ]\n"
-            " [0.  0.  1. ]]  \n\n",
-        },
-        {"role": "user", "content": user_edit},
-    ]
-
     messages_qwen2_5_math_7b_instruct = [
         {
             "role": "system",
-            "content": (
-                "Integrate natural language reasoning with programs to solve the problem above. You are a mathematical reasoning assistant that generates transformation matrices for image editing operations. Your task is to analyze the edit request and output a precise 3x3 transformation matrix and object ID.\n\n"
-                "Scene Context with Object IDs:\n" + scene_context + "\n\n"
-                "Output Format Requirements:\n"
-                "1. Provide clear mathematical reasoning explaining your approach\n"
-                "2. Use these exact output markers:\n\n"
-                "OBJECT_ID: <number>\n"
-                "TRANSFORMATION_MATRIX:\n"
-                "[[a.aa  b.bb  c.cc]\n"
-                " [d.dd  e.ee  f.ff]\n"
-                " [g.gg  h.hh  i.ii]]\n\n"
-                "Matrix Requirements:\n"
-                "- Must be 3x3 homogeneous transformation matrix\n"
-                "- Use exactly 2 spaces between numbers\n"
-                "- All numbers must be floats with 2 decimal places (e.g. 1.00)\n"
-                "- Follow numpy array format\n"
-                "- Image coordinates: origin at top-left, +X right, +Y down\n\n"
-                "Available Transformation Templates:\n"
-                "1. Translation (move by tx, ty):\n"
-                "   [[1.00  0.00  tx]\n"
-                "    [0.00  1.00  ty]\n"
-                "    [0.00  0.00  1.00]]\n\n"
-                "2. Rotation (by angle θ):\n"
-                "   [[cos(θ)  -sin(θ)  0.00]\n"
-                "    [sin(θ)   cos(θ)  0.00]\n"
-                "    [0.00     0.00    1.00]]\n\n"
-                "3. Scale (by factors sx, sy):\n"
-                "   [[sx    0.00  0.00]\n"
-                "    [0.00  sy    0.00]\n"
-                "    [0.00  0.00  1.00]]\n\n"
-                "4. Shear (by factors shx, shy):\n"
-                "   [[1.00  shx   0.00]\n"
-                "    [shy   1.00  0.00]\n"
-                "    [0.00  0.00  1.00]]\n\n"
-                "5. Flip X:\n"
-                "   [[-1.00  0.00  0.00]\n"
-                "    [0.00   1.00  0.00]\n"
-                "    [0.00   0.00  1.00]]\n\n"
-                "SCENE CONTEXT:\n"
-                f"{scene_context}\n\n"
-                "IMPORTANT:\n"
-                "- Object ID must be from the provided OBJECT DETAILS list\n"
-                "- Matrices can be combined by multiplication for compound transformations\n"
-                "- Ensure mathematical correctness and precise decimal formatting\n"
-            ),
+            "content": "Please integrate natural language reasoning with programs to solve the problem. Your task is to output a 3x3 transformation matrix and object ID based on the user's edit request.\n\n"
+            "Scene content: " + scene_context + "\n\n"
+            "REQUIRED OUTPUT:\n"
+            "1. The word 'MATRIX' followed by the 3x3 transformation matrix\n"
+            "2. The word 'OBJECT_ID' followed by the object ID number\n\n"
+            "TRANSFORMATION MATRIX TEMPLATES:\n"
+            "Translation: [[1.00  0.00  tx], [0.00  1.00  ty], [0.00  0.00  1.00]]\n"
+            "Rotation: [[cos(θ)  -sin(θ)  0.00], [sin(θ)  cos(θ)  0.00], [0.00  0.00  1.00]]\n"
+            "Scale: [[sx  0.00  0.00], [0.00  sy  0.00], [0.00  0.00  1.00]]\n"
+            "Shear: [[1.00  shx  0.00], [shy  1.00  0.00], [0.00  0.00  1.00]]\n"
+            "Flip X: [[-1.00  0.00  0.00], [0.00  1.00  0.00], [0.00  0.00  1.00]]\n\n"
+            "Combined transformations: Multiply matrices with right order.\n"
+            "For example, to scale then translate: Translation_matrix @ Scale_matrix\n\n"
+            "MATRIX RULES:\n"
+            "- Must be exactly 3x3\n"
+            "- All numbers must be floats with 2 decimal places (1.00 not 1)\n"
+            "- Use exactly 2 spaces between numbers\n"
+            "- Image coordinates: origin at top-left, X right, Y down\n\n"
+            "Example output:\n"
+            "MATRIX\n"
+            "[[0.88 0.00 0.00]\n"
+            " [0.00 0.88 0.00]\n"
+            " [0.00 0.00 1.00]]\n"
+            "OBJECT_ID: 1\n",
         },
         {"role": "user", "content": user_edit},
     ]
+
     if model_name == "deepseek_r1_distill_qwen_32B":
-        return messages_deepseek_r1_distill_qwen_32B
+        return messages_deepseek_r1_distill_qwen_32B_ONUR
     elif model_name == "qwen2_5_math_7b_instruct":
         return messages_qwen2_5_math_7b_instruct
     else:
         raise ValueError(f"Model {model_name} not supported")
 
 
-def run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device):
+def run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device, logger):
 
     # 1. generate prompt
     messages = generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, device)
@@ -340,7 +336,7 @@ def run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, s
         generated_ids = [output_ids[len(input_ids) :] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
 
         reasoning = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-        logging.info(f"Model Reasoning (Attempt {attempt + 1}):")
+        logger.info(f"Model Reasoning (Attempt {attempt + 1}):")
 
         try:
             if model_name == "deepseek_r1_distill_qwen_32B":
@@ -352,26 +348,26 @@ def run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, s
             else:
                 raise ValueError(f"Model {model_name} not supported")
             return matrix, object_id, reasoning
-        except:
+        except Exception as e:  # Catch specific exception for better error handling
             if attempt == 4:  # Last attempt
-                logging.error("Failed to parse matrix after 5 attempts")
-                raise
-            logging.warning(f"Failed to parse matrix on attempt {attempt + 1}, retrying...")
+                logger.warning(f"Failed to parse matrix after 5 attempts: {str(e)}, using identity matrix and object_id=1")
+                identity_matrix = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+                return identity_matrix, 1, reasoning
+            logger.error(f"Failed to parse matrix on attempt {attempt + 1}: {str(e)}, retrying...")
             continue
 
 
-def run_math_analysis(user_edit: str, file_path: str, model_name: str, model: Any, tokenizer: Any, device: str):
+def run_math_analysis(user_edit: str, file_path: str, model_name: str, model: Any, tokenizer: Any, device: str, logger):
     try:
         # 0. parse detection file with enhanced information
         file_dir = os.path.dirname(file_path)
         objects, scene_desc, spatial_rel = parse_detection_file(file_path)
 
         # 2. run math llm
-        matrix_array, object_id, reasoning = run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device)
+        matrix_array, object_id, reasoning = run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device, logger)
 
-        logging.info("Parsed Matrix: \n" + str(matrix_array))
-        logging.info("Parsed Matrix: \n" + str(matrix_array))
-        logging.info("Object ID:" + str(object_id))
+        logger.info("Parsed Matrix: \n" + str(matrix_array))
+        logger.info("Object ID:" + str(object_id))
 
         # 3. save files
         TRANSFORMATION_MATRIX_FILE = f"{file_dir}/transformation_matrix.npy"

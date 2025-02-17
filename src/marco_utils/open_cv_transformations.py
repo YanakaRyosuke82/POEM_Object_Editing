@@ -161,6 +161,37 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, oracle_mask_p
     plt.plot([0, width - 1, width - 1, 0, 0], [0, 0, height - 1, height - 1, 0], "k-", linewidth=1)  # Add corners
     plt.axis("off")
 
+    # Save individual subplot figures
+    for idx, name in enumerate(["original", "transformed", "overlay"], 1):
+        fig = plt.figure(figsize=(5, 5))
+        plt.subplot(111)
+        if idx == 1:
+            # Original mask visualization
+            plt.imshow(np.zeros((height, width, 3), dtype=np.uint8) + 255)
+            mask_overlay = np.zeros((height, width, 4))
+            mask_overlay[binary_mask > 0] = [0, 0.47, 1, 0.8]
+            plt.imshow(mask_overlay)
+        elif idx == 2:
+            # Transformed mask visualization
+            plt.imshow(np.zeros((height, width, 3), dtype=np.uint8) + 255)
+            mask_overlay = np.zeros((height, width, 4))
+            mask_overlay[transformed_mask > 0] = [1, 0.2, 0.2, 0.8]
+            plt.imshow(mask_overlay)
+        else:
+            # Overlay comparison
+            plt.imshow(np.zeros((height, width, 3), dtype=np.uint8) + 255)
+            mask_overlay = np.zeros((height, width, 4))
+            mask_overlay[binary_mask > 0] = [0, 0.47, 1, 0.5]
+            plt.imshow(mask_overlay)
+            mask_overlay = np.zeros((height, width, 4))
+            mask_overlay[transformed_mask > 0] = [1, 0.2, 0.2, 0.5]
+            plt.imshow(mask_overlay)
+        plt.plot([0, width - 1, width - 1, 0, 0], [0, 0, height - 1, height - 1, 0], "k-", linewidth=1)
+        plt.axis("off")
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"transformation_vis_{name}.png"), transparent=False, dpi=300, bbox_inches="tight", pad_inches=0)
+        plt.close(fig)
+
     # Add overall title and adjust layout
     # plt.suptitle('Mask Transformation Analysis', fontsize=18, y=1.05)  # Increased from 16
     plt.tight_layout()
