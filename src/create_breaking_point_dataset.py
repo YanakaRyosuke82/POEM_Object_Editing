@@ -39,7 +39,7 @@ def create_mask(size=(512, 512), save_path="image_mask.png"):
 
 
 def create_breaking_point_dataset(image_path, dataset_name="breaking_point_dataset", object_name="mug"):
-    """Create breaking point dataset with resize instructions"""
+    """Create breaking point dataset with translation instructions"""
 
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Input image not found: {image_path}")
@@ -51,8 +51,8 @@ def create_breaking_point_dataset(image_path, dataset_name="breaking_point_datas
     base_dir = os.path.join(dataset_name, "input")
     os.makedirs(base_dir, exist_ok=True)
 
-    # Generate samples for each scale
-    for i, scale in enumerate(range(90, 0, -10), 1):
+    # Generate samples for each translation in pixels
+    for i, translation in enumerate(range(50, 401, 50), 1):
         # Create sample directory
         sample_dir = os.path.join(base_dir, f"sample_{i:03d}")
         os.makedirs(sample_dir, exist_ok=True)
@@ -68,16 +68,16 @@ def create_breaking_point_dataset(image_path, dataset_name="breaking_point_datas
         # Create edit instruction file
         instruction_path = os.path.join(sample_dir, "edit_instruction.txt")
         with open(instruction_path, "w") as f:
-            f.write(f"resize the {object_name} to {scale}% of its original size")
+            f.write(f"move the {object_name} to the left by {translation} pixels")
 
     print(f"Dataset created with {i} samples in {dataset_name}/input/")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Create a breaking point dataset with resize instructions")
+    parser = argparse.ArgumentParser(description="Create a breaking point dataset with translation instructions")
     parser.add_argument("image_path", type=str, help="Path to the input image")
     parser.add_argument("--dataset-name", type=str, default="breaking_point_dataset", help="Name of the dataset (default: breaking_point_dataset)")
-    parser.add_argument("--name", type=str, default="mug", help="Name of the object to resize (default: mug)")
+    parser.add_argument("--name", type=str, default="mug", help="Name of the object to translate (default: mug)")
 
     args = parser.parse_args()
 

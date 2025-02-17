@@ -1,5 +1,6 @@
 from diffusers import DiffusionPipeline
 import torch
+import sys
 
 # load both base & refiner
 base = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16, use_safetensors=True)
@@ -17,18 +18,28 @@ refiner.to("cuda")
 n_steps = 50
 high_noise_frac = 0.8
 
+# Get dataset_name as argument
+if len(sys.argv) < 2:
+    print("Usage: python generate_synthetic_image.py <dataset_name>")
+    sys.exit(1)
 
-dataset_name = "generate_yyy"
+dataset_name = "synthetic_dataset_" + sys.argv[1]
 
 # prompts = [
 #     "A realistic image of one single red apple and an orange pumpkin on a dark brown wooden table against a deep black background. Soft, moody lighting highlights their textures, with the apple smooth and shiny, and the pumpkin rough with visible ridges."
 # ]
-
-
 prompts = [
-    "an orange tabby cat sitting next to a big red ball on a light gray floor, both objects clearly visible and centered in frame, soft even lighting from above, minimalist composition with solid neutral background, photographic quality",
-    "a blue mug next to a red apple on a matte brown wooden table, objects placed side by side with small gap between them, soft diffused natural lighting from above, centered in frame, clean simple composition with solid light gray background, photographic quality",
+    "a green apple next to a green book on a wooden table. soft natural lighting, objects fully visible in frame, simple composition",
 ]
+# prompts = [
+#     "a green tennis ball and a blue toy car on a white surface, both objects clearly visible and easily movable, soft even lighting from above, minimalist composition with solid neutral background, photographic quality"
+# ]
+
+
+# prompts = [
+#     "an orange tabby cat sitting next to a big red ball on a light gray floor, both objects clearly visible and centered in frame, soft even lighting from above, minimalist composition with solid neutral background, photographic quality",
+#     "a blue mug next to a red apple on a matte brown wooden table, objects placed side by side with small gap between them, soft diffused natural lighting from above, centered in frame, clean simple composition with solid light gray background, photographic quality",
+# ]
 
 # prompts = [
 #     "a red apple and a yellow banana lying side by side on a light gray table, soft natural lighting, objects fully visible in frame, simple composition",
