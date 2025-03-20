@@ -1,13 +1,34 @@
-.venv 
+.venv
 .venv2
+env
 __pycache__
 .vscode/
 error/
 *.pt
 *.out
 *.err
-# Ignore all directories except src, scripts, and docs
-*/
-!src/
-!scripts/
-!docs/
+
+POSE_supplementary/onur_benchmark
+
+POSE_supplementary/instruct-pix2pix/onur_benchmark_output
+POSE_supplementary/instruct-pix2pix/env
+POSE_supplementary/ledits_plusplus/onur_benchmark_output_ledits_plusplus
+POSE_supplementary/ledits_plusplus/env
+POSE_supplementary/turbo_edit/output_turbo_edits
+POSE_supplementary/turbo_edit/env
+# Ignore specific POSE_supplementary subdirectories
+POSE_supplementary/onur_benchmark/
+
+POSE_supplementary/instruct-pix2pix/onur_benchmark_output/
+POSE_supplementary/instruct-pix2pix/env/
+POSE_supplementary/ledits_plusplus/onur_benchmark_output_ledits_plusplus/
+POSE_supplementary/ledits_plusplus/env/
+POSE_supplementary/turbo_edit/output_turbo_edits/
+POSE_supplementary/turbo_edit/env/
+
+# # Ignore all directories except src, scripts, docs and POSE_supplementary
+# */
+# !src/
+# !scripts/
+# !docs/
+# !POSE_supplementary/
