@@ -7,24 +7,15 @@ error/
 *.pt
 *.out
 *.err
-
-POSE_supplementary/onur_benchmark
-
-POSE_supplementary/instruct-pix2pix/onur_benchmark_output
-POSE_supplementary/instruct-pix2pix/env
-POSE_supplementary/ledits_plusplus/onur_benchmark_output_ledits_plusplus
-POSE_supplementary/ledits_plusplus/env
-POSE_supplementary/turbo_edit/output_turbo_edits
-POSE_supplementary/turbo_edit/env
-# Ignore specific POSE_supplementary subdirectories
+# Ignore benchmark directories
 POSE_supplementary/onur_benchmark/
 
-POSE_supplementary/instruct-pix2pix/onur_benchmark_output/
-POSE_supplementary/instruct-pix2pix/env/
-POSE_supplementary/ledits_plusplus/onur_benchmark_output_ledits_plusplus/
-POSE_supplementary/ledits_plusplus/env/
-POSE_supplementary/turbo_edit/output_turbo_edits/
-POSE_supplementary/turbo_edit/env/
+# Ignore model-specific directories
+POSE_supplementary/instruct-pix2pix/onur_benchmark_ip2p
+POSE_supplementary/ledits_plusplus/onur_benchmark_leditspp
+POSE_supplementary/turbo_edit/onur_benchmark_turboedit
+
+
 
 # # Ignore all directories except src, scripts, docs and POSE_supplementary
 # */
