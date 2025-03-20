@@ -1,10 +1,10 @@
 import torch
 import numpy as np
 from . import utils
-from marco_utils import torch_device
+from utils_pose import torch_device
 import matplotlib.pyplot as plt
 from PIL import Image
-import marco_utils.models as models
+import utils_pose.models as models
 import torch.nn.functional as F
 from torchvision import transforms as tvt
 import os
@@ -734,7 +734,7 @@ def coord_transform(coords, width):
 def inverse_warp_with_transformation_matrix(A, roi_A, B, roi_B_target, seg_map, transform_matrix):
     """
     Perform an inverse warping with affine transformation of a region from matrix A to B.
-    
+
     Parameters:
     - A: Source tensor [51, 1, 4, 64, 64]
     - roi_A: Source region [x_min, x_max, y_min, y_max]
@@ -746,11 +746,11 @@ def inverse_warp_with_transformation_matrix(A, roi_A, B, roi_B_target, seg_map, 
     # Prepare tensors
     A = A.squeeze(1)  # [51, 4, 64, 64]
     B = B.squeeze(1)
-    
+
     # Extract source ROI dimensions
     x_min, x_max, y_min, y_max = roi_A
     h, w = y_max - y_min, x_max - x_min
-    
+
     # Calculate corners of the source ROI
     corners = torch.tensor([
         [-w/2, -h/2, 1],
@@ -758,11 +758,11 @@ def inverse_warp_with_transformation_matrix(A, roi_A, B, roi_B_target, seg_map, 
         [w/2, h/2, 1],
         [-w/2, h/2, 1]
     ], dtype=torch.float32, device=A.device)
-    
+
     # Transform corners to find new bounding box
     transform = torch.from_numpy(transform_matrix).float().to(A.device)
     transformed_corners = torch.matmul(corners, transform.T)
-    
+
     # Calculate new bounding box size
     min_x = transformed_corners[:, 0].min().floor().long()
     max_x = transformed_corners[:, 0].max().ceil().long()
@@ -770,43 +770,43 @@ def inverse_warp_with_transformation_matrix(A, roi_A, B, roi_B_target, seg_map, 
     max_y = transformed_corners[:, 1].max().ceil().long()
     new_w = max_x - min_x
     new_h = max_y - min_y
-    
+
     # Create coordinate grid for the source ROI
     y_range = torch.arange(h, dtype=torch.float32, device=A.device)
     x_range = torch.arange(w, dtype=torch.float32, device=A.device)
     y_coords, x_coords = torch.meshgrid(y_range, x_range)
-    
+
     # Center coordinates
     x_coords = x_coords - w/2
     y_coords = y_coords - h/2
-    
+
     # Create homogeneous coordinates
     ones = torch.ones_like(x_coords)
     source_coords = torch.stack([x_coords, y_coords, ones], dim=-1).float()
-    
+
     # Transform coordinates
     transformed_coords = torch.matmul(source_coords, transform.T)
-    
+
     # Calculate target center (from roi_B_target)
     x_min_t, x_max_t, y_min_t, y_max_t = roi_B_target
     target_center_x = (x_min_t + x_max_t) // 2
     target_center_y = (y_min_t + y_max_t) // 2
-    
+
     # Shift coordinates to target position
     transformed_coords[..., 0] = transformed_coords[..., 0] + target_center_x
     transformed_coords[..., 1] = transformed_coords[..., 1] + target_center_y
-    
+
     # Round to nearest pixel and clip to image boundaries
     target_x = transformed_coords[..., 0].long().clamp(0, 63)
     target_y = transformed_coords[..., 1].long().clamp(0, 63)
-    
+
     # Create and transform segmentation mask
     seg_mask = torch.from_numpy(seg_map).float()
     roi_seg_mask = seg_mask[y_min:y_max, x_min:x_max]
-    
+
     # Create target mask and transformed content
     new_mask = torch.zeros((64, 64), dtype=bool, device=A.device)
-    
+
     # First, create a mask for the transformed bounding box
     bbox_mask = torch.zeros((64, 64), dtype=bool, device=A.device)
     bbox_min_x = max(0, target_center_x - new_w//2)
@@ -814,7 +814,7 @@ def inverse_warp_with_transformation_matrix(A, roi_A, B, roi_B_target, seg_map, 
     bbox_min_y = max(0, target_center_y - new_h//2)
     bbox_max_y = min(63, target_center_y + new_h//2)
     bbox_mask[bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x] = True
-    
+
     # Copy transformed pixels and update mask
     for batch in range(A.shape[0]):
         for channel in range(A.shape[1]):
@@ -824,18 +824,18 @@ def inverse_warp_with_transformation_matrix(A, roi_A, B, roi_B_target, seg_map, 
                     if roi_seg_mask[i, j]:  # Only copy if within source segmentation mask
                         B[batch, channel, ty, tx] = A[batch, channel, y_min + i, x_min + j]
                         new_mask[ty, tx] = True
-    
+
     # Set to black all pixels inside bbox but outside segmentation mask
     pixels_to_zero = bbox_mask & ~new_mask
     B[:, :, pixels_to_zero] = 0
-    
+
     # Restore dimensions
     A = A.unsqueeze(1)
     B = B.unsqueeze(1)
-    
+
     # Update roi_B_target with new bounds
     roi_B_target = (bbox_min_x, bbox_max_x, bbox_min_y, bbox_max_y)
-    
+
     return B, new_mask
 
 
@@ -925,11 +925,11 @@ def compose_latents_with_alignment(
         angle_rad = math.radians(angle)
         cos_theta = math.cos(angle_rad)
         sin_theta = math.sin(angle_rad)
-        
+
         # Create 3x3 affine transformation matrix for 45 degree rotation
         transform_matrix = np.array([
             [cos_theta, -sin_theta, 0],
-            [sin_theta, cos_theta, 0], 
+            [sin_theta, cos_theta, 0],
             [0, 0, 1]
         ])
 
@@ -955,7 +955,7 @@ def compose_latents_with_alignment(
         for i in range(0, len(new_latents), step_size):
             latent = new_latents[i]
             latent_viz = latent / 0.18215
-        
+
             # Visualize latent channels
             latent_channels = latent_viz[0, :3]
             latent_channels = (latent_channels - latent_channels.min()) / (
@@ -1083,7 +1083,7 @@ def compose_latents_with_alignment(
 
 
 def get_init_bg(model_dict):
-    from marco_utils.models import pipelines
+    from utils_pose.models import pipelines
 
     print("haha here am I!", flush=True)
     init_image = Image.open("check.png")

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import math
-import marco_utils
+import utils_pose
 from PIL import Image, ImageDraw
 import numpy as np
 from . import parse
@@ -217,7 +217,7 @@ def visualize_bboxes(bboxes, H, W):
     num_boxes = len(bboxes)
     for ind, bbox in enumerate(bboxes):
         plt.subplot(1, num_boxes, ind + 1)
-        fg_mask = marco_utils.proportion_to_mask(bbox, H, W)
+        fg_mask = utils_pose.proportion_to_mask(bbox, H, W)
         plt.title(f"transformed bbox ({ind})")
         plt.imshow(fg_mask.cpu().numpy())
     plt.show()

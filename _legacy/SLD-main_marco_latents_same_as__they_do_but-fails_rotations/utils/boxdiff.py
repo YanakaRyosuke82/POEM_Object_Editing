@@ -10,7 +10,7 @@ import math
 import warnings
 import gc
 from collections.abc import Iterable
-import marco_utils
+import utils_pose
 from . import guidance
 from .attn import GaussianSmoothing
 
@@ -60,7 +60,7 @@ def _compute_max_attention_per_index(attention_maps: torch.Tensor,
                 obj_boxes = [obj_boxes]
 
             for obj_box in obj_boxes:
-                x_min, y_min, x_max, y_max = marco_utils.scale_proportion(
+                x_min, y_min, x_max, y_max = utils_pose.scale_proportion(
                     obj_box, H=H, W=W)
                 obj_mask[y_min: y_max, x_min: x_max] = 1
 
@@ -149,7 +149,7 @@ def compute_ca_loss_boxdiff(saved_attn, bboxes, object_positions, guidance_attn_
 
     if ref_ca_saved_attns is not None:
         warnings.warn('Attention reference loss is enabled in boxdiff mode. The original boxdiff does not have attention reference loss.')
-        
+
         ref_loss = torch.tensor(0).float().cuda()
         ref_loss = guidance.add_ref_ca_loss_per_attn_map_to_lossv2(
             ref_loss, saved_attn=saved_attn, object_number=object_number, bboxes=bboxes, object_positions=object_positions, guidance_attn_keys=guidance_attn_keys,

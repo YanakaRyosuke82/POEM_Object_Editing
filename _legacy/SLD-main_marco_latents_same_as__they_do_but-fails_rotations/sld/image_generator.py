@@ -1,11 +1,11 @@
 import torch
-import marco_utils.models as models
-import marco_utils
+import utils_pose.models as models
+import utils_pose
 import numpy as np
 from easydict import EasyDict
 
-from marco_utils.models import pipelines, sam, model_dict
-from marco_utils import parse, guidance, attn, latents, vis
+from utils_pose.models import pipelines, sam, model_dict
+from utils_pose import parse, guidance, attn, latents, vis
 from utils.latents import get_scaled_latents
 from sld.utils import DEFAULT_SO_NEGATIVE_PROMPT, DEFAULT_OVERALL_NEGATIVE_PROMPT
 
@@ -112,7 +112,7 @@ def generate_single_object_with_box(
     )
     # `saved_cross_attn_keys` kwargs may have duplicates
 
-    marco_utils.free_memory()
+    utils_pose.free_memory()
 
     single_object_pil_image_box_ann = single_object_pil_images_box_ann[0]
 
@@ -274,7 +274,7 @@ def run(
 
     frozen_step_ratio = min(max(frozen_step_ratio, 0.0), 1.0)
     frozen_steps = int(num_inference_steps * frozen_step_ratio)
-    
+
 
     original_remove = spec["remove_region"].astype(np.bool_)
     # print(
@@ -326,7 +326,7 @@ def run(
                     prompt,
                     phrase,
                     word,
-                    marco_utils.get_centered_box(
+                    utils_pose.get_centered_box(
                         bbox, horizontal_center_only=so_horizontal_center_only
                     ),
                 )
@@ -553,7 +553,7 @@ def run(
 
             # Foreground should be frozen
             frozen_mask = (foreground_indices != 0).to(torch.float32).cuda()
-            
+
             # TODO: It seems like there are some bugs
             print(f"Final prompt: {overall_prompt}")
             with torch.autocast("cuda", enabled=use_autocast):
@@ -602,7 +602,7 @@ def run(
         generator = torch.manual_seed(
             bg_seed
         )  # Seed generator to create the inital latent noise
-        
+
 
         latents_bg = get_scaled_latents(
             51,
@@ -650,6 +650,6 @@ def run(
             )
             print("Generation from composed latents (with semantic guidance)")
 
-    marco_utils.free_memory()
+    utils_pose.free_memory()
 
     return EasyDict(image=images[0], so_img_list=so_img_list, final_prompt=prompt)

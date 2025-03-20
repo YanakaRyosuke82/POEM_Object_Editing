@@ -15,9 +15,9 @@ import torch
 import diffusers
 
 # Libraries heavily borrowed from LMD
-import marco_utils.models as models
-from marco_utils.models import sam
-from marco_utils import parse, utils
+import utils_pose.models as models
+from utils_pose.models import sam
+from utils_pose import parse, utils
 
 # SLD specific imports
 from sld.detector import OWLVITV2Detector
@@ -46,7 +46,7 @@ def load_custom_masks(data_entry):
     if "custom_transforms" not in data_entry:
         logging.info("No custom transforms found")
         return None
-        
+
     custom_masks = {}
     for obj_name, transform_data in data_entry["custom_transforms"].items():
         logging.info(f"Loading custom transform for object: {obj_name}")
@@ -55,19 +55,19 @@ def load_custom_masks(data_entry):
             source_mask_path = transform_data["source_mask"]
             logging.info(f"Loading source mask from: {source_mask_path}")
             source_mask = np.load(source_mask_path)
-            
+
             # Load transform matrix
             logging.info(f"Loading transform matrix for {obj_name}")
             transform_matrix = np.array(transform_data["transform_matrix"])
             logging.info(f"Transform matrix: \n{transform_matrix}")
-            
+
             custom_masks[obj_name] = (source_mask, transform_matrix)
             logging.info(f"Successfully loaded custom transform for {obj_name}")
             logging.info(f"Mask shape: {source_mask.shape}, Matrix shape: {transform_matrix.shape}")
         except Exception as e:
             logging.error(f"Error loading custom transform for {obj_name}: {str(e)}")
             raise
-    
+
     return custom_masks
 
 
@@ -110,7 +110,7 @@ def get_repos_info(entry, move_objects, models, config, custom_masks=None):
     if not move_objects:
         logging.info("No objects to reposition")
         return []  # Return empty list instead of move_objects
-        
+
     image_source = np.array(Image.open(entry["output"][-1]))
     H, W, _ = image_source.shape
     logging.info(f"Source image shape: {image_source.shape}")
@@ -120,7 +120,7 @@ def get_repos_info(entry, move_objects, models, config, custom_masks=None):
     for item in move_objects:
         obj_name = item[0][0]  # Get object name
         logging.info(f"Processing object: {obj_name}")
-        
+
         if False or (custom_masks is not None and obj_name in custom_masks):
             logging.info(f"Using custom mask for {obj_name}")
             try:
@@ -129,26 +129,26 @@ def get_repos_info(entry, move_objects, models, config, custom_masks=None):
                 logging.info(f"Mask shape: {mask.shape}, Transform matrix shape: {transform.shape}")
                 old_object_region = mask.astype(np.bool_)
 
-                
+
                 # # Save the old object region to disk for visualization
                 # old_object_region_path = os.path.join(os.getcwd(), f"old_object_region_{obj_name}.png")
                 # cv2.imwrite(old_object_region_path, old_object_region.astype(np.uint8) * 255)
                 # logging.info(f"Saved old object region for {obj_name} to {old_object_region_path}")
 
-                
-                
+
+
                 # Apply transformation to the image region
                 logging.info("Applying perspective transform")
                 transformed_img = cv2.warpPerspective(image_source, transform, (W, H))
-                
+
                 # Get latents for the transformed image
                 logging.info("Generating latents for transformed image")
                 all_latents, _ = get_all_latents(transformed_img, models, inv_seed)
-                
+
                 if all_latents is None:
                     logging.error(f"Failed to generate latents for {obj_name}")
                     raise
-                    
+
                 # For custom transforms, use None for the target bbox to ignore layout suggestions
                 new_move_objects.append([
                     obj_name,  # name
@@ -166,12 +166,12 @@ def get_repos_info(entry, move_objects, models, config, custom_masks=None):
             try:
                 new_img, obj = resize_image(image_source, item[0][1], item[1][1])
                 logging.info(f"Resized image shape: {new_img.shape}")
-                
+
                 old_object_region = run_sam_postprocess(
                     run_sam(obj, new_img, models), H, W, config
                 ).astype(np.bool_)
                 logging.info(f"Generated mask shape: {old_object_region.shape}")
-                
+
                 all_latents, _ = get_all_latents(new_img, models, inv_seed)
                 new_move_objects.append(
                     [item[0][0], obj, item[1][1], old_object_region, all_latents]
@@ -263,7 +263,7 @@ def correction(
     logging.info(f"Move objects: {len(move_objects)}")
     logging.info(f"Add objects: {len(add_objects)}")
     logging.info(f"Change objects: {len(change_attr_objects)}")
-    
+
     spec = {
         "add_objects": add_objects,
         "move_objects": move_objects,
@@ -274,13 +274,13 @@ def correction(
         "bg_prompt": entry["bg_prompt"],
         "extra_neg_prompt": entry["neg_prompt"],
     }
-    
+
     logging.info("Created spec dictionary")
     image_source = np.array(Image.open(entry["output"][-1]))
     # Background latent preprocessing
     logging.info("Getting background latents")
     all_latents, _ = get_all_latents(image_source, models, int(config.get("SLD", "inv_seed")))
-    
+
 
 
     logging.info("Inspecting move_objects in spec for correction function")
@@ -385,7 +385,7 @@ if __name__ == "__main__":
             # Load the image and prompt
             rel_fname = data[idx]["input_fname"]
             fname = os.path.join(args.input_dir, f"{rel_fname}.png")
-            
+
             prompt = data[idx]["prompt"]
             dirname = os.path.join(save_dir, data[idx]["output_dir"])
             os.makedirs(dirname, exist_ok=True)
@@ -399,7 +399,7 @@ if __name__ == "__main__":
             # Step 1: Spot Objects with LLM
             llm_parsed_prompt = spot_objects(prompt, data[idx], config)
             entry = {"instructions": prompt, "output": [fname], "generator": data[idx]["generator"],
-                     "objects": llm_parsed_prompt["objects"], 
+                     "objects": llm_parsed_prompt["objects"],
                      "bg_prompt": llm_parsed_prompt["bg_prompt"],
                      "neg_prompt": llm_parsed_prompt["neg_prompt"]
                     }
@@ -410,7 +410,7 @@ if __name__ == "__main__":
 
             # Step 2: Run open vocabulary detector
             print("-" * 5 + f" Running Detector " + "-" * 5)
-            default_attr_threshold = float(config.get("SLD", "attr_detection_threshold")) 
+            default_attr_threshold = float(config.get("SLD", "attr_detection_threshold"))
             default_prim_threshold = float(config.get("SLD", "prim_detection_threshold"))
             default_nms_threshold = float(config.get("SLD", "nms_threshold"))
 
@@ -418,8 +418,8 @@ if __name__ == "__main__":
             prim_threshold = float(config.get(entry["generator"], "prim_detection_threshold", fallback=default_prim_threshold))
             nms_threshold = float(config.get(entry["generator"], "nms_threshold", fallback=default_nms_threshold))
             det_results = det.run(prompt, entry["objects"], entry["output"][-1],
-                                  attr_detection_threshold=attr_threshold, 
-                                  prim_detection_threshold=prim_threshold, 
+                                  attr_detection_threshold=attr_threshold,
+                                  prim_detection_threshold=prim_threshold,
                                   nms_threshold=nms_threshold)
 
             print("-" * 5 + f" Getting Modification Suggestions " + "-" * 5)
@@ -470,13 +470,13 @@ if __name__ == "__main__":
             deletion_region = get_remove_region(
                 entry, deletion_objs, repositioning_objs, [], models, config
             )
-            
+
             # Load custom masks if available
             logging.info("Attempting to load custom masks")
             custom_masks = load_custom_masks(data[idx])
             if custom_masks:
                 logging.info(f"Loaded custom masks for objects: {list(custom_masks.keys())}")
-            
+
             logging.info("Processing repositioning objects")
             repositioning_objs = get_repos_info(
                 entry, repositioning_objs, models, config, custom_masks=custom_masks
@@ -484,7 +484,7 @@ if __name__ == "__main__":
             attr_modification_objs = get_attrmod_latent(
                 entry, attr_modification_objs, models, config
             )
-            
+
             if repositioning_objs is None or len(repositioning_objs) == 0:
                 logging.warning("No objects to reposition after processing")
                 repositioning_objs = []
@@ -492,7 +492,7 @@ if __name__ == "__main__":
             logging.info("Calling correction function")
             ret_dict = correction(
                 entry, addition_objs, repositioning_objs,
-                deletion_region, attr_modification_objs, 
+                deletion_region, attr_modification_objs,
                 models, config
             )
             # Save an intermediate file without the SDXL refinement

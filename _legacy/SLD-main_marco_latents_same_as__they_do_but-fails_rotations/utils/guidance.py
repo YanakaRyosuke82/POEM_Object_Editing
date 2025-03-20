@@ -4,7 +4,7 @@ import math
 from collections.abc import Iterable
 import warnings
 
-import marco_utils
+import utils_pose
 
 
 # A list mapping: prompt index to str (prompt in a list of token str)
@@ -44,7 +44,7 @@ def get_phrase_indices(
     add_suffix_if_not_found=False,
 ):
     # TODO: It sometimes causes weird prompts...
-       
+
     for obj in phrases:
         # Suffix the prompt with object name for attention guidance if object is not in the prompt, using "|" to separate the prompt and the suffix
         if obj not in prompt:
@@ -159,7 +159,7 @@ def add_ca_loss_per_attn_map_to_loss(
 
         for obj_box in obj_boxes:
             # x_min, y_min, x_max, y_max = int(obj_box[0] * W), int(obj_box[1] * H), int(obj_box[2] * W), int(obj_box[3] * H)
-            x_min, y_min, x_max, y_max = marco_utils.scale_proportion(obj_box, H=H, W=W)
+            x_min, y_min, x_max, y_max = utils_pose.scale_proportion(obj_box, H=H, W=W)
             mask[y_min:y_max, x_min:x_max] = 1
 
         for obj_position in object_positions[obj_idx]:
@@ -278,7 +278,7 @@ def add_ref_ca_loss_per_attn_map_to_lossv2(
                 # Same mask for all heads
                 obj_mask = torch.zeros(size=(H, W), device="cuda")
                 # x_min, y_min, x_max, y_max = int(obj_box[0] * W), int(obj_box[1] * H), int(obj_box[2] * W), int(obj_box[3] * H)
-                x_min, y_min, x_max, y_max = marco_utils.scale_proportion(obj_box, H=H, W=W)
+                x_min, y_min, x_max, y_max = utils_pose.scale_proportion(obj_box, H=H, W=W)
                 obj_mask[y_min:y_max, x_min:x_max] = 1
 
                 # keep 1d mask

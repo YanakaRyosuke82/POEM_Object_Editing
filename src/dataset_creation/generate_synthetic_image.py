@@ -55,7 +55,7 @@ prompts = [
 
 
 import os
-from marco_utils.crop_image import resize_and_crop_image
+from utils_pose.crop_image import resize_and_crop_image
 
 for i, prompt in enumerate(prompts):
     # Create folder for this prompt

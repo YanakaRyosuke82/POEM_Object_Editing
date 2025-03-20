@@ -12,13 +12,13 @@ from tqdm import tqdm
 
 
 # Custom utils imports
-from marco_utils.models import Models
-from marco_utils.open_cv_transformations import run_open_cv_transformations
-from marco_utils.sam_refiner import run_sam_refine
-from marco_utils.math_model import run_math_analysis
-from marco_utils.vlm_image_parser import parse_image, save_results_image_parse, mock_parse_detection_file
-from marco_utils.sld_adapter import generate_sld_config
-from marco_utils.grounding_dino_refiner import run_grounding_dino_refine
+from utils_pose.models import Models
+from utils_pose.open_cv_transformations import run_open_cv_transformations
+from utils_pose.sam_refiner import run_sam_refine
+from utils_pose.math_model import run_math_analysis
+from utils_pose.vlm_image_parser import parse_image, save_results_image_parse, mock_parse_detection_file
+from utils_pose.sld_adapter import generate_sld_config
+from utils_pose.grounding_dino_refiner import run_grounding_dino_refine
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 

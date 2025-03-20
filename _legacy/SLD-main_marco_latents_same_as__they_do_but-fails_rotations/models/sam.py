@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from marco_utils.models import torch_device
+from utils_pose.models import torch_device
 from transformers import SamModel, SamProcessor
-import marco_utils
-from marco_utils import vis
+import utils_pose
+from utils_pose import vis
 import cv2
 from scipy import ndimage
 
@@ -66,7 +66,7 @@ def sam(
         del inputs, outputs
 
     # Uncomment if experiencing out-of-memory error:
-    marco_utils.free_memory()
+    utils_pose.free_memory()
     if return_numpy:
         masks = [
             F.interpolate(
@@ -104,7 +104,7 @@ def get_iou_with_resize(mask, masks, masks_shape):
             for mask in masks
         ]
     )
-    return marco_utils.iou(mask, masks)
+    return utils_pose.iou(mask, masks)
 
 
 def select_mask(
@@ -236,7 +236,7 @@ def sam_refine_attn(
             n_erode_dilate_mask=n_erode_dilate_mask_for_box,
         )
 
-        input_boxes = marco_utils.binary_mask_to_box(
+        input_boxes = utils_pose.binary_mask_to_box(
             mask_binary, w_scale=mask_size_scale[0], h_scale=mask_size_scale[1]
         )
         input_boxes = [input_boxes]
@@ -319,7 +319,7 @@ def sam_refine_boxes(
 ):
     # (w, h)
     input_boxes = [
-        [marco_utils.scale_proportion(box, H=height, W=width) for box in boxes_item]
+        [utils_pose.scale_proportion(box, H=height, W=width) for box in boxes_item]
         for boxes_item in boxes
     ]
 
@@ -335,7 +335,7 @@ def sam_refine_boxes(
     for boxes_item, masks_item in zip(boxes, masks):
         mask_selected_list, conf_score_selected_list = [], []
         for box, three_masks in zip(boxes_item, masks_item):
-            mask_binary = marco_utils.proportion_to_mask(box, H, W, return_np=True)
+            mask_binary = utils_pose.proportion_to_mask(box, H, W, return_np=True)
             if verbose >= 2:
                 # Also the box is the input for SAM
                 plt.title("Binary mask from input box (for iou)")

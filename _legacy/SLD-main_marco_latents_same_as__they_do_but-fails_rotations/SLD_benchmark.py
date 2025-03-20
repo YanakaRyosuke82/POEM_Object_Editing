@@ -14,9 +14,9 @@ import torch
 import diffusers
 
 # Libraries heavily borrowed from LMD
-import marco_utils.models as models
-from marco_utils.models import sam
-from marco_utils import parse, utils
+import utils_pose.models as models
+from utils_pose.models import sam
+from utils_pose import parse, utils
 
 # SLD specific imports
 from sld.detector import OWLVITV2Detector
@@ -86,7 +86,7 @@ def get_remove_region(entry, remove_objects, move_objects, preserve_objs, models
 def get_repos_info(entry, move_objects, models, config, custom_masks=None):
     """
     Updates a list of objects to be moved /Updates a list of objects to be moved/reshaped using either SAM-generated masks or custom binary masks.
-    
+
     Parameters:
         entry: Dictionary containing image information
         move_objects: List of objects to move
@@ -99,7 +99,7 @@ def get_repos_info(entry, move_objects, models, config, custom_masks=None):
     # if no remove objects, set zero to the whole mask
     if not move_objects:
         return move_objects
-    
+
     image_source = np.array(Image.open(entry["output"][-1]))
     H, W, _ = image_source.shape
     inv_seed = int(config.get("SLD", "inv_seed"))
@@ -107,18 +107,18 @@ def get_repos_info(entry, move_objects, models, config, custom_masks=None):
     new_move_objects = []
     for item in move_objects:
         obj_name = item[0][0]  # Get object name
-        
+
         if custom_masks is not None and obj_name in custom_masks:
             # Use provided custom mask and transform
             mask, transform = custom_masks[obj_name]
             old_object_region = mask.astype(np.bool_)
-            
+
             # Apply transformation to the image region
             transformed_img = cv2.warpPerspective(image_source, transform, (W, H))
-            
+
             # Get latents for the transformed image
             all_latents, _ = get_all_latents(transformed_img, models, inv_seed)
-            
+
             new_move_objects.append(
                 [item[0][0], None, item[1][1], old_object_region, all_latents]
             )
@@ -299,12 +299,12 @@ if __name__ == "__main__":
         set_file_handler(log_file)
 
         # Check whether we need to do self-correction
-        attr_threshold = float(config.get("eval", "attr_detection_threshold")) 
+        attr_threshold = float(config.get("eval", "attr_detection_threshold"))
         prim_threshold = float(config.get("eval", "prim_detection_threshold"))
         nms_threshold = float(config.get("eval", "nms_threshold"))
 
-        eval_type, eval_success = eval_prompt(prompt, fname, evaluator, 
-                                              prim_score_threshold=prim_threshold, attr_score_threshold=attr_threshold, 
+        eval_type, eval_success = eval_prompt(prompt, fname, evaluator,
+                                              prim_score_threshold=prim_threshold, attr_score_threshold=attr_threshold,
                                               nms_threshold=nms_threshold, use_class_aware_nms=True, use_cuda=True, verbose=False)
         if int(eval_success) >= 1:
             logging.info(f"Image {fname} is already correct!")
@@ -330,7 +330,7 @@ if __name__ == "__main__":
         llm_parsed_prompt, spot_object_raw_response = run_llm_parser(prompt, config)
         chatgpt_data["llm_parser"] = (prompt, spot_object_raw_response)
         entry = {"instructions": prompt, "output": [fname],
-                "objects": llm_parsed_prompt["objects"], 
+                "objects": llm_parsed_prompt["objects"],
                 "bg_prompt": llm_parsed_prompt["bg_prompt"],
                 "neg_prompt": llm_parsed_prompt["neg_prompt"]
                 }
@@ -344,13 +344,13 @@ if __name__ == "__main__":
             logging.info(f"Round {i + 1}")
             # Step 2: Run open vocabulary detector
             logging.info("-" * 5 + f" Running Detector " + "-" * 5)
-            attr_threshold = float(config.get("SLD", "attr_detection_threshold")) 
+            attr_threshold = float(config.get("SLD", "attr_detection_threshold"))
             prim_threshold = float(config.get("SLD", "prim_detection_threshold"))
             nms_threshold = float(config.get("SLD", "nms_threshold"))
 
             det_results = det.run(prompt, entry["objects"], entry["output"][-1],
-                                attr_detection_threshold=attr_threshold, 
-                                prim_detection_threshold=prim_threshold, 
+                                attr_detection_threshold=attr_threshold,
+                                prim_detection_threshold=prim_threshold,
                                 nms_threshold=nms_threshold)
 
             logging.info("-" * 5 + f" Getting Modification Suggestions " + "-" * 5)
@@ -407,10 +407,10 @@ if __name__ == "__main__":
             new_attr_modification_objs = get_attrmod_latent(
                 entry, attr_modification_objs, models, config
             )
-            
+
             ret_dict = correction(
                 entry, addition_objs, repositioning_objs,
-                deletion_region, new_attr_modification_objs, 
+                deletion_region, new_attr_modification_objs,
                 models, config
             )
             # Save an intermediate file without the SDXL refinement
@@ -421,8 +421,8 @@ if __name__ == "__main__":
             entry["output"].append(curr_output_fname)
             utils.free_memory()
             # Evaluate again after self-coorection!
-            eval_type, eval_success = eval_prompt(prompt, curr_output_fname, evaluator, 
-                                                prim_score_threshold=prim_threshold, attr_score_threshold=attr_threshold, 
+            eval_type, eval_success = eval_prompt(prompt, curr_output_fname, evaluator,
+                                                prim_score_threshold=prim_threshold, attr_score_threshold=attr_threshold,
                                                 nms_threshold=nms_threshold, use_class_aware_nms=True, use_cuda=True, verbose=False)
             if int(eval_success) >= 1:
                 logging.info(f"Image {fname} is already correct!")
