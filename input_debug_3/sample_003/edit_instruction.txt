@@ -1,1 +1,0 @@
-resize the dog to be in the same place but to be 15% smaller than the cat.
