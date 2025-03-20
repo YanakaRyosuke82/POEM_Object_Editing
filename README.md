@@ -13,43 +13,35 @@ perform an image-to-image translation guided by the previous steps to generate t
 edited image. This structured pipeline enables precise object-level editing with high
 visual fidelity while preserving spatial and visual coherence.</i></p>
 
-
-
 ## 📦 Installation
 ### Virtual Environment Setup
-Follow these steps to set up the environment:
 ```bash
 module load python3/3.10.12
 module load cuda
-python3 -m venv ./.venv/
-source ./.venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ./scripts/install_packages.sh
 ```
-Note that the LLM **eepseekR1-32GB** requires ~74GB VRAM.
-- **SAM2**: Requires `python>=3.10`, `torch>=2.5.1`, and `torchvision>=0.20.1`
-- **QWEN-Math**: Requires `transformers>=4.37.0`
+**Note:** The LLM **DeepseekR1-32GB** requires ~74GB VRAM.
 
+**Dependencies:**
+- **SAM2**: `python>=3.10`, `torch>=2.5.1`, `torchvision>=0.20.1`
+- **QWEN-Math**: `transformers>=4.37.0`
 
 ## ⚙️ Usage
--  run notebook
-```python
+### Run Jupyter Notebook
+```bash
 python -m notebook --ip 0.0.0.0 --no-browser --port=8080 --allow-root
 ```
-- run pipeline
-```python
-module load python3/3.10.12
-module load cuda
-source ./.venv2/bin/activate
+
+### Run Pipeline
+```bash
 python src/main.py --in_dir input_debug --out_dir output_debug --edit "grayscale"
 ```
 
-
 ## 📐 Notation
-- Image Coordinates: Square images are defined with the top-left at [0, 0] and the bottom-right at [1, 1].
-- Box Format: [Top-left x, Top-left y, Width, Height]
-- Operations: Includes addition, deletion, and repositioning.
-- images are 512x512 squaredl; to keep aspect ratio we put black boxes. NOTE: that instead of black pixles, we use "gray" pixels that is the mean value of the standard imagenet images.
-
+- **Image Coordinates**: Square images have the top-left at `[0, 0]` and bottom-right at `[1, 1]`.
+- **Box Format**: `[Top-left x, Top-left y, Width, Height]`
 
 
 
