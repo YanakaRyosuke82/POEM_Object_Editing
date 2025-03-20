@@ -1,18 +1,11 @@
-# 🚀POEM: Precise Object-level Editing via MLLM control
+# 📜 POEM: Precise Object-level Editing via MLLM control
 
-
-<p align="center">
-  <img src="./docs/fig_summary.png" alt="overview" width="75%"/>
-</p>
-<p><i>An image and a user edit prompt are fed into the
-reasoning stage, where we analyze the scene and extract object-level masks and precise
-transformation parameters for appearance and shape edits. During the editing stage,
-we apply these edits during inference without any additional training or fine-tuning.</i></p>
+This project aims to allow image editing via precise instructions (e.g. move cat to the left by 12.5 px). Our method synthesizes a new image according to the editing instruction. We do this using off-the-shelf diffusion models and MLLMs with no training or fine-tuning.
 
 <p>
   <img src="./docs/fig_method.png" alt="method" width="100%"/>
 </p>
-<p><i>Given an image and an edit prompt, we first
+<p><i><b>Pipeline Description:</b> Given an image and an edit prompt, we first
 use an MLLM to analyze the scene and identify objects. Then, we refine the detections
 and enhance object masks using Grounded SAM. Next, we use a text-based LLM
 to predict the transformation matrix of the initial segmentation mask. Finally, we
@@ -23,11 +16,6 @@ visual fidelity while preserving spatial and visual coherence.</i></p>
 
 
 ## 📦 Installation
-### Requirements
-- **SAM2**: Requires `python>=3.10`, `torch>=2.5.1`, and `torchvision>=0.20.1`
-- **QWEN-Math**: Requires `transformers>=4.37.0`
-- **DeepseekR1-32GB** requires ~74GB VRAM.
-
 ### Virtual Environment Setup
 Follow these steps to set up the environment:
 ```bash
@@ -37,6 +25,9 @@ python3 -m venv ./.venv/
 source ./.venv/bin/activate
 ./scripts/install_packages.sh
 ```
+Note that the LLM **eepseekR1-32GB** requires ~74GB VRAM.
+- **SAM2**: Requires `python>=3.10`, `torch>=2.5.1`, and `torchvision>=0.20.1`
+- **QWEN-Math**: Requires `transformers>=4.37.0`
 
 
 ## ⚙️ Usage
