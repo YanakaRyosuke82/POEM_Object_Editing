@@ -14,3 +14,8 @@ pip3 install autodistill-grounded-sam-2
 
 # quality of life
 pip install tqdm lovely-tensors
+
+
+
+
+

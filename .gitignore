@@ -7,19 +7,18 @@ error/
 *.pt
 *.out
 *.err
+
+
+# Ignore all directories except src, scripts, docs and POSE_supplementary
+*/
+!src/
+!scripts/
+!docs/
+!POSE_supplementary/
+
+
 # Ignore benchmark directories
 POSE_supplementary/onur_benchmark/
-
-# Ignore model-specific directories
 POSE_supplementary/instruct-pix2pix/onur_benchmark_ip2p
 POSE_supplementary/ledits_plusplus/onur_benchmark_leditspp
 POSE_supplementary/turbo_edit/onur_benchmark_turboedit
-
-
-
-# # Ignore all directories except src, scripts, docs and POSE_supplementary
-# */
-# !src/
-# !scripts/
-# !docs/
-# !POSE_supplementary/

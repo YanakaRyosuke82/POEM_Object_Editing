@@ -94,6 +94,7 @@ def run_open_cv_transformations(matrix_transform_file, output_dir, oracle_mask_p
         if "Bounding Box (SLD format):" in line:
             bbox_line_transformed = f"  Bounding Box (SLD format) transformed: {normalized_transformed_bbox}\n"
             analysis_lines.insert(i + 1, bbox_line_transformed)
+
             break
 
     # Write back updated analysis

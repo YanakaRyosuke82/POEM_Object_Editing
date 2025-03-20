@@ -155,6 +155,16 @@ def parse_transformation_matrix_deepseek(reasoning):
     return matrix
 
 
+def parse_appearance_token_qwen(reasoning):
+    """Extract and parse appearance token from model reasoning."""
+    pattern = r"APPEARANCE\s*:\s*([a-zA-Z]+)|APpearances\s*:\s*([a-zA-Z]+)"
+    match = re.search(pattern, reasoning, re.IGNORECASE)
+    if match:
+        return match.group(1) or match.group(2)
+    else:
+        raise ValueError("Could not find appearance token in the reasoning output.")
+
+
 def parse_object_id_qwen(reasoning):
     """Extract and parse object ID (integer) from model reasoning."""
     # Try different patterns for object ID
@@ -259,6 +269,7 @@ def generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, dev
                 "OUTPUT FORMAT REQUIREMENTS:\n"
                 "1. Object ID in format: <<OBJECT_ID_START>>N<<OBJECT_ID_END>> where N is the integer ID\n"
                 "2. Matrix in format:\n"
+                "3. Appearance description in format: <<APPEARANCE_START>><object_id>|<object_class>|<appearance_description><<APPEARANCE_END>>\n"
                 "<<MATRIX_START>>\n"
                 "[[a.aa  b.bb  c.cc]\n"
                 " [d.dd  e.ee  f.ff]\n"
@@ -291,7 +302,8 @@ def generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, dev
             "Scene content: " + scene_context + "\n\n"
             "REQUIRED OUTPUT:\n"
             "1. The word 'MATRIX' followed by the 3x3 transformation matrix\n"
-            "2. The word 'OBJECT_ID' followed by the object ID number\n\n"
+            "2. The word 'OBJECT_ID' followed by the object ID number\n"
+            "3. The word 'APPEARANCE' followed by the appearance token\n\n"
             "TRANSFORMATION MATRIX TEMPLATES:\n"
             "Translation: [[1.00  0.00  tx], [0.00  1.00  ty], [0.00  0.00  1.00]]\n"
             "Rotation: [[cos(θ)  -sin(θ)  0.00], [sin(θ)  cos(θ)  0.00], [0.00  0.00  1.00]]\n"
@@ -305,12 +317,17 @@ def generate_prompt(model_name, user_edit, objects, scene_desc, spatial_rel, dev
             "- All numbers must be floats with 2 decimal places (1.00 not 1)\n"
             "- Use exactly 2 spaces between numbers\n"
             "- Image coordinates: origin at top-left, X right, Y down\n\n"
+            "- The appearance description should be a single WORD token that captures the key visual elements and style of the object. If no appearance change is evident from the user_edit, it must return 'null'.\n\n"
             "Example output:\n"
             "MATRIX\n"
             "[[0.88 0.00 0.00]\n"
             " [0.00 0.88 0.00]\n"
             " [0.00 0.00 1.00]]\n"
-            "OBJECT_ID: 1\n",
+            "OBJECT_ID: 1\n"
+            "APPEARANCE: <TOKEN>\n"
+            "If user does not want to change the appearance of the object, APPEARANCE: null\n"
+            "This is important, do not change the appearance of the object if the user does not want to change it. APPEARANCE field can be the name of a color, texture, or any other visual property."
+            "If user does not want to change the appearance of the object appearance field should be null like this APPEARANCE: null\n",
         },
         {"role": "user", "content": user_edit},
     ]
@@ -336,23 +353,26 @@ def run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, s
         generated_ids = [output_ids[len(input_ids) :] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
 
         reasoning = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+
         logger.info(f"Model Reasoning (Attempt {attempt + 1}):")
 
         try:
             if model_name == "deepseek_r1_distill_qwen_32B":
                 matrix = parse_transformation_matrix_deepseek(reasoning)
                 object_id = parse_object_id_deepseek(reasoning)
+                # appearance_token = parse_appearance_token_deepseek(reasoning)
             elif model_name == "qwen2_5_math_7b_instruct":
                 matrix = parse_transformation_matrix_qwen(reasoning)
                 object_id = parse_object_id_qwen(reasoning)
+                appearance_token = parse_appearance_token_qwen(reasoning)
             else:
                 raise ValueError(f"Model {model_name} not supported")
-            return matrix, object_id, reasoning
+            return matrix, object_id, appearance_token, reasoning
         except Exception as e:  # Catch specific exception for better error handling
             if attempt == 4:  # Last attempt
                 logger.warning(f"Failed to parse matrix after 5 attempts: {str(e)}, using identity matrix and object_id=1")
                 identity_matrix = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-                return identity_matrix, 1, reasoning
+                return identity_matrix, 1, "null", reasoning
             logger.error(f"Failed to parse matrix on attempt {attempt + 1}: {str(e)}, retrying...")
             continue
 
@@ -364,11 +384,13 @@ def run_math_analysis(user_edit: str, file_path: str, model_name: str, model: An
         objects, scene_desc, spatial_rel = parse_detection_file(file_path)
 
         # 2. run math llm
-        matrix_array, object_id, reasoning = run_math_llm(model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device, logger)
+        matrix_array, object_id, appearance_token, reasoning = run_math_llm(
+            model_name, model, tokenizer, user_edit, objects, scene_desc, spatial_rel, device, logger
+        )
 
         logger.info("Parsed Matrix: \n" + str(matrix_array))
         logger.info("Object ID:" + str(object_id))
-
+        logger.info("Appearance Token:" + str(appearance_token))
         # 3. save files
         TRANSFORMATION_MATRIX_FILE = f"{file_dir}/transformation_matrix.npy"
         np.save(TRANSFORMATION_MATRIX_FILE, matrix_array)
@@ -381,7 +403,25 @@ def run_math_analysis(user_edit: str, file_path: str, model_name: str, model: An
         with open(OBJECT_ID_FILE, "w") as f:
             f.write(str(object_id))
 
-        return matrix_array, object_id
+        # 4. save appearance token
+        ENHANCED_FILE_DESCRIPTION = f"{file_dir}/analysis_enhanced.txt"
+        with open(ENHANCED_FILE_DESCRIPTION, "r") as token_file:
+            analysis_lines = token_file.readlines()
+
+        for i, line in enumerate(analysis_lines):
+            if f"Object {object_id}:" in line:
+                appearance_token_line = f"  Appearance Token: {appearance_token}\n"
+                analysis_lines.insert(i + 2, appearance_token_line)
+                break
+
+        with open(ENHANCED_FILE_DESCRIPTION, "w") as token_file:
+            token_file.writelines(analysis_lines)
+
+        APPEARANCE_TOKEN_FILE = f"{file_dir}/appearance_token.txt"
+        with open(APPEARANCE_TOKEN_FILE, "w") as f:
+            f.write(str(appearance_token))
+
+        return matrix_array, object_id, appearance_token
 
     except Exception as e:
         logging.error(f"Error in mathematical analysis for {file_path}: {str(e)}")

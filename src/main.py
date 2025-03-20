@@ -310,7 +310,7 @@ def main():
                 # Step 3:  LLM: Mathematical analysis
                 logger.info(f"Step 3 - LLM Math Analysis for sample {sample_idx}/{num_in_folders}")
                 try:
-                    _, OBJECT_ID = run_math_analysis(
+                    _, OBJECT_ID, APPEARANCE_TOKEN = run_math_analysis(
                         user_edit=USER_EDIT,
                         file_path=analysis_enhanced_file,
                         model_name=args.math_llm_name,
@@ -372,7 +372,7 @@ def main():
                     # Step 5: Generate config_sld.json for the SLD
 
                     logger.info(f"Step 5: SLD Generation for sample {sample_idx}/{num_in_folders}")
-                    generate_sld_config(sample_dir, analysis_enhanced_file)
+                    generate_sld_config(sample_dir, analysis_enhanced_file, USER_EDIT)
                 except:
                     logger.error(f"No SLD config found for object {OBJECT_ID}")
                     continue

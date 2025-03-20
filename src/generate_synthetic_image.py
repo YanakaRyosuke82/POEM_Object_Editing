@@ -29,7 +29,11 @@ dataset_name = "synthetic_dataset_" + sys.argv[1]
 #     "A realistic image of one single red apple and an orange pumpkin on a dark brown wooden table against a deep black background. Soft, moody lighting highlights their textures, with the apple smooth and shiny, and the pumpkin rough with visible ridges."
 # ]
 prompts = [
-    "a green apple next to a green book on a wooden table. soft natural lighting, objects fully visible in frame, simple composition",
+    "a photorealistic image of a single ball on a white surface with an Icelandic landscape in the background",
+    "a photorealistic image of a gold coin on a plain background with Danish countryside scenery",
+    "a photorealistic image of a green pear on a light gray background with Icelandic mountains in the distance",
+    "a photorealistic image of a simple wooden bowl on a plain background with a Danish forest setting",
+    "a photorealistic image of a single orange on a white surface with an Icelandic beach in the background",
 ]
 # prompts = [
 #     "a green tennis ball and a blue toy car on a white surface, both objects clearly visible and easily movable, soft even lighting from above, minimalist composition with solid neutral background, photographic quality"
@@ -59,7 +63,7 @@ for i, prompt in enumerate(prompts):
     os.makedirs(prompt_dir, exist_ok=True)
 
     # Generate 10 images for this prompt
-    for j in range(5):
+    for j in range(10):
         # run both experts
         image = base(
             prompt=prompt,
