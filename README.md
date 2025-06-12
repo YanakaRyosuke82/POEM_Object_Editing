@@ -16,8 +16,6 @@ visual fidelity while preserving spatial and visual coherence.</i></p>
 ## 📦 Installation
 ### Virtual Environment Setup
 ```bash
-module load python3/3.10.12
-module load cuda
 python3 -m venv .venv
 source .venv/bin/activate
 ./scripts/install_packages.sh
